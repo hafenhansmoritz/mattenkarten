@@ -595,7 +595,8 @@ const sideTop: Card2[] = [
   {
     id: "sct_to_mount", plain: "Aufsteigen, draufsetzen", term: "Side to Mount",
     plainDo: "Dein Knie gleitet über seinen Bauch, du sitzt auf ihm.",
-    kind: "angriff", zone: "huefte", slots: [SIDE_T], requires: { huefte: 2 },
+    // B14: Kopf und Hüfte statt Hüfte +2 (JitsuIQ: Kopf/nahen Arm kontrollieren, Hüfte blocken, dann Knie über den Bauch).
+    kind: "angriff", zone: "huefte", slots: [SIDE_T], requires: { kopf: 1, huefte: 1 },
     to: { pos: "mount", role: "top", points: 4 },
     why: "Erst wenn seine Hüfte fest gekeilt ist, kommt dein Knie über den Bauch (Mount, 4 Punkte).",
     keys: ["Knie flach über den Bauch", "Kopf und Arm kontrolliert lassen"],

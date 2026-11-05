@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import type { Card2, Event2, Round2, Side, State2, Zone } from "../types";
+import type { Card2, Event2, Round2, Side, State2, SubTrack, Zone } from "../types";
 import { ZONES } from "../types";
 import {
   newMatch, roleOf, boardFor, legalCards, playRound, aiChoose, threats as threatsOf,
   slotCards, cardById, PASS, KRAFT_MAX,
 } from "../engine";
 import { FightersK2 } from "./FightersK2";
+import type { TapState } from "../../components/fighters/choreo";
 import { Board, deltasOf } from "./Board";
 import { SubTracks } from "./SubTracks";
 import { Hand2 } from "./Hand2";
@@ -135,6 +136,8 @@ export function ArenaK2(props: ArenaK2Props) {
   const [more, setMore] = useState(false);
   const [bubbleDone, setBubbleDone] = useState<number[]>([]);
   const [tapOk, setTapOk] = useState<boolean | null>(null);
+  /** Körper-Animation im Tap-Moment: hold → tapping (Verteidiger klopft) → release (Angreifer lässt los). */
+  const [tapAnim, setTapAnim] = useState<TapState>(null);
   // Vorhersage: Runde ist schon berechnet, wird aber erst nach dem Tipp aufgedeckt.
   const [pending, setPending] = useState<{ pId: string; oId: string; next: State2; r: Round2 } | null>(null);
   const [guess, setGuess] = useState<Prediction | null>(null);
@@ -239,6 +242,8 @@ export function ArenaK2(props: ArenaK2Props) {
       later(st ? 1150 : 650, () => {
         if (next.result?.type === "tap") {
           setPhase(next.result.winner === "o" ? "tap" : "release");
+          // Spieler verteidigt: Griff sitzt, bis er tappt. Spieler greift an: er klopft sofort ab.
+          setTapAnim(next.result.winner === "o" ? "hold" : "tapping");
         } else setPhase("result");
       });
     });
@@ -261,21 +266,28 @@ export function ArenaK2(props: ArenaK2Props) {
   // Tap-/Loslass-Moment: 3,5 s
   useEffect(() => {
     if (phase !== "tap" && phase !== "release") return;
+    if (tapOk) return;
     const t = setTimeout(() => { setTapOk(false); setPhase("end"); (s.result?.winner === "p" ? sfx.win : sfx.lose)(); }, 3500);
     return () => clearTimeout(t);
-  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, tapOk]); // eslint-disable-line react-hooks/exhaustive-deps
   const hitTap = () => {
+    if (tapOk) return;
     if (phase === "tap") game.set({ taps: game.taps + 1 }); else game.set({ releases: game.releases + 1 });
     setTapOk(true);
-    setPhase("end");
-    (s.result?.winner === "p" ? sfx.win : sfx.lose)();
+    // Sicherheit als Belohnung: erst sieht man das Abklopfen bzw. das sofortige Loslassen, dann das Ende.
+    if (phase === "tap") { setTapAnim("tapping"); later(950, () => setTapAnim("release")); }
+    else setTapAnim("release");
+    later(phase === "tap" ? 1800 : 1000, () => {
+      setPhase("end");
+      (s.result?.winner === "p" ? sfx.win : sfx.lose)();
+    });
   };
 
   const rematch = () => {
     const n = matchNo + 1;
     setMatchNo(n);
     const ns = props.initialState ?? startState({ ...props, initialState: undefined }, (tut?.seed ?? props.seed ?? Date.now() % 100000) + n * 7919);
-    setS(ns); setShown(ns); setPhase("pick"); setSel(null); setRound(null); setTapOk(null); setBubbleDone([]);
+    setS(ns); setShown(ns); setPhase("pick"); setSel(null); setRound(null); setTapOk(null); setTapAnim(null); setBubbleDone([]);
     setPending(null); setGuess(null); setPredStats({ n: 0, ok: 0 });
     setCards({ p: null, o: null });
   };
@@ -286,6 +298,8 @@ export function ArenaK2(props: ArenaK2Props) {
   const zoneHL = round && round.focusZone && phase !== "pick" && phase !== "flip"
     ? { side: (round.winner === "o" ? "o" : "p") as Side, zone: round.focusZone } : null;
   const sameZone = !!(cards.p && cards.o && cards.p.zone === cards.o.zone);
+  // Am weitesten fortgeschrittene Aufgabe-Leiste → Körperanimation (Schritt 1–3)
+  const liveSub = useMemo(() => shown.subs.reduce<SubTrack | null>((b, t) => (t.step > 0 && (!b || t.step > b.step) ? t : b), null), [shown.subs]);
   const showCards = (phase === "flip" || phase === "impact") && (cards.p || cards.o);
 
   const threatLine = useMemo(() => {
@@ -322,7 +336,7 @@ export function ArenaK2(props: ArenaK2Props) {
 
       {/* Szene */}
       <section className="k2-stage">
-        <FightersK2 pos={shown.pos} top={shown.top} zone={zoneHL} {...fx} className="k2-fighters" />
+        <FightersK2 pos={shown.pos} top={shown.top} zone={zoneHL} sub={liveSub} tap={tapAnim} {...fx} className="k2-fighters" />
         {burst && <ImpactBurst key={burst} x="50%" y="58%" onDone={() => setBurst(null)} />}
         {floats.map((f) => (
           <FloatText key={f.key} text={f.text} color={f.color} x={f.x} y="40%" onDone={() => setFloats((fs) => fs.filter((x) => x.key !== f.key))} />
@@ -407,10 +421,13 @@ export function ArenaK2(props: ArenaK2Props) {
       <AnimatePresence>
         {(phase === "tap" || phase === "release") && s.result?.type === "tap" && (
           <motion.div className="tap-overlay k2-tap" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="k2-tap-fig" aria-hidden="true">
+              <FightersK2 pos={shown.pos} top={shown.top} sub={liveSub} tap={tapAnim} />
+            </div>
             <span className="label">{s.result.sub} sitzt</span>
             <h2 className="display">{phase === "tap" ? "Klopf ab!" : "Er klopft ab!"}</h2>
             <p>{phase === "tap" ? "Früh und deutlich abklopfen. Verlieren gehört dazu – verletzt sein nicht." : "Sofort loslassen. Dein Partner vertraut dir."}</p>
-            <motion.button type="button" className={`tap-btn ${phase}`} onClick={hitTap} autoFocus
+            <motion.button type="button" className={`tap-btn ${phase}`} onClick={hitTap} autoFocus disabled={!!tapOk}
               animate={reduced ? undefined : { scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 0.6 }}>
               {phase === "tap" ? "TAP" : "LOSLASSEN"}
             </motion.button>

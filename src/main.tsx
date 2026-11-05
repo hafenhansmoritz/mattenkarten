@@ -17,10 +17,14 @@ import { registerSW } from "./pwa";
 registerSW();
 import { App } from "./App";
 
+// Entwickler-Labor für die Kämpfer-Szenen (?figlab) – eigener Chunk, im normalen Spiel nie geladen.
+const FighterLab = React.lazy(() => import("./core2/ui/FighterLab"));
+const LAB = new URLSearchParams(location.search).has("figlab");
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <MotionConfig reducedMotion="user">
-      <App />
+      {LAB ? <React.Suspense fallback={null}><FighterLab /></React.Suspense> : <App />}
     </MotionConfig>
   </React.StrictMode>,
 );

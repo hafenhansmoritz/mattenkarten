@@ -38,6 +38,13 @@ function foeZoneHabits(s: State2, side: Side): Record<Zone, number> {
   return out;
 }
 
+/** B15 Stufe 2 „Offene Tür“: Bonus für einen Positionsangriff, wenn der Gegner in dieser Zone gerade keinen Rahmen hat. */
+const OPEN_DOOR = 3;
+/** B15 Stufe 2 „Position halten“: Rahmen gegen eine drohende Flucht aus Side Control, Mount, Rücken oder Turtle (oben). */
+const HOLD_BONUS = 1.5;
+/** B15 Stufe 2 „Keile“: Aufbauen, das einem gegnerischen Positionsangriff die Voraussetzung nimmt. */
+const WEDGE_BONUS = 2;
+
 function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => number): number {
   const b = boardFor(s, side);
   const role = roleOf(s, side);
@@ -47,6 +54,7 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
   const foeSubs = s.subs.filter((t) => t.owner !== side);
   const need = neededZones(s, side);
   const habits = level === 3 ? foeZoneHabits(s, side) : null;
+  const foeOk = okCards(s, other(side));
   let v = 0;
 
   if (c.kind === "angriff") {
@@ -63,6 +71,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
       v += gain * 1.2 + (c.to.points ?? 0) * 0.6;
       if (role === "bottom" && c.to.role !== "bottom") v += 3; // Befreiung
       if (mySubs.some((t) => t.step >= 1) && gain <= 2) v -= 3; // laufende Aufgabe nicht wegwerfen
+      // Offene Tür: sein Rahmen in dieser Zone ist gerade gesperrt (eben gespielt) – jetzt vorbei.
+      if (gain > 0 && !foeOk.some((x) => x.kind === "rahmen" && x.zone === c.zone)) v += OPEN_DOOR;
     }
     // Läuft der Gegner bei mir in dieselbe Zone mit Rahmen? Stufe 2: pauschales Risiko.
     v -= 0.8;
@@ -74,6 +84,11 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     if (b[c.zone] >= 2) v -= 3; // bereits voll
     if (c.alsoGain) for (const z of ZONES) if (c.alsoGain[z] && b[z] < 2) v += 0.6 + (need[z] ?? 0) * 0.8;
     if (thrZones.has(c.zone)) v -= 1.5; // dort droht ein Angriff (Angriff > Aufbauen)
+    // B15 Keile: ein Gewinn hier nimmt seinem Positionsangriff die Voraussetzung (requires) – Flucht/Pass zu.
+    const g = c.gain ?? 1;
+    const denied = foeOk.filter((x) => x.kind === "angriff" && x.to && (Object.keys(x.requires ?? {}) as Zone[])
+      .some((z) => -b[z] - (z === c.zone ? g : c.alsoGain?.[z] ?? 0) < x.requires![z]!));
+    if (denied.length) v += WEDGE_BONUS;
     // Zone vor dem Gerangel gewinnen: beide können hier angreifen, Gleichstand.
     if (thrZones.has(c.zone) && b[c.zone] === 0 && cardsOfSlot(s, side).some((x) => x.kind === "angriff" && x.zone === c.zone)) v += 2;
     // Finte: läuft meine Aufgabe in dieser Zone, erwartet er dort einen Rahmen.
@@ -86,6 +101,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     if (sub && t) v += 2 + sub.step * 3; // Rahmen wirkt nur gegen den Fortsetzungs-Angriff dieser Runde
     // Mit Wahrscheinlichkeit verteidigen (sonst spiegeln sich zwei KIs in Rahmen=Rahmen-Patts).
     if (t) v += 1 + (rng() < 0.4 ? 3 : 0) + (b[c.zone] < 0 ? 1 : 0) + (t.cardIds.some((id) => cardById(id)?.to?.points) ? 0.5 : 0);
+    // B15 Position halten: oben in einer Kontrollposition wiegt eine drohende Flucht schwerer.
+    if (t && role === "top" && posValue(s.pos, role) >= 4 && t.cardIds.some((id) => cardById(id)?.to)) v += HOLD_BONUS;
     if (!t) v -= 4; // Rahmen ins Leere
     v += (c.gain ?? 1) * 0.3;
   }

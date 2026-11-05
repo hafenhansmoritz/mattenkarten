@@ -271,3 +271,7 @@
 .k2-predict-fb.no b { color: var(--k2-focus, #ffd166); }
 .k2-end-pred { font-size: 13px; margin: 0; color: var(--text-2); }
 .k2-end-pred b { color: var(--text); }
+
+/* Tap-Moment: kleine Szene im Overlay – man sieht Abklopfen und sofortiges Loslassen */
+.k2-tap-fig { width: min(300px, 78vw); margin: -8px auto -4px; pointer-events: none; }
+.k2-tap-fig svg { overflow: hidden !important; }

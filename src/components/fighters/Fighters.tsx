@@ -1,13 +1,17 @@
-import { useEffect, useId, useMemo, useRef } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   animate, motion, useAnimationControls, useMotionValue, useReducedMotion, useSpring, useTransform,
   type MotionValue,
 } from "framer-motion";
 import type { PositionId, Side } from "../../engine/types";
 import {
-  FIGHTER_PARTS, JOINTS, MAT_Y, STROKE, beltPath, contactPoint, layerOrder, scenePoseAny, shadowOf,
+  FIGHTER_PARTS, JOINTS, MAT_Y, STROKE, contactPoint, layerOrder, shadowOf,
   type Joint, type Part, type Pose, type Pt, type SceneId,
 } from "./poses";
+import {
+  GRIP_ZONE, finalPose, moveKeyframes, sceneGrips, tapHand,
+  type Grip, type Pair, type SubPose, type TapState,
+} from "./choreo";
 
 const SPRING = { stiffness: 140, damping: 18, mass: 1 };
 /** Zeitlupe: 0.4× Steifigkeit, Dämpfung mit √0.4 skaliert → gleiches Dämpfungsverhältnis, nur langsamer. */
@@ -62,6 +66,12 @@ export interface FightersProps {
   zoom?: boolean;
   /** Ausholen vor dem Ergebnis: dieser Kämpfer lehnt sich ~6 px zum Gegner und geht leicht in die Knie. */
   windup?: Side | null;
+  /** Griff-Marker (Glow-Punkt) an den Händen dieses Kämpfers, deren Griff in dieser Zone wirkt. */
+  gripZone?: { side: Side; zone: string } | null;
+  /** Laufende Aufgabe: Angreifer-Gliedmaßen schließen sich je Schritt enger um Arm/Hals. */
+  sub?: SubPose | null;
+  /** Tap-Moment: hold = Griff sitzt, tapping = Verteidiger klopft ab, release = Angreifer lässt sofort los. */
+  tap?: TapState;
 }
 
 export function Fighters(props: FightersProps) {
@@ -75,10 +85,40 @@ export type FightersSceneProps = Omit<FightersProps, "pos"> & { pos: SceneId };
 export function FightersScene({
   pos, top, shake = null, flash = null, className,
   highlight = null, slowmo = false, zoom = false, windup = null,
+  gripZone = null, sub = null, tap = null,
 }: FightersSceneProps) {
   const reduced = !!useReducedMotion();
   const uid = useId().replace(/:/g, "");
-  const { p, o } = useMemo(() => scenePoseAny(pos, top), [pos, top]);
+  const subKey = sub ? `${sub.owner}:${sub.id}:${sub.zone}:${sub.step}` : "";
+  const final = useMemo(() => finalPose(pos, top, sub, tap), [pos, top, subKey, tap]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Positionswechsel: 2 Zwischen-Keyframes (Takedown, Pass, Shrimp, Bridge, Stand-up), dann Zielpose.
+  const [kf, setKf] = useState<Pair | null>(null);
+  const prevScene = useRef({ pos, top });
+  useLayoutEffect(() => {
+    const pr = prevScene.current;
+    prevScene.current = { pos, top };
+    if (pr.pos === pos && pr.top === top) return;
+    const { frames } = reduced ? { frames: [] as Pair[] } : moveKeyframes(pr.pos, pr.top, pos, top);
+    if (!frames.length) { setKf(null); return; }
+    const hold = slowmo ? 320 : 200;
+    setKf(frames[0]);
+    const ts = frames.slice(1).map((f, i) => setTimeout(() => setKf(f), hold * (i + 1)));
+    ts.push(setTimeout(() => setKf(null), hold * frames.length));
+    return () => ts.forEach(clearTimeout);
+  }, [pos, top]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { p, o } = kf ?? final;
+  const grips = useMemo(() => sceneGrips(pos, top), [pos, top]);
+
+  // Abklopfen: freie Hand des Verteidigers geht 3× auf und ab, dann kurze Pause.
+  const tapMv = useMotionValue(0);
+  useEffect(() => {
+    if (tap !== "tapping" || reduced) { tapMv.set(0); return; }
+    const c = animate(tapMv, [0, 1, 0, 1, 0, 1, 0], { duration: 0.95, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.45 });
+    return () => c.stop();
+  }, [tap, reduced, tapMv]);
+  const tapper: Side | null = sub && tap === "tapping" ? (sub.owner === "p" ? "o" : "p") : null;
+  const tapJ = sub ? tapHand(sub) : null;
 
   // Atem-Oszillation (0 … 1.6 px), bei reduced motion aus.
   const breath = useMotionValue(0);
@@ -100,8 +140,8 @@ export function FightersScene({
   const dirP = Math.sign(o.hip.x - p.hip.x) || p.face;
   const dirO = Math.sign(p.hip.x - o.hip.x) || o.face;
 
-  const P = useAnimatedFighter(p, breath, 0, reduced, spring, leanP, dirP);
-  const O = useAnimatedFighter(o, breath, 1, reduced, spring, leanO, dirO);
+  const P = useAnimatedFighter(p, breath, 0, reduced, spring, leanP, dirP, tapper === "p" ? tapJ : null, tapMv);
+  const O = useAnimatedFighter(o, breath, 1, reduced, spring, leanO, dirO, tapper === "o" ? tapJ : null, tapMv);
 
   // Kamera-Punch-in Richtung Kontaktpunkt
   const camRef = useRef<SVGGElement>(null);
@@ -154,10 +194,19 @@ export function FightersScene({
 
   const layers = layerOrder([{ key: "p" as const, z: p.z }, { key: "o" as const, z: o.z }]);
   const F = { p: P, o: O };
-  const colors = {
-    p: "var(--gi-p, #3E8BFF)",
-    o: "var(--gi-o, #E5484D)",
-  };
+  // Glow-Marker: Hände mit Griff in der gespielten Zone; bei laufender Aufgabe die Hände des Angreifers.
+  const markers: { side: Side; hand: "F" | "B"; grip: Grip | "sub" }[] = [];
+  if (gripZone) {
+    for (const h of ["F", "B"] as const) {
+      const g = grips[gripZone.side][h];
+      if (g && GRIP_ZONE[g] === gripZone.zone) markers.push({ side: gripZone.side, hand: h, grip: g });
+    }
+  }
+  if (sub && sub.step > 0 && tap !== "release") {
+    for (const h of ["F", "B"] as const) {
+      if (!markers.some((m) => m.side === sub.owner && m.hand === h)) markers.push({ side: sub.owner, hand: h, grip: "sub" });
+    }
+  }
 
   return (
     <svg
@@ -174,9 +223,22 @@ export function FightersScene({
           <Shadow f={O} />
           {layers.map((l, i) => (
             <motion.g key={i} animate={l.who === "p" ? flashP : flashO}>
-              <FighterLayer f={F[l.who]} parts={l.parts} color={colors[l.who]} />
+              <FighterLayer f={F[l.who]} parts={l.parts} kit={KIT[l.who]} />
             </motion.g>
           ))}
+          {markers.map((m) => (
+            <GripMarker key={`${m.side}${m.hand}${m.grip}-${gripZone?.zone ?? ""}-${sub?.step ?? 0}`}
+              f={F[m.side]} hand={m.hand} reduced={reduced} grad={`mk-grip-${uid}`} strong={m.grip === "sub" && (sub?.step ?? 0) >= 2} />
+          ))}
+          {markers.length > 0 && (
+            <defs>
+              <radialGradient id={`mk-grip-${uid}`}>
+                <stop offset="0" stopColor="#fff6d6" stopOpacity="1" />
+                <stop offset="0.35" stopColor="#ffd166" stopOpacity="0.85" />
+                <stop offset="1" stopColor="#ffd166" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+          )}
           {highlight && (
             <Highlight
               key={`${highlight.side}-${highlight.part}`}
@@ -194,8 +256,11 @@ export function FightersScene({
 interface AnimatedFighter {
   j: (k: Joint) => MotionValue<number>[];
   limb: (a: Joint, b: Joint, c: Joint) => MotionValue<string>;
+  /** Teilstück: Gelenk a → Punkt bei t0…t1 entlang a→b (für Ärmel, Hosenbein). */
+  seg: Record<string, MotionValue<string>>;
   torso: MotionValue<string>;
-  belt: MotionValue<string>;
+  waist: MotionValue<string>;
+  seam: MotionValue<string>;
   head: { x: MotionValue<number>; y: MotionValue<number> };
   shadow: { cx: MotionValue<number>; rx: MotionValue<number> };
 }
@@ -203,11 +268,14 @@ interface AnimatedFighter {
 function useAnimatedFighter(
   pose: Pose, breath: MotionValue<number>, phase: number, reduced: boolean,
   spring: typeof SPRING, lean: MotionValue<number>, dir: number,
+  tapJ: "F" | "B" | null, tapMv: MotionValue<number>,
 ): AnimatedFighter {
   const xsRaw: Record<string, MotionValue<number>> = {};
   const xs: Record<string, MotionValue<number>> = {};
   const ysRaw: Record<string, MotionValue<number>> = {};
   const ys: Record<string, MotionValue<number>> = {};
+  const tapRef = useRef(tapJ);
+  tapRef.current = tapJ;
   for (const j of JOINTS) {
     /* eslint-disable react-hooks/rules-of-hooks */
     xsRaw[j] = useSpring(pose[j].x, spring);
@@ -216,8 +284,10 @@ function useAnimatedFighter(
     const [lx, ly] = LEAN[j];
     const rx = xsRaw[j];
     const raw = ysRaw[j];
+    // Abklopfen: Hand hebt sich 16 px, Ellbogen halb so viel.
+    const tapW = () => (tapRef.current && j === `hand${tapRef.current}` ? 16 : tapRef.current && j === `elbow${tapRef.current}` ? 6 : 0);
     xs[j] = useTransform(() => rx.get() + dir * LEAN_X * lx * lean.get());
-    ys[j] = useTransform(() => raw.get() + LEAN_Y * ly * lean.get() - k * (phase ? breath.get() * 0.85 : breath.get()));
+    ys[j] = useTransform(() => raw.get() + LEAN_Y * ly * lean.get() - k * (phase ? breath.get() * 0.85 : breath.get()) - tapW() * tapMv.get());
     /* eslint-enable react-hooks/rules-of-hooks */
   }
   useEffect(() => {
@@ -228,15 +298,46 @@ function useAnimatedFighter(
   }, [pose]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const P = (k: Joint): Pt => ({ x: xs[k].get(), y: ys[k].get() });
+  const along = (a: Pt, b: Pt, t: number): Pt => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
   const torso = useTransform(() => {
     const h = P("hip"), n = P("neck");
-    return `M${h.x} ${h.y}L${n.x} ${n.y}`;
+    const w = along(h, n, 0.16);
+    return `M${r1(w.x)} ${r1(w.y)}L${r1(n.x)} ${r1(n.y)}`;
   });
-  const belt = useTransform(() => beltPath(P("hip"), P("neck")));
+  const waist = useTransform(() => {
+    const h = P("hip"), n = P("neck");
+    const w = along(h, n, 0.2);
+    return `M${r1(h.x)} ${r1(h.y)}L${r1(w.x)} ${r1(w.y)}`;
+  });
+  // Seitennaht der Rashguard: farbiges Band leicht versetzt zur Rumpfmitte
+  const seam = useTransform(() => {
+    const h = P("hip"), n = P("neck");
+    const dx = n.x - h.x, dy = n.y - h.y, l = Math.hypot(dx, dy) || 1;
+    const ox = (-dy / l) * 6, oy = (dx / l) * 6;
+    const a = along(h, n, 0.3), b = along(h, n, 0.86);
+    return `M${r1(a.x + ox)} ${r1(a.y + oy)}L${r1(b.x + ox)} ${r1(b.y + oy)}`;
+  });
   const armF = useTransform(() => lp(P("shoulderF"), P("elbowF"), P("handF")));
   const armB = useTransform(() => lp(P("shoulderB"), P("elbowB"), P("handB")));
   const legF = useTransform(() => lp(P("hip"), P("kneeF"), P("footF")));
   const legB = useTransform(() => lp(P("hip"), P("kneeB"), P("footB")));
+  const sub = (a: Joint, b: Joint, t0: number, t1: number) => () => {
+    const A = P(a), B = P(b);
+    const u = along(A, B, t0), v = along(A, B, t1);
+    return `M${r1(u.x)} ${r1(u.y)}L${r1(v.x)} ${r1(v.y)}`;
+  };
+  /* eslint-disable react-hooks/rules-of-hooks */
+  const seg: Record<string, MotionValue<string>> = {
+    sleeveF: useTransform(sub("shoulderF", "elbowF", 0, 0.72)),
+    sleeveB: useTransform(sub("shoulderB", "elbowB", 0, 0.72)),
+    cuffF: useTransform(sub("shoulderF", "elbowF", 0.6, 0.72)),
+    cuffB: useTransform(sub("shoulderB", "elbowB", 0.6, 0.72)),
+    shortsF: useTransform(sub("hip", "kneeF", 0, 0.66)),
+    shortsB: useTransform(sub("hip", "kneeB", 0, 0.66)),
+    hemF: useTransform(sub("hip", "kneeF", 0.56, 0.66)),
+    hemB: useTransform(sub("hip", "kneeB", 0.56, 0.66)),
+  };
+  /* eslint-enable react-hooks/rules-of-hooks */
   const sh = useTransform(() => {
     const keys = JOINTS;
     return shadowOf(keys.map((k) => xs[k].get()), keys.map((k) => ysRaw[k].get()));
@@ -250,7 +351,7 @@ function useAnimatedFighter(
   return {
     j: (k) => [xs[k], ys[k]],
     limb: (a, b, c) => limbs[`${a},${b},${c}`],
-    torso, belt,
+    seg, torso, waist, seam,
     head: { x: xs.head, y: ys.head },
     shadow: { cx, rx },
   };
@@ -259,31 +360,75 @@ function useAnimatedFighter(
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const lp = (a: Pt, b: Pt, c: Pt) => `M${r1(a.x)} ${r1(a.y)}L${r1(b.x)} ${r1(b.y)}L${r1(c.x)} ${r1(c.y)}`;
 
-function FighterLayer({ f, parts, color }: { f: AnimatedFighter; parts: Part[]; color: string }) {
+/** No-Gi-Ausrüstung: Rashguard (Rumpf + kurze Ärmel mit Farbband) und Shorts; Haut neutral, Teamfarbe als Kontur. */
+interface Kit { shirt: string; band: string; shorts: string; skin: string }
+const KIT: Record<Side, Kit> = {
+  p: { shirt: "var(--gi-p, #3E8BFF)", band: "var(--rash-band-p, #bcd7ff)", shorts: "var(--shorts-p, #142a63)", skin: "var(--skin, #d3b49b)" },
+  o: { shirt: "var(--gi-o, #E5484D)", band: "var(--rash-band-o, #ffc2c3)", shorts: "var(--shorts-o, #5e141b)", skin: "var(--skin, #d3b49b)" },
+};
+const W = { rim: 14, skin: 9, sleeve: 16, shorts: 20, torso: 26, hand: 6.2 } as const;
+
+function FighterLayer({ f, parts, kit }: { f: AnimatedFighter; parts: Part[]; kit: Kit }) {
   return (
     <g fill="none" strokeLinecap="round" strokeLinejoin="round">
       {parts.map((part) => {
         if (part === "body") {
           return (
             <g key="body">
-              <motion.path d={f.torso} stroke={color} strokeWidth={STROKE.torso} />
-              <motion.path d={f.belt} stroke="var(--belt, #12141c)" strokeWidth={STROKE.belt} opacity={0.85} />
-              <motion.circle cx={f.head.x} cy={f.head.y} r={STROKE.head} fill={color} stroke="none" />
+              <motion.path d={f.waist} stroke={kit.shorts} strokeWidth={W.torso + 1} />
+              <motion.path d={f.torso} stroke={kit.shirt} strokeWidth={W.torso} />
+              <motion.path d={f.seam} stroke={kit.band} strokeWidth={3.2} opacity={0.75} />
+              {/* Kopf: neutral, ohne Gesicht – Teamfarbe als Kontur */}
+              <motion.circle cx={f.head.x} cy={f.head.y} r={STROKE.head} fill={kit.skin} stroke={kit.shirt} strokeWidth={3} />
             </g>
           );
         }
         const far = part === "armB" || part === "legB";
+        const arm = part === "armF" || part === "armB";
+        const s = part.endsWith("F") ? "F" : "B";
         const [a, b, c] = FIGHTER_PARTS[part];
+        const [hx, hy] = f.j(c);
         return (
           <g key={part}>
-            <motion.path d={f.limb(a, b, c)} stroke={color} strokeWidth={STROKE.limb} />
+            <motion.path d={f.limb(a, b, c)} stroke={kit.shirt} strokeWidth={W.rim} />
+            <motion.path d={f.limb(a, b, c)} stroke={kit.skin} strokeWidth={W.skin} />
+            {arm ? (
+              <>
+                <motion.path d={f.seg[`sleeve${s}`]} stroke={kit.shirt} strokeWidth={W.sleeve} />
+                <motion.path d={f.seg[`cuff${s}`]} stroke={kit.band} strokeWidth={W.sleeve - 2} strokeLinecap="butt" />
+                <motion.circle cx={hx} cy={hy} r={W.hand} fill={kit.skin} stroke={kit.shirt} strokeWidth={2.5} />
+              </>
+            ) : (
+              <>
+                <motion.path d={f.seg[`shorts${s}`]} stroke={kit.shorts} strokeWidth={W.shorts} />
+                <motion.path d={f.seg[`hem${s}`]} stroke={kit.shirt} strokeWidth={W.shorts - 3} strokeLinecap="butt" />
+              </>
+            )}
             {far && (
-              <motion.path d={f.limb(a, b, c)} stroke="#000" strokeOpacity={0.32} strokeWidth={STROKE.limb} />
+              <>
+                <motion.path d={f.limb(a, b, c)} stroke="#000" strokeOpacity={0.3} strokeWidth={W.rim} />
+                <motion.path d={f.seg[arm ? `sleeve${s}` : `shorts${s}`]} stroke="#000" strokeOpacity={0.3} strokeWidth={arm ? W.sleeve : W.shorts} />
+              </>
             )}
           </g>
         );
       })}
     </g>
+  );
+}
+
+/** Griff-Marker: Glow-Punkt an der greifenden Hand (pulsiert 2×, bleibt dann sichtbar). */
+function GripMarker({ f, hand, reduced, grad, strong }: {
+  f: AnimatedFighter; hand: "F" | "B"; reduced: boolean; grad: string; strong: boolean;
+}) {
+  const [cx, cy] = f.j(`hand${hand}`);
+  const R = strong ? 13 : 10;
+  if (reduced) return <motion.circle cx={cx} cy={cy} r={R} fill={`url(#${grad})`} opacity={0.8} style={{ pointerEvents: "none" }} />;
+  return (
+    <motion.circle cx={cx} cy={cy} fill={`url(#${grad})`} style={{ pointerEvents: "none", mixBlendMode: "screen" }}
+      initial={{ r: R * 0.4, opacity: 0 }}
+      animate={{ r: [R * 0.4, R * 1.5, R, R * 1.5, R], opacity: [0, 1, 0.7, 1, 0.85] }}
+      transition={{ duration: 1.2, ease: "easeOut" }} />
   );
 }
 

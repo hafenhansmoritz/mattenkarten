@@ -41,10 +41,10 @@ export const LEN = {
 
 // ---------- Geometrie-Helfer ----------
 const rad = (deg: number) => (deg * Math.PI) / 180;
-const pt = (x: number, y: number): Pt => ({ x: round(x), y: round(y) });
+export const pt = (x: number, y: number): Pt => ({ x: round(x), y: round(y) });
 const round = (v: number) => Math.round(v * 10) / 10;
 /** Punkt von `o` aus in Richtung `deg` (0° = rechts, 90° = unten) mit Länge `l`. */
-const polar = (o: Pt, deg: number, l: number): Pt => pt(o.x + Math.cos(rad(deg)) * l, o.y + Math.sin(rad(deg)) * l);
+export const polar = (o: Pt, deg: number, l: number): Pt => pt(o.x + Math.cos(rad(deg)) * l, o.y + Math.sin(rad(deg)) * l);
 
 /**
  * Zwei-Segment-IK: Wurzel → Ziel mit Segmentlängen l1/l2.
@@ -52,7 +52,7 @@ const polar = (o: Pt, deg: number, l: number): Pt => pt(o.x + Math.cos(rad(deg))
  * (+1 = links von der Richtung Wurzel→Ziel im SVG-Koordinatensystem, also "gegen den Uhrzeigersinn").
  * Ist das Ziel zu weit, wird der Arm/das Bein gestreckt in Zielrichtung gelegt.
  */
-function ik(root: Pt, target: Pt, l1: number, l2: number, bend: 1 | -1): { mid: Pt; end: Pt } {
+export function ik(root: Pt, target: Pt, l1: number, l2: number, bend: 1 | -1): { mid: Pt; end: Pt } {
   const dx = target.x - root.x;
   const dy = target.y - root.y;
   let d = Math.hypot(dx, dy);
@@ -71,7 +71,7 @@ function ik(root: Pt, target: Pt, l1: number, l2: number, bend: 1 | -1): { mid: 
   return { mid, end };
 }
 
-interface Spec {
+export interface Spec {
   hip: Pt;
   /** Rumpfwinkel Hüfte→Nacken in Grad (−90 = senkrecht nach oben). */
   torso: number;
@@ -84,11 +84,11 @@ interface Spec {
   z?: number;
 }
 
-type LegSpec =
+export type LegSpec =
   | { foot: Pt; bend: 1 | -1 }
   | { kneel: 1 | -1; shinDir?: number };
 
-function build(s: Spec): Pose {
+export function build(s: Spec): Pose {
   const hip = pt(s.hip.x, s.hip.y);
   const neck = polar(hip, s.torso, LEN.torso);
   const head = polar(neck, s.headAng, LEN.neck);
@@ -178,7 +178,8 @@ function guard(): ScenePair {
   // B auf dem Rücken, Kopf rechts; Beine geschlossen um A's Hüfte (Knie seitlich an A's Taille, Füße hinter A's Rücken gekreuzt).
   const b = build({
     hip: { x: 228, y: 174 }, torso: -3, headAng: 10, face: 1, z: 0,
-    handF: { x: 226, y: 138 }, handB: { x: 232, y: 134 }, elbowBendF: -1, elbowBendB: -1,
+    // No-Gi: beide Hände kontrollieren A's Handgelenke (Griffkampf aus der Guard)
+    handF: { x: 230, y: 152 }, handB: { x: 236, y: 148 }, elbowBendF: -1, elbowBendB: -1,
     legF: { foot: { x: 170, y: 134 }, bend: -1 },
     legB: { foot: { x: 176, y: 128 }, bend: -1 },
   });
@@ -204,7 +205,7 @@ function side(): ScenePair {
   const a = build({
     hip: { x: 186, y: 156 }, torso: -3, headAng: 25, face: 1, z: 1,
     // Crossface (near) um B's Kopf, far-Arm Underhook Richtung B's Achsel
-    handF: { x: 276, y: 172 }, handB: { x: 214, y: 170 }, elbowBendF: 1, elbowBendB: -1,
+    handF: { x: 276, y: 172 }, handB: { x: 256, y: 176 }, elbowBendF: 1, elbowBendB: -1,
     legF: { kneel: 1 },
     legB: { kneel: -1, shinDir: 180 },
   });
