@@ -5,8 +5,8 @@ import {
 } from "framer-motion";
 import type { PositionId, Side } from "../../engine/types";
 import {
-  FIGHTER_PARTS, JOINTS, MAT_Y, STROKE, beltPath, contactPoint, layerOrder, scenePose, shadowOf,
-  type Joint, type Part, type Pose, type Pt,
+  FIGHTER_PARTS, JOINTS, MAT_Y, STROKE, beltPath, contactPoint, layerOrder, scenePoseAny, shadowOf,
+  type Joint, type Part, type Pose, type Pt, type SceneId,
 } from "./poses";
 
 const SPRING = { stiffness: 140, damping: 18, mass: 1 };
@@ -64,13 +64,21 @@ export interface FightersProps {
   windup?: Side | null;
 }
 
-export function Fighters({
+export function Fighters(props: FightersProps) {
+  return <FightersScene {...props} />;
+}
+
+/** Wie FightersProps, aber `pos` darf jede Szene sein (inkl. Kern-2 "half"/"turtle"). */
+export type FightersSceneProps = Omit<FightersProps, "pos"> & { pos: SceneId };
+
+/** Gemeinsamer Renderer für das alte Spiel (Fighters) und Kern 2 (FightersK2). */
+export function FightersScene({
   pos, top, shake = null, flash = null, className,
   highlight = null, slowmo = false, zoom = false, windup = null,
-}: FightersProps) {
+}: FightersSceneProps) {
   const reduced = !!useReducedMotion();
   const uid = useId().replace(/:/g, "");
-  const { p, o } = useMemo(() => scenePose(pos, top), [pos, top]);
+  const { p, o } = useMemo(() => scenePoseAny(pos, top), [pos, top]);
 
   // Atem-Oszillation (0 … 1.6 px), bei reduced motion aus.
   const breath = useMotionValue(0);

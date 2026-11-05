@@ -248,11 +248,61 @@ function back(): ScenePair {
   return { a, b };
 }
 
-const SCENES: Record<PositionId, () => ScenePair> = { dist, clinch, fhl, guard, side, mount, back };
-const CACHE = new Map<PositionId, ScenePair>();
+function half(): ScenePair {
+  // Half Guard: B auf der Seite/dem Rücken, Kopf rechts; B's Beine klemmen EIN Bein von A (das nahe) ein.
+  // B's ferner Arm holt den Underhook unter A's Achsel. A liegt Brust auf Brust mit Crossface (nah).
+  const b = build({
+    hip: { x: 216, y: 176 }, torso: -6, headAng: 2, face: 1, z: 0,
+    // near: Rahmen an A's Hüfte; far: Underhook unter A's Achsel Richtung Rücken
+    handF: { x: 206, y: 150 }, handB: { x: 222, y: 140 }, elbowBendF: -1, elbowBendB: 1,
+    // near-Bein über A's Wade (Knie hoch), far-Bein unter A's Schienbein → Lockdown/Triangle
+    legF: { foot: { x: 150, y: 168 }, bend: -1 },
+    legB: { foot: { x: 156, y: ON_MAT }, bend: -1 },
+  });
+  const a = build({
+    hip: { x: 190, y: 152 }, torso: -4, headAng: 28, face: 1, z: 1,
+    // Crossface (near) um B's Kopf, far-Arm Underhook/Kopf-Arm
+    handF: { x: 280, y: 170 }, handB: { x: 236, y: 172 }, elbowBendF: 1, elbowBendB: -1,
+    // eingeklemmtes nahes Bein: Knie auf der Matte zwischen B's Beinen, Schienbein flach nach hinten
+    legF: { kneel: -1, shinDir: 180 },
+    // freies fernes Bein: weit nach hinten auf den Zehen (Hüfte flach)
+    legB: { foot: { x: 112, y: ON_MAT }, bend: 1 },
+  });
+  return { a, b };
+}
+
+function turtle(): ScenePair {
+  // Turtle: B kompakt auf Knien und Ellbogen, Blick nach rechts, Kopf eingezogen.
+  // A seitlich hinter B, Brust auf B's Rücken, Seatbelt-artiger Griff (nah unter der Achsel, fern über die Schulter).
+  const b = build({
+    hip: { x: 196, y: 150 }, torso: 22, headAng: 70, face: 1, z: 0,
+    handF: { x: 258, y: ON_MAT }, handB: { x: 264, y: ON_MAT }, elbowBendF: -1, elbowBendB: -1,
+    legF: { kneel: 1, shinDir: 180 },
+    legB: { kneel: 1, shinDir: 180 },
+  });
+  const a = build({
+    hip: { x: 166, y: 128 }, torso: 14, headAng: 50, face: 1, z: 1,
+    // near: unter B's Achsel zur Brust; far: über B's Schulter → Seatbelt
+    handF: { x: 238, y: 172 }, handB: { x: 246, y: 164 }, elbowBendF: -1, elbowBendB: -1,
+    legF: { foot: { x: 158, y: ON_MAT }, bend: 1 },
+    legB: { foot: { x: 128, y: ON_MAT }, bend: 1 },
+  });
+  return { a, b };
+}
+
+/** Alle Szenen inkl. Kern-2-Positionen (half, turtle). */
+export type SceneId = PositionId | "half" | "turtle";
+
+const SCENES: Record<SceneId, () => ScenePair> = { dist, clinch, fhl, guard, side, mount, back, half, turtle };
+const CACHE = new Map<SceneId, ScenePair>();
+
+/** Kern-2-Positionen → Szene ("stand" nutzt die Distanz-Szene). */
+export function sceneOfPos2(pos: "stand" | "clinch" | "guard" | "half" | "turtle" | "side" | "mount" | "back"): SceneId {
+  return pos === "stand" ? "dist" : pos;
+}
 
 /** Rohe Szene: a = top/links, b = bottom/rechts. */
-export function scene(pos: PositionId): ScenePair {
+export function scene(pos: SceneId): ScenePair {
   let s = CACHE.get(pos);
   if (!s) {
     s = SCENES[pos]();
@@ -275,8 +325,13 @@ export const NEUTRAL: readonly PositionId[] = ["dist", "clinch"];
  * ist der Gegner oben, wird die Szene gespiegelt, damit der Spieler auf der linken Seite bleibt.
  */
 export function scenePose(pos: PositionId, topSide: Side | null): { p: Pose; o: Pose } {
+  return scenePoseAny(pos, topSide);
+}
+
+/** Wie scenePose, akzeptiert aber auch die Kern-2-Szenen "half" und "turtle". */
+export function scenePoseAny(pos: SceneId, topSide: Side | null): { p: Pose; o: Pose } {
   const s = scene(pos);
-  if (NEUTRAL.includes(pos) || topSide !== "o") return { p: s.a, o: s.b };
+  if ((NEUTRAL as readonly SceneId[]).includes(pos) || topSide !== "o") return { p: s.a, o: s.b };
   return { p: mirrorPose(s.b), o: mirrorPose(s.a) };
 }
 
@@ -338,8 +393,8 @@ export function shadowOf(xs: number[], ys: number[]): { cx: number; rx: number }
  * Mittel der drei nächstgelegenen Gelenkpaare (p-Gelenk ↔ o-Gelenk).
  * Für Treffer-Effekte (ImpactBurst) und den Kamera-Zoom.
  */
-export function contactPoint(pos: PositionId, topSide: Side | null): Pt {
-  const { p, o } = scenePose(pos, topSide);
+export function contactPoint(pos: SceneId, topSide: Side | null): Pt {
+  const { p, o } = scenePoseAny(pos, topSide);
   const pairs: { d: number; x: number; y: number }[] = [];
   for (const a of JOINTS) for (const b of JOINTS) {
     const A = p[a], B = o[b];
