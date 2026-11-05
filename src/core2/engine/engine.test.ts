@@ -185,14 +185,33 @@ describe("Positionswechsel & Aufgaben", () => {
     expect(r.round.headline).toMatch(/Tap/);
     expect(() => playRound(r.state, "sc_cross", "scb_frame_arme")).toThrow();
   });
-  it("Rahmen in derselben Zone setzt die Leiste zurück (auch ohne Angriff)", () => {
+  it("Rahmen ohne Aufgabe-Angriff in derselben Runde lässt die Leiste stehen", () => {
     let s = sideTop();
     s = playRound(s, "sc_kimura", "scb_build_kopf").state;
     expect(s.subs[0].step).toBe(1);
     const { state, round } = playRound(s, "sc_hip", "scb_frame_arme");
-    expect(round.rule).toBe("verschiedene-zonen"); // kein Rahmen ins Leere
-    expect(state.subs).toHaveLength(0);
-    expect(round.events).toContainEqual({ t: "sub", owner: "p", id: "kimura", step: 0 });
+    expect(round.rule).toBe("rahmen-ins-leere");
+    expect(state.subs[0].step).toBe(1);
+  });
+  it("Aufgabe-Karte ist nicht gesperrt, solange ihre Leiste läuft", () => {
+    let s = sideTop();
+    s = playRound(s, "sc_kimura", "scb_build_kopf").state;
+    expect(legalCards(s, "p").find((c) => c.id === "sc_kimura")!.ok).toBe(true);
+    s = playRound(s, "sc_kimura", "scb_frame_huefte").state;
+    expect(s.subs[0].step).toBe(2);
+    // Andere Karten bleiben gesperrt
+    expect(legalCards(s, "o").find((c) => c.id === "scb_frame_huefte")!.ok).toBe(false);
+    // Nach Positionswechsel (Leiste weg) greift die Sperre wieder
+    let t = sideTop({ huefte: 1 });
+    t = playRound(t, "sc_kimura", "scb_build_kopf").state;
+    t = playRound(t, "sc_mount", "scb_frame_arme").state;
+    expect(t.subs).toHaveLength(0);
+  });
+  it("Sperre gilt wieder, wenn die Leiste weg ist", () => {
+    let s = sideTop();
+    s = playRound(s, "sc_kimura", "scb_frame_arme").state; // Angriff gestoppt, keine Leiste
+    expect(s.subs).toHaveLength(0);
+    expect(legalCards(s, "p").find((c) => c.id === "sc_kimura")!.reason).toBe("Gesperrt (gerade gespielt)");
   });
   it("Rahmen > Angriff auf Leiste: Angriff scheitert und Leiste −1", () => {
     let s = sideTop();
@@ -216,6 +235,16 @@ describe("Rundenlimit & Ziel", () => {
     let t = newMatch({ seed: 1, maxRounds: 1, start: { pos: "stand", top: null, board: { beine: 1 } } });
     t = playRound(t, "s_double", "s_build_arme").state;
     expect(t.result).toEqual({ type: "points", winner: "p" });
+  });
+  it("Vorteil: bei Punktgleichstand entscheidet die Brettsumme", () => {
+    let s = newMatch({ seed: 1, maxRounds: 1 });
+    const r = playRound(s, "s_build_arme", "s_build_beine"); // p: arme+1, kopf+1; o: beine+1 → Summe +1
+    expect(r.state.result).toEqual({ type: "points", winner: "p" });
+    expect(r.round.headline).toMatch(/Vorteil/);
+    s = newMatch({ seed: 1, maxRounds: 1 });
+    const r2 = playRound(s, "s_build_beine", "s_build_arme");
+    expect(r2.state.result).toEqual({ type: "points", winner: "o" });
+    expect(r2.round.headline).toMatch(/er gewinnt durch Vorteil/);
   });
   it("Ziel erreicht → goal", () => {
     const s = newMatch({ seed: 1, start: { pos: "side", top: "o" }, goal: [{ pos: "guard", role: "bottom" }] });

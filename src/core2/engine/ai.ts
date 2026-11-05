@@ -74,10 +74,10 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     // Rahmen: nur sinnvoll gegen Angriffe oder laufende Leisten in der Zone.
     const t = thr.find((x) => x.zone === c.zone);
     const sub = foeSubs.find((x) => x.zone === c.zone);
-    if (sub) v += 3 + sub.step * 3;
+    if (sub && t) v += 2 + sub.step * 3; // Rahmen wirkt nur gegen den Fortsetzungs-Angriff dieser Runde
     // Mit Wahrscheinlichkeit verteidigen (sonst spiegeln sich zwei KIs in Rahmen=Rahmen-Patts).
     if (t) v += 1 + (rng() < 0.4 ? 3 : 0) + (b[c.zone] < 0 ? 1 : 0) + (t.cardIds.some((id) => cardById(id)?.to?.points) ? 0.5 : 0);
-    if (!t && !sub) v -= 4; // Rahmen ins Leere
+    if (!t) v -= 4; // Rahmen ins Leere
     v += (c.gain ?? 1) * 0.3;
   }
 
@@ -104,8 +104,7 @@ export function aiChoose(s: State2, side: Side, level: 1 | 2 | 3, rng: () => num
   if (level === 1) {
     // Zufällig, aber sinnvoll: Rahmen ins Leere vermeiden, wenn es Alternativen gibt.
     const thrZones = new Set(threats(s, side).map((t) => t.zone));
-    const subZones = new Set(s.subs.filter((t) => t.owner !== side).map((t) => t.zone));
-    const sensible = ok.filter((c) => c.kind !== "rahmen" || thrZones.has(c.zone) || subZones.has(c.zone));
+    const sensible = ok.filter((c) => c.kind !== "rahmen" || thrZones.has(c.zone));
     return pick(sensible.length ? sensible : ok, rng).id;
   }
   if (level === 3) return lookahead(s, side, ok, rng);

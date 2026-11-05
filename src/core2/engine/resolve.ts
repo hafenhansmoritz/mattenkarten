@@ -57,12 +57,13 @@ function changeKraft(ctx: Ctx, side: Side, delta: number): void {
   if (nv !== f.kraft) { ctx.events.push({ t: "kraft", side, delta: nv - f.kraft }); f.kraft = nv; }
 }
 
-/** Rahmen reduziert eine gegnerische Aufgabe-Leiste in derselben Zone. true = etwas bewirkt. */
-function frameSubs(ctx: Ctx, side: Side, c: Card2): boolean {
+/** Rahmen schlägt den Aufgabe-Angriff `ac` (rahmen>angriff, gleiche Zone): dessen Leiste −1. true = etwas bewirkt. */
+function frameSubs(ctx: Ctx, side: Side, c: Card2, ac: Card2): boolean {
   const foe = other(side);
+  if (!ac.submission) return false;
   let hit = false;
   for (const t of ctx.s.subs) {
-    if (t.owner === foe && t.zone === c.zone && t.step > 0) {
+    if (t.owner === foe && t.id === ac.submission.id && t.step > 0) {
       t.step = (t.step - 1) as SubTrack["step"];
       ctx.events.push({ t: "sub", owner: foe, id: t.id, step: t.step });
       hit = true;
@@ -210,9 +211,6 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
         ctx.notes.push({ prio: 10, side: null, headline: `Beide bauen an ${ZONE_LABEL[z]} – hebt sich auf.`, zone: z });
       } else {
         rule = "rahmen=rahmen"; triWinner = "none";
-        // Rahmen gegen eine laufende Leiste wirkt trotzdem.
-        if (frameSubs(ctx, "p", P)) ctx.acted.add("p");
-        if (frameSubs(ctx, "o", O)) ctx.acted.add("o");
         ctx.notes.push({ prio: 5, side: null, headline: "Beide rahmen – nichts passiert.", zone: z });
       }
     } else if (kinds.includes("angriff") && kinds.includes("aufbauen")) {
@@ -223,7 +221,6 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       rule = "aufbauen>rahmen";
       const b = byKind("aufbauen"), c = cards[b]!;
       gainWith(ctx, b, c, 1);
-      frameSubs(ctx, other(b), cards[other(b)]!); // Rahmen auf eine laufende Leiste wirkt trotzdem
       ctx.acted.add(b);
       triWinner = b;
       const n = (c.gain ?? 1) + 1;
@@ -237,7 +234,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       const r = byKind("rahmen"), a = other(r);
       const rc = cards[r]!, ac = cards[a]!;
       gainWith(ctx, r, rc);
-      frameSubs(ctx, r, rc);
+      frameSubs(ctx, r, rc, ac);
       ctx.acted.add(r);
       triWinner = r;
       let why = rc.why;
@@ -270,8 +267,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       } else if (c.kind === "angriff") {
         attackSucceeds(ctx, side, c);
       } else {
-        if (frameSubs(ctx, side, c)) ctx.acted.add(side);
-        else {
+        {
           leer = true;
           ctx.notes.push({
             prio: 25, side: other(side),
@@ -305,7 +301,20 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
   if (!s.result) {
     for (const side of ["p", "o"] as Side[]) { const f = s[side]; f.kraft = Math.min(KRAFT_MAX, f.kraft + 1); }
     if (s.round >= s.maxRounds) {
-      const w: Side | null = s.p.pts > s.o.pts ? "p" : s.o.pts > s.p.pts ? "o" : null;
+      let w: Side | null = s.p.pts > s.o.pts ? "p" : s.o.pts > s.p.pts ? "o" : null;
+      if (w === null) {
+        // Vorteil: bei Punktgleichstand entscheidet die Brettsumme (Sicht von p).
+        const sum = ZONES.reduce((a, z) => a + s.board[z], 0);
+        if (sum !== 0) {
+          w = sum > 0 ? "p" : "o";
+          ctx.notes.push({
+            prio: 90, side: w,
+            headline: w === "p" ? "Punktgleich – du gewinnst durch Vorteil." : "Punktgleich – er gewinnt durch Vorteil.",
+            why: "Bei gleichen Punkten gewinnt, wer auf der Körperkarte insgesamt vorne liegt.",
+            zone: null,
+          });
+        }
+      }
       s.result = { type: "points", winner: w };
     } else s.round += 1;
   }

@@ -24,8 +24,13 @@ export function unmetRequires(s: State2, side: Side, c: Card2): string[] {
   return out;
 }
 
+/** Aufgabe-Karte bleibt spielbar, solange ihre eigene Leiste läuft (Griff fortsetzen). */
+export function continuesHold(s: State2, side: Side, c: Card2): boolean {
+  return !!c.submission && s.subs.some((t) => t.owner === side && t.id === c.submission!.id && t.step > 0);
+}
+
 export function checkCard(s: State2, side: Side, c: Card2): Legal {
-  if (s[side].locked.includes(c.id)) return { id: c.id, ok: false, reason: "Gesperrt (gerade gespielt)" };
+  if (s[side].locked.includes(c.id) && !continuesHold(s, side, c)) return { id: c.id, ok: false, reason: "Gesperrt (gerade gespielt)" };
   const unmet = unmetRequires(s, side, c);
   if (unmet.length) return { id: c.id, ok: false, reason: `Braucht ${unmet.join(", ")}` };
   const k = c.kraft ?? 0;

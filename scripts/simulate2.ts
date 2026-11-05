@@ -53,14 +53,16 @@ for (const c of CARDS) if (c.submission) subCards.set(c.submission.id, [...(subC
 
 // ---- Simulation ----
 type Lv = 1 | 2 | 3;
+const DOMINANT = new Set<string>(["side", "mount", "back", "turtle"]);
 interface Agg {
   tap: number; points: number; draw: number; goal: number; pWins: number; oWins: number;
   rounds: number; pass: number; noOk: Map<string, number>;
   pos: Map<string, number>; zone: Map<number, number>; rules: Map<string, number>;
   decisive: Map<string, number>; played: Map<string, number>; taps: Map<string, number>; zeroAction: number;
+  reach: Map<string, number>; domRoundSum: number; domMatches: number; vorteil: number;
 }
 const inc = <K>(m: Map<K, number>, k: K, n = 1) => m.set(k, (m.get(k) ?? 0) + n);
-const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0 });
+const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0 });
 const total = newAgg();
 
 function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
@@ -69,6 +71,9 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
   let s: State2 = newMatch({ seed });
   let guard = 0;
   let lastScoring: { side: Side; id: string } | null = null;
+  const reached = new Set<string>([s.pos]);
+  let domRound = 0;
+  let vorteil = false;
   while (!s.result) {
     if (guard++ > 50) { anomalies.push(`Match seed ${seed} endet nicht (>50 Runden).`); break; }
     const ids: Record<Side, string> = { p: "", o: "" };
@@ -97,6 +102,9 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
       }
     }
     s = state;
+    reached.add(s.pos);
+    if (!domRound && DOMINANT.has(s.pos)) domRound = round.round;
+    if (/Vorteil/.test(round.headline)) vorteil = true;
     const pk = `${s.pos}${s.top ? "/" + (s.top === "p" ? "p-oben" : "o-oben") : ""}`;
     rec((a) => { inc(a.pos, pk); for (const z of ZONES) inc(a.zone, s.board[z]); });
   }
@@ -104,6 +112,9 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
   const ls = lastScoring as { side: Side; id: string } | null;
   rec((agg) => {
     agg.rounds += s.history.length;
+    for (const p of reached) inc(agg.reach, p);
+    if (domRound) { agg.domRoundSum += domRound; agg.domMatches++; }
+    if (vorteil) agg.vorteil++;
     if (!r) return;
     if (r.type === "tap") { agg.tap++; inc(agg.taps, r.sub); }
     else if (r.type === "goal") agg.goal++;
@@ -114,11 +125,13 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
 }
 
 const pct = (n: number, d: number) => `${((100 * n) / Math.max(1, d)).toFixed(1)}%`;
-console.log(`\nPaarung   tap     punkte  remis   p-sieg  o-sieg  Ø Runden  PASS/Match`);
+console.log(`\nPaarung   tap     punkte  remis   p-sieg  o-sieg  Ø Runden  PASS/Match  Vorteil  Dominanz@Runde`);
+const byPair = new Map<string, Agg>();
 for (const lp of [1, 2, 3] as Lv[]) for (const lo of [1, 2, 3] as Lv[]) {
   const agg = newAgg();
   for (let i = 0; i < N; i++) runMatch(lp, lo, lp * 100000 + lo * 10000 + i, [agg, total]);
-  console.log(`L${lp}-L${lo}     ${pct(agg.tap, N).padEnd(8)}${pct(agg.points, N).padEnd(8)}${pct(agg.draw, N).padEnd(8)}${pct(agg.pWins, N).padEnd(8)}${pct(agg.oWins, N).padEnd(8)}${(agg.rounds / N).toFixed(2).padEnd(10)}${(agg.pass / N).toFixed(2)}`);
+  console.log(`L${lp}-L${lo}     ${pct(agg.tap, N).padEnd(8)}${pct(agg.points, N).padEnd(8)}${pct(agg.draw, N).padEnd(8)}${pct(agg.pWins, N).padEnd(8)}${pct(agg.oWins, N).padEnd(8)}${(agg.rounds / N).toFixed(2).padEnd(10)}${(agg.pass / N).toFixed(2).padEnd(12)}${pct(agg.vorteil, N).padEnd(9)}${agg.domMatches ? (agg.domRoundSum / agg.domMatches).toFixed(2) : "–"} (${pct(agg.domMatches, N)})`);
+  byPair.set(`${lp}${lo}`, agg);
 }
 const M = 9 * N;
 const top = <K>(m: Map<K, number>, n: number) => [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, n);
@@ -142,4 +155,14 @@ if (unplayed.length) anomalies.push(`Nie gespielt (${unplayed.length}): ${unplay
 for (const [k, v] of top(total.noOk, 10)) anomalies.push(`PASS (keine ok-Karte) ${v}× in ${k}`);
 for (const [id, cs] of subCards) if (!total.taps.has(CARDS.find((c) => c.submission?.id === id)!.submission!.name)) anomalies.push(`Aufgabe ${id} nie beendet (Karten: ${cs.join(", ")})`);
 if (total.draw / M > 0.4) anomalies.push(`Hohe Remisquote ${pct(total.draw, M)} – Patt-Gefahr.`);
+console.log("\nPositionen erreicht (Anteil Matches):"); for (const p of POS) console.log(`  ${p.padEnd(8)} ${pct(total.reach.get(p) ?? 0, M)}`);
+const domAvg = total.domMatches ? total.domRoundSum / total.domMatches : Infinity;
+const l33 = byPair.get("33")!;
+const checks: [string, boolean, string][] = [
+  ["L3 vs L3 Remis < 15%", l33.draw / N < 0.15, pct(l33.draw, N)],
+  ["Taps gesamt 10–30%", total.tap / M >= 0.1 && total.tap / M <= 0.3, pct(total.tap, M)],
+  ["jede Position in ≥ 3% der Matches", POS.every((p) => (total.reach.get(p) ?? 0) / M >= 0.03), POS.filter((p) => (total.reach.get(p) ?? 0) / M < 0.03).join(",") || "alle"],
+  ["Dominanz Ø bis Runde ≤ 5", domAvg <= 5, `${domAvg.toFixed(2)} (in ${pct(total.domMatches, M)} der Matches)`],
+];
+console.log("\nZiele:"); for (const [n, ok, v] of checks) console.log(`  [${ok ? "ok" : "--"}] ${n}: ${v}`);
 console.log("\nAuffälligkeiten:"); if (!anomalies.length) console.log("  keine"); for (const a of [...new Set(anomalies)].slice(0, 60)) console.log(`  - ${a}`);
