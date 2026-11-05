@@ -118,7 +118,7 @@ describe("Kern 2 – Karten", () => {
   it("Positionsvoraussetzungen folgen der Spec", () => {
     expect(CARD2.gt_knee_slice.requires).toMatchObject({ beine: 1, huefte: 0 });
     expect(CARD2.gt_toreando.requires).toMatchObject({ beine: 1, huefte: 0 });
-    expect(CARD2.sct_to_mount.requires).toMatchObject({ huefte: 2 });
+    expect(CARD2.sct_to_mount.requires).toEqual({ huefte: 1 }); // B14
     expect(CARD2.tt_back_take.requires).toMatchObject({ kopf: 1, arme: 1 });
     expect(CARD2.nd_double_leg.to).toMatchObject({ points: 2 });
     expect(CARD2.sct_to_mount.to).toMatchObject({ pos: "mount", points: 4 });

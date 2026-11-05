@@ -45,7 +45,8 @@ const HOLD_BONUS = 1.5;
 /** B15 Stufe 2 „Keile“: Aufbauen, das einem gegnerischen Positionsangriff die Voraussetzung nimmt. */
 const WEDGE_BONUS = 2;
 
-function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => number): number {
+/** progress: Stufe-2-Regeln für Positionsfortschritt (B15). Das Gegnermodell von Stufe 3 bleibt bei der alten Heuristik. */
+function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => number, progress = level === 2): number {
   const b = boardFor(s, side);
   const role = roleOf(s, side);
   const thr = threats(s, side);
@@ -72,7 +73,7 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
       if (role === "bottom" && c.to.role !== "bottom") v += 3; // Befreiung
       if (mySubs.some((t) => t.step >= 1) && gain <= 2) v -= 3; // laufende Aufgabe nicht wegwerfen
       // Offene Tür: sein Rahmen in dieser Zone ist gerade gesperrt (eben gespielt) – jetzt vorbei.
-      if (gain > 0 && !foeOk.some((x) => x.kind === "rahmen" && x.zone === c.zone)) v += OPEN_DOOR;
+      if (progress && gain > 0 && !foeOk.some((x) => x.kind === "rahmen" && x.zone === c.zone)) v += OPEN_DOOR;
     }
     // Läuft der Gegner bei mir in dieselbe Zone mit Rahmen? Stufe 2: pauschales Risiko.
     v -= 0.8;
@@ -88,7 +89,7 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     const g = c.gain ?? 1;
     const denied = foeOk.filter((x) => x.kind === "angriff" && x.to && (Object.keys(x.requires ?? {}) as Zone[])
       .some((z) => -b[z] - (z === c.zone ? g : c.alsoGain?.[z] ?? 0) < x.requires![z]!));
-    if (denied.length) v += WEDGE_BONUS;
+    if (progress && denied.length) v += WEDGE_BONUS;
     // Zone vor dem Gerangel gewinnen: beide können hier angreifen, Gleichstand.
     if (thrZones.has(c.zone) && b[c.zone] === 0 && cardsOfSlot(s, side).some((x) => x.kind === "angriff" && x.zone === c.zone)) v += 2;
     // Finte: läuft meine Aufgabe in dieser Zone, erwartet er dort einen Rahmen.
@@ -102,7 +103,7 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     // Mit Wahrscheinlichkeit verteidigen (sonst spiegeln sich zwei KIs in Rahmen=Rahmen-Patts).
     if (t) v += 1 + (rng() < 0.4 ? 3 : 0) + (b[c.zone] < 0 ? 1 : 0) + (t.cardIds.some((id) => cardById(id)?.to?.points) ? 0.5 : 0);
     // B15 Position halten: oben in einer Kontrollposition wiegt eine drohende Flucht schwerer.
-    if (t && role === "top" && posValue(s.pos, role) >= 4 && t.cardIds.some((id) => cardById(id)?.to)) v += HOLD_BONUS;
+    if (progress && t && role === "top" && posValue(s.pos, role) >= 4 && t.cardIds.some((id) => cardById(id)?.to)) v += HOLD_BONUS;
     if (!t) v -= 4; // Rahmen ins Leere
     v += (c.gain ?? 1) * 0.3;
   }
@@ -175,7 +176,7 @@ function foeModel(s: State2, side: Side, rng: () => number): { card: Card2; w: n
   const hab = foeZoneHabits(s, side);
   // Er sieht meine Bedrohungen (öffentlich) und rahmt dort eher – darauf antworte ich mit Finten.
   const myThr = new Set(threats(s, foe).map((t) => t.zone));
-  const sc = ok.map((c) => scoreCard(s, foe, c, 2, rng) + hab[c.zone] * 0.4 + (c.kind === "rahmen" && myThr.has(c.zone) ? 2.5 : 0));
+  const sc = ok.map((c) => scoreCard(s, foe, c, 2, rng, false) + hab[c.zone] * 0.4 + (c.kind === "rahmen" && myThr.has(c.zone) ? 2.5 : 0));
   const max = Math.max(...sc);
   const ws = sc.map((x) => Math.exp((x - max) / 1.5));
   const sum = ws.reduce((a, b) => a + b, 0);

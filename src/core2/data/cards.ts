@@ -595,10 +595,11 @@ const sideTop: Card2[] = [
   {
     id: "sct_to_mount", plain: "Aufsteigen, draufsetzen", term: "Side to Mount",
     plainDo: "Dein Knie gleitet über seinen Bauch, du sitzt auf ihm.",
-    // B14: Kopf und Hüfte statt Hüfte +2 (JitsuIQ: Kopf/nahen Arm kontrollieren, Hüfte blocken, dann Knie über den Bauch).
-    kind: "angriff", zone: "huefte", slots: [SIDE_T], requires: { kopf: 1, huefte: 1 },
-    to: { pos: "mount", role: "top", points: 4 },
-    why: "Erst wenn seine Hüfte fest gekeilt ist, kommt dein Knie über den Bauch (Mount, 4 Punkte).",
+    // B14: Hüfte +1 statt +2 (JitsuIQ: Hüfte blocken, Knie über den Bauch; Evolve MMA: „Blocking the hip is essential“).
+    // Dilemma → Arme: rahmt er gegen das Aufsteigen, pinnst du die rahmende Hand (Evolve MMA, BJJ 101: The Americana).
+    kind: "angriff", zone: "huefte", slots: [SIDE_T], requires: { huefte: 1 },
+    to: { pos: "mount", role: "top", points: 4 }, dilemmaOpens: "arme",
+    why: "Hüfte geblockt, dann Knie über den Bauch (Mount, 4 Punkte); stemmt er dagegen, liegt sein Arm frei.",
     keys: ["Knie flach über den Bauch", "Kopf und Arm kontrolliert lassen"],
     mistakes: ["Springen und Basis verlieren"],
     source: K2.sideIq,
