@@ -8,8 +8,9 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
     id: "p-side-escape",
     title: "Rahmen, Hüfte, Guard zurück",
     idea: "Unten in Side Control: erst Unterarm als Stütze, dann wegrutschen.",
-    // Kopf im Minus (sein Crossface), Arme +1: deine Ellbogen sind schon innen – so bleibt die Lektion lösbar.
-    start: { pos: "side", top: "o", board: { kopf: -1, arme: 1 } },
+    // Kopf im Minus (sein Crossface). Arme und Hüfte +1: Ellbogen innen, Knie an der Hüfte –
+    // so bleibt die Lektion bei wechselnder Engine-Balance lösbar (Test: ≥ 90 % über 30 Seeds).
+    start: { pos: "side", top: "o", board: { kopf: -1, arme: 1, huefte: 1 } },
     goal: [
       { pos: "guard", role: "bottom" },
       { pos: "half", role: "bottom" },
@@ -36,7 +37,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
       },
       {
         round: 2, when: "after", highlightZone: "huefte",
-        text: "Steht deine Hüfte nicht mehr im Minus, ist „Wegrutschen, Beine davor“ (Shrimp) spielbar.",
+        text: "Deine Hüfte ist geschützt. Jetzt ist „Wegrutschen, Beine davor“ (Shrimp) spielbar.",
       },
       {
         round: 3, when: "start",
@@ -48,8 +49,9 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
     id: "p-guard-posture",
     title: "Haltung in der Guard",
     idea: "Oben in der Guard: erst aufrecht sitzen, dann seine Beine öffnen.",
-    // Hüfte +1: dein Knie-Keil sitzt, sein Hüft-Sweep ist anfangs nicht spielbar. Fokus: erst Haltung (Kopf).
-    start: { pos: "guard", top: "p", board: { huefte: 1 } },
+    // Hüfte +1: dein Knie-Keil sitzt, sein Hüft-Sweep ist anfangs nicht spielbar. Arme +1: Ellbogen eng.
+    // Fokus: erst Haltung (Kopf).
+    start: { pos: "guard", top: "p", board: { arme: 1, huefte: 1 } },
     goal: [
       { pos: "half", role: "top" },
       { pos: "side", role: "top" },
@@ -84,7 +86,8 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
     id: "p-shot-sprawl",
     title: "Shot oder Sprawl",
     idea: "Im Stand: tief gehen, dann schießen – schießt er, Beine weg.",
-    start: { pos: "stand", top: null },
+    // Kopf +1: du stehst gut (Auslage, Blick nach vorn) – Fokus liegt auf Tiefe und Beinen.
+    start: { pos: "stand", top: null, board: { kopf: 1 } },
     goal: [
       { pos: "guard", role: "top" },
       { pos: "half", role: "top" },
