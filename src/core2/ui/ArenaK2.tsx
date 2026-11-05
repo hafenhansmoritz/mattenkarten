@@ -36,6 +36,8 @@ export interface ArenaK2Props {
   seed?: number;
   /** Optional: Endzustand melden, sobald das Match vorbei ist (z. B. Tages-Challenge). */
   onResult?: (s: State2) => void;
+  /** Optional: eigenes Urteil fürs Ende (z. B. „Challenge geschafft“). */
+  verdict?: (s: State2) => { ok: boolean; text: string } | null;
 }
 
 type Phase = "pick" | "predict" | "flip" | "impact" | "result" | "tap" | "release" | "end";
@@ -486,6 +488,7 @@ export function ArenaK2(props: ArenaK2Props) {
                 <li key={w.round}><span className="k2-end-r">R{w.round}</span><span><b>{w.headline}</b> {w.why}</span></li>
               ))}
             </ol>
+            {(() => { const v = props.verdict?.(s); return v ? <p className={`k2-end-verdict ${v.ok ? "ok" : "no"}`}>{v.text}</p> : null; })()}
             {newCards.length > 0 && (
               <button type="button" className="k2-end-collect" onClick={() => setShowSammlung(true)}>
                 <span className="gems">{newCards.slice(0, 5).map((id) => { const c = cardById(id); return c ? <RarityGem key={id} rarity={rarityOf(c)} size={12} /> : null; })}</span>

@@ -21,9 +21,11 @@ import { LeglockScreen } from "./leglock/LeglockScreen";
 import { leglockMenu } from "./leglock/store";
 import { useInstallPrompt } from "./pwa";
 import { unlockAudio } from "./sound";
+import { Sammlung } from "./core2/collection/Sammlung";
+import { DailyScreen } from "./core2/daily/DailyScreen";
 
 type Tab = "kampagne" | "raetsel" | "deck" | "mehr";
-type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock";
+type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "daily";
 const TAB_LABEL: Record<Tab, string> = { kampagne: "Kampagne", raetsel: "Rätsel", deck: "Deck", mehr: "Mehr" };
 
 export function App() {
@@ -66,6 +68,8 @@ export function App() {
   if (screen === "share") return <ShareDeck onBack={() => { if (location.hash.startsWith("#deck=")) history.replaceState(null, "", location.pathname); back(); }} />;
   if (screen === "trainer") return <TrainerCheck onBack={back} />;
   if (screen === "k2") return <KoerperkarteHub onBack={back} />;
+  if (screen === "daily") return <DailyScreen onBack={back} />;
+  if (screen === "sammlung") return <div className="app"><main className="main"><Sammlung onBack={back} /></main></div>;
   if (screen === "impressum" || screen === "datenschutz") return <div className="app"><main className="main"><LegalScreen page={screen} onBack={back} /></main></div>;
   if (screen === "start") return <div className="pg-wrap"><ProgramScreen onBack={back} onJourney={openJourney} onLeglock={() => setScreen("leglock")} /></div>;
   if (screen === "leglock") return <div className="pg-wrap"><LeglockScreen onBack={back} /></div>;
@@ -121,6 +125,8 @@ function MoreMenu({ open }: { open: (s: Screen) => void }) {
     { s: "coach", title: "KI-Coach", text: "Frag nach Positionen, Techniken und Regeln – in einfachen Worten." },
     { s: "share", title: "Deck teilen", text: "Dein Deck als Code oder Link verschicken – oder eins übernehmen." },
     { s: "trainer", title: "Für Trainer", text: "Prüfliste aller Inhalte, die eine Trainer-Bestätigung brauchen." },
+    { s: "daily", title: "Tages-Challenge", text: "Jeden Tag eine neue Lage aus der Körperkarte. Ein Versuch zählt, üben darfst du immer." },
+    { s: "sammlung", title: "Sammlung", text: "Alle Körperkarten-Karten nach Position. Umdrehen zeigt das Kurzwissen." },
   ];
   return (
     <div className="screen more">
@@ -134,6 +140,7 @@ function MoreMenu({ open }: { open: (s: Screen) => void }) {
           </motion.button>
         ))}
       </div>
+      <SoundSwitch />
       {canInstall && <button className="btn primary big" onClick={() => promptInstall()}>App installieren</button>}
       {iosHint && <p className="muted small">Als App installieren: Teilen → „Zum Home-Bildschirm“.</p>}
       <p className="muted small">Mattenkarten ersetzt kein Training mit Trainer. Bei Schmerzen: stoppen und Trainer oder Arzt fragen. <a href="/landing/" target="_blank" rel="noopener">Über Mattenkarten</a></p>
@@ -141,6 +148,18 @@ function MoreMenu({ open }: { open: (s: Screen) => void }) {
         <button type="button" onClick={() => open("impressum")}>Impressum</button>
         <button type="button" onClick={() => open("datenschutz")}>Datenschutz</button>
       </nav>
+    </div>
+  );
+}
+
+/** Master-Schalter für Ton und Vibration (Standard: an, leise). */
+function SoundSwitch() {
+  const g = useGame();
+  return (
+    <div className="mk-switch-row">
+      <span><strong>Ton und Vibration</strong><span className="muted small">Matte, Atem, Abklopfen, Gong – leise synthetisiert.</span></span>
+      <button type="button" role="switch" className="mk-switch" aria-checked={g.sound} aria-label="Ton und Vibration"
+        onClick={() => g.set({ sound: !g.sound })} />
     </div>
   );
 }

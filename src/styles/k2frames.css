@@ -19,22 +19,22 @@
 
 /* ---------- Hand-Karte ---------- */
 .k2-hcard { overflow: hidden; isolation: isolate; }
-.k2-hcard-kind { display: inline-flex; align-items: center; gap: 3px; padding-right: 12px; }
-.k2-hcard-gem { position: absolute; top: 5px; right: 5px; z-index: 2; }
+.k2-hcard-kind { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.k2-hcard-gem { position: absolute; bottom: 5px; right: 5px; z-index: 2; }
+.k2-hcard .k2-hcard-reqs { padding-right: 12px; }
 .k2-hcard.is-locked .k2-hcard-gem { display: none; }
 
 /* Angreifen: Spitze – rechte obere Ecke abgeschrägt, kräftige Oberkante. */
 .k2-hcard.kind-angriff {
   border-radius: 8px 2px 8px 8px;
-  clip-path: polygon(0 0, calc(100% - 11px) 0, 100% 11px, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
 }
 .k2-hcard.kind-angriff::before {
-  content: ""; position: absolute; top: 0; right: 0; width: 16px; height: 16px; z-index: 1; pointer-events: none;
+  content: ""; position: absolute; top: 0; right: 0; width: 12px; height: 12px; z-index: 1; pointer-events: none;
   background: linear-gradient(225deg, var(--kc) 0 49%, transparent 50%);
-  clip-path: polygon(calc(100% - 11px) 0, 100% 11px, 100% 0);
+  clip-path: polygon(calc(100% - 8px) 0, 100% 8px, 100% 0);
   opacity: 0.9;
 }
-.k2-hcard.kind-angriff .k2-hcard-gem { top: 9px; right: 4px; }
 .k2-hcard.kind-angriff.is-sel { clip-path: none; }
 
 /* Aufbauen: Block – eckig, doppelte Oberkante. */

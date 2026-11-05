@@ -12,7 +12,7 @@ import { sfx } from "../../sound";
 import "../../styles/core2.css";
 import "../../styles/sammlung.css";
 
-const POS_ORDER: string[] = ["stand", "clinch", "guard", "half", "turtle", "side", "mount", "back"];
+const POS_ORDER: string[] = ["stand", "clinch", "headlock", "guard", "half", "turtle", "side", "mount", "back"];
 const ROLE_SHORT: Record<string, string> = { neutral: "", top: "oben", bottom: "unten" };
 
 export const posLabel = (p: string): string => (POS_LABEL as Record<string, string>)[p] ?? p.charAt(0).toUpperCase() + p.slice(1);
@@ -163,6 +163,7 @@ export function BigCard({ card: c, owned, onClose }: { card: Card2; owned: boole
               <span className="sm-big-zone"><ZoneIcon zone={c.zone} size={14} /> {ZONE_LABEL[c.zone]}</span>
               <p className="sm-big-do">{c.plainDo}</p>
               <span className="sm-big-slots">{slotText(c)}</span>
+              <span className="sm-big-art" aria-hidden="true"><KindIcon kind={c.kind} size={120} className="sm-big-art-kind" /><ZoneIcon zone={c.zone} size={56} /></span>
               <span className="sm-big-hint">Tippen zum Umdrehen ↻</span>
             </div>
             <div className={`sm-face sm-back kind-${c.kind}`} style={reduced ? { display: back ? undefined : "none" } : undefined} aria-hidden={!back}>
