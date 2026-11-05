@@ -54,7 +54,7 @@
 /* Filter-Chips */
 .gy-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .gy-chips button {
-  font: inherit; font-size: 14px; color: var(--text); cursor: pointer; min-height: 38px; padding: 6px 12px;
+  font: inherit; font-size: 14px; color: var(--text); cursor: pointer; min-height: 44px; padding: 6px 12px;
   border-radius: var(--radius-pill); background: var(--surface-2); border: 1px solid var(--line);
 }
 .gy-chips button.on { background: color-mix(in srgb, var(--gas) 22%, var(--surface-2)); border-color: var(--gas); font-weight: 700; }
