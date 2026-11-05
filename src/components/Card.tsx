@@ -1,7 +1,8 @@
 import { useCallback, useId, useRef, type ReactNode, type PointerEvent as RPointerEvent, type KeyboardEvent as RKeyboardEvent } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { CardDef, CardKind } from "../engine/types";
-import { KIND_LABEL, RARITY_LABEL, countersText, effectText } from "./cardText";
+import { KIND_LABEL, RARITY_LABEL, countersText, effectText, plainTitle } from "./cardText";
+import { RES } from "../data/positions";
 
 export type CardSize = "hand" | "large" | "mini";
 
@@ -91,9 +92,12 @@ export function Card(props: CardProps) {
     .join(" ");
 
   const lift = size === "mini" ? 0 : selected ? -24 : 0;
+  const title = plainTitle(card);
   const ariaLabel = faceDown
     ? "Verdeckte Karte"
-    : `${card.name}${card.de ? `, ${card.de}` : ""}. ${KIND_LABEL[card.kind]}, ${card.gas} Gas. ${effectText(card)}${disabled && reason ? `. Gesperrt: ${reason}` : ""}`;
+    : `${title}${title !== card.name ? ` (${card.name})` : ""}. ${KIND_LABEL[card.kind]}, kostet ${card.gas} ${RES.gas.name}. ${card.plainDo ?? effectText(card)}${
+        card.requiresControl ? ` Braucht ${card.requiresControl} ${RES.control.name}.` : ""
+      }${disabled && reason ? ` Gesperrt: ${reason}` : ""}`;
 
   return (
     <motion.div
@@ -144,6 +148,12 @@ export function Card(props: CardProps) {
 function CardFront({ card, art }: { card: CardDef; art?: ReactNode }) {
   const counters = countersText(card);
   const fx = effectText(card);
+  const title = plainTitle(card);
+  const hasPlain = title !== card.name;
+  const showDe = !!card.de && card.de !== title && card.de !== card.name;
+  const lead = card.plainDo ?? fx;
+  const longest = title.split(/\s+/).reduce((m, w) => Math.max(m, w.length), 0);
+  const titleCls = `mk-title${title.length > 18 || longest > 12 ? " mk-title-long" : ""}`;
   const chips: ReactNode[] = [];
 
   if (card.kind === "angriff" && typeof card.tempo === "number") {
@@ -170,10 +180,14 @@ function CardFront({ card, art }: { card: CardDef; art?: ReactNode }) {
     );
   }
   if (card.requiresControl) {
+    const t = `Braucht ${card.requiresControl} ${RES.control.name}`;
     chips.push(
-      <span key="ctl" className="mk-chip mk-chip-control" title={`Braucht Kontrolle ${card.requiresControl}`}>
-        <span className="mk-short">Kontr. {card.requiresControl}</span>
-        <span className="mk-long">Braucht Kontrolle {card.requiresControl}</span>
+      <span key="ctl" className="mk-chip mk-chip-control" title={t}>
+        <GripIcon />
+        <span className="mk-short">
+          {card.requiresControl} {RES.control.name}
+        </span>
+        <span className="mk-long">{t}</span>
       </span>,
     );
   }
@@ -188,27 +202,98 @@ function CardFront({ card, art }: { card: CardDef; art?: ReactNode }) {
   return (
     <div className="mk-face mk-front">
       <div className="mk-band">
-        <span className="mk-kind-label">{KIND_LABEL[card.kind]}</span>
-        <span className="mk-gem num" title={`${card.gas} Gas`}>
-          {card.gas}
-          <span className="mk-gem-label">Gas</span>
+        <span className="mk-kind-label">
+          <KindIcon kind={card.kind} />
+          {KIND_LABEL[card.kind]}
+        </span>
+        <span className="mk-gem-wrap" title={`Kostet ${card.gas} ${RES.gas.name}`}>
+          <span className="mk-gem-name" aria-hidden="true">
+            {RES.gas.name}
+          </span>
+          <span className="mk-gem num">
+            {card.gas}
+            <span className="mk-gem-label">{RES.gas.name}</span>
+          </span>
+          <span className="mk-gem-tag" aria-hidden="true">
+            <BreathIcon />
+          </span>
         </span>
       </div>
       <div className="mk-head">
-        <h3 className="mk-title">{card.name}</h3>
-        {card.de && <p className="mk-de">{card.de}</p>}
+        <h3 className={titleCls} lang="de">
+          {title}
+        </h3>
+        {hasPlain && <p className="mk-tech">{card.name}</p>}
+        {showDe && <p className="mk-de">{card.de}</p>}
       </div>
       <div className="mk-art">
-        {art ?? <ArtPattern kind={card.kind} />}
+        <div className="mk-art-inner">{art ?? <ArtPattern kind={card.kind} />}</div>
         {card.basic && <span className="mk-ribbon">Grundtechnik</span>}
       </div>
       {chips.length > 0 && <div className="mk-stats">{chips}</div>}
-      {counters && <p className="mk-counters">{counters}</p>}
-      {fx && <p className="mk-fx">{fx}</p>}
+      {lead && (
+        <p className="mk-do" lang="de">
+          {lead}
+        </p>
+      )}
+      {card.plainDo && fx && <p className="mk-fx">{fx}</p>}
+      {!card.plainDo && counters && <p className="mk-counters">{counters}</p>}
       {!card.basic && <span className="sr-only">{RARITY_LABEL[card.rarity]}</span>}
       <div className="mk-foil" aria-hidden="true" />
       <div className="mk-glare" aria-hidden="true" />
     </div>
+  );
+}
+
+/** Kleine Verb-Icons im Kartenband: Pfeil (angreifen), Zahnrad (vorbereiten), Schild (kontern). */
+function KindIcon({ kind }: { kind: CardKind }) {
+  return (
+    <svg className="mk-kind-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      {kind === "angriff" ? (
+        <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 13 L12 4" />
+          <path d="M7 3.5 H12.5 V9" />
+          <path d="M2.5 10.5 L5.5 13.5" />
+        </g>
+      ) : kind === "setup" ? (
+        <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+          <circle cx="8" cy="8" r="2.4" />
+          <path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6l1.4 1.4M11 11l1.4 1.4M3.6 12.4 5 11M11 5l1.4-1.4" />
+        </g>
+      ) : (
+        <path
+          d="M8 1.8 L13.5 3.8 V8 C13.5 11.2 11 13.4 8 14.4 C5 13.4 2.5 11.2 2.5 8 V3.8 Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinejoin="round"
+        />
+      )}
+    </svg>
+  );
+}
+
+/** Puste: drei Luftstriche. */
+function BreathIcon() {
+  return (
+    <svg viewBox="0 0 16 16" focusable="false">
+      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <path d="M2 5.5h7.5a2 2 0 1 0-2-2" />
+        <path d="M2 9h10a2 2 0 1 1-2 2" />
+        <path d="M2 12.5h4" />
+      </g>
+    </svg>
+  );
+}
+
+/** Griff: geschlossene Faust/Klammer. */
+function GripIcon() {
+  return (
+    <svg className="mk-chip-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <g fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 7V5a1.5 1.5 0 0 1 3 0v2M7 6.5V4.5a1.5 1.5 0 0 1 3 0V7M10 6.5a1.5 1.5 0 0 1 3 0V9a5 5 0 0 1-5 5H7.5A4.5 4.5 0 0 1 3 9.5V8a1 1 0 0 1 1-1h3" />
+      </g>
+    </svg>
   );
 }
 

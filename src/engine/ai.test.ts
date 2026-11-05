@@ -92,3 +92,24 @@ describe("Simulation: 500 KI-gegen-KI-Matches", () => {
     expect(posSeen.size).toBe(7);
   });
 });
+
+describe("KI: scriptedKind (Tutorial)", () => {
+  it("spielt nur Karten des vorgegebenen Typs, falls möglich", () => {
+    const arch = ARCHETYPES[0];
+    const rng = mulberry32(4);
+    for (const kind of ["angriff", "setup", "reaktion"] as const) {
+      for (let i = 0; i < 20; i++) {
+        const s = createMatch(arch.deck, arch.deck, i, 12, { scriptedKind: kind });
+        expect(CARD[chooseCard(s, arch, rng).card].kind).toBe(kind);
+      }
+    }
+  });
+
+  it("fällt zurück, wenn kein Karte des Typs spielbar ist", () => {
+    const arch = ARCHETYPES[0];
+    const base = stateAt("dist", null, {}, { hand: [], gas: 0 });
+    const s = { ...base, options: { scriptedKind: "angriff" as const } };
+    // 0 Gas: Close the Distance (1 Gas) unmöglich → nur Setup/Reaktion
+    expect(CARD[chooseCard(s, arch, mulberry32(1)).card].kind).not.toBe("angriff");
+  });
+});

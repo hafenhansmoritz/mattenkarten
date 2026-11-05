@@ -332,3 +332,22 @@ export function shadowOf(xs: number[], ys: number[]): { cx: number; rx: number }
   if (!isFinite(min)) { min = Math.min(...xs); max = Math.max(...xs); }
   return { cx: round((min + max) / 2), rx: round(Math.max(22, (max - min) / 2 + 12)) };
 }
+
+/**
+ * Ungefährer Berührungspunkt der beiden Kämpfer (viewBox-Koordinaten 400×220):
+ * Mittel der drei nächstgelegenen Gelenkpaare (p-Gelenk ↔ o-Gelenk).
+ * Für Treffer-Effekte (ImpactBurst) und den Kamera-Zoom.
+ */
+export function contactPoint(pos: PositionId, topSide: Side | null): Pt {
+  const { p, o } = scenePose(pos, topSide);
+  const pairs: { d: number; x: number; y: number }[] = [];
+  for (const a of JOINTS) for (const b of JOINTS) {
+    const A = p[a], B = o[b];
+    pairs.push({ d: Math.hypot(A.x - B.x, A.y - B.y), x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 });
+  }
+  pairs.sort((u, v) => u.d - v.d);
+  const top3 = pairs.slice(0, 3);
+  const x = top3.reduce((s, q) => s + q.x, 0) / top3.length;
+  const y = top3.reduce((s, q) => s + q.y, 0) / top3.length;
+  return { x: round(x), y: round(Math.min(y, MAT_Y - 8)) };
+}

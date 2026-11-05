@@ -11,6 +11,7 @@ import {
 const distanz: CardDef[] = [
   {
     id: "jab", name: "Jab", de: "Führhand-Schlag", kind: "angriff", rarity: "basis",
+    plain: "Schnell vorne schlagen", plainDo: "Du schlägst kurz mit der vorderen Hand – er verliert Kraft.",
     slots: [DIST], tags: ["strike"], tempo: 2, gas: 1, drainGas: 2,
     desc: "Schneller Schlag mit der Führhand. Im MMA lenkt er ab und kostet den Gegner Kraft – der Shot kommt dahinter.",
     keys: ["Schnell zurückziehen", "Kinn bleibt unten", "Jab als Ablenkung für den Level Change"],
@@ -19,6 +20,7 @@ const distanz: CardDef[] = [
   },
   {
     id: "level_change", name: "Level Change", de: "Finte & Ebene wechseln", kind: "setup", rarity: "basis",
+    plain: "In die Knie gehen", plainDo: "Du gehst tief in die Knie und bereitest den Beinangriff vor.",
     slots: [DIST, CLINCH], gas: 1, controlGain: 1, opening: { tags: ["shot", "single", "legs"] },
     desc: "Aus Knien und Hüfte absenken, Rücken gerade, bis auf Kopfhöhe des Gegners. Öffnet den Beinangriff.",
     keys: ["Aus den Knien senken, nicht bücken", "Rücken gerade, Brust hoch", "Hinter einer Finte oder dem Jab"],
@@ -27,6 +29,7 @@ const distanz: CardDef[] = [
   },
   {
     id: "double_leg", name: "Double Leg", de: "Morote-Gari", kind: "angriff", rarity: "selten",
+    plain: "Beine schnappen", plainDo: "Du tauchst ab, packst beide Beine und wirfst ihn um.",
     slots: [DIST, CLINCH], tags: ["shot", "legs"], tempo: 3, gas: 2,
     success: { pos: "guard", role: "top", points: 2 },
     dilemmaWith: "snap_down",
@@ -34,11 +37,12 @@ const distanz: CardDef[] = [
     keys: ["Kopf hoch", "Hände in die Kniekehlen", "Penetration Step tief zwischen die Füße"],
     mistakes: ["Aus zu großer Distanz schießen", "Knie fällt auf die Matte", "Zögern"],
     safety: "Langsam lernen, Partner kontrolliert ablegen.",
-    lesson: "Ein Shot ohne Setup läuft in den Sprawl – erst Jab oder Level Change.",
+    lesson: "Wer ohne Vorbereitung nach den Beinen taucht, wird abgefangen (Sprawl). Erst Schlag (Jab) oder Abtauchen (Level Change).",
     source: SRC.doubleLeg,
   },
   {
     id: "single_leg", name: "Single Leg", de: "Einbeiniger Takedown", kind: "angriff", rarity: "selten",
+    plain: "Ein Bein schnappen", plainDo: "Du packst ein Bein, bleibst eng und bringst ihn zu Boden.",
     slots: [DIST, CLINCH], tags: ["shot", "single", "legs"], tempo: 3, gas: 2,
     success: { pos: "guard", role: "top", points: 2 },
     desc: "Ein Bein angreifen: Handgelenk/Ellbogen kontrollieren, Kopf an die Brust außerhalb des Torsos, eng bleiben.",
@@ -49,9 +53,10 @@ const distanz: CardDef[] = [
   },
   {
     id: "sprawl", name: "Sprawl", de: "Beine zurück, Hüfte runter", kind: "reaktion", rarity: "basis",
+    plain: "Beine weg, Hüfte drauf", plainDo: "Stoppt Angriffe auf deine Beine. Danach hältst du seinen Kopf.",
     slots: [DIST, CLINCH], counters: ["shot"], gas: 1,
     onCounter: { pos: "fhl", role: "top" },
-    lesson: "Sprawl kontert Beinangriffe, aber keine Würfe aus dem Clinch.",
+    lesson: "Beine weg, Hüfte drauf (Sprawl) stoppt Beinangriffe – aber keine Würfe aus der Umklammerung (Clinch).",
     desc: "Beine gerade zurück, Hüfte fallen lassen, Knie hoch. Stoppt Double und Single Leg und endet im Front Headlock.",
     keys: ["Früh reagieren", "Hüfte schwer auf die Schultern", "Follow-up: Front Headlock"],
     mistakes: ["Zu spät", "Hochspringen statt zurück", "Sprawl als statische Verteidigung"],
@@ -60,6 +65,7 @@ const distanz: CardDef[] = [
   },
   {
     id: "clinch_entry", name: "Clinch Entry", de: "In den Clinch", kind: "angriff", rarity: "basis",
+    plain: "Ranrücken und festhalten", plainDo: "Du gehst ganz nah ran und hältst ihn sofort fest.",
     slots: [DIST], tags: ["clinch"], tempo: 2, gas: 1,
     success: { pos: "clinch", role: "neutral", controlSelf: 1 },
     desc: "„Ganz draußen oder ganz drinnen“: Distanz schließen, Kopf bewegen, sofort Griffe sichern.",
@@ -73,6 +79,7 @@ const distanz: CardDef[] = [
 const clinch: CardDef[] = [
   {
     id: "collar_tie", name: "Collar Tie", de: "Nackengriff", kind: "setup", rarity: "basis",
+    plain: "Nacken greifen", plainDo: "Du greifst seinen Nacken und bereitest Ziehen oder Beinangriff vor.",
     slots: [CLINCH], gas: 1, controlGain: 1, opening: { tags: ["snap", "legs", "shot"] },
     desc: "Hand in den Nacken des Gegners, Unterarm an seinem Schlüsselbein. Setzt Snap Down, Ankle Pick und Shots auf.",
     keys: ["Ellbogen innen", "Kopf des Gegners führen", "Gegner lesen und lenken"],
@@ -81,6 +88,7 @@ const clinch: CardDef[] = [
   },
   {
     id: "underhook", name: "Underhook", de: "Unterhaken", kind: "setup", rarity: "basis",
+    plain: "Arm unter Achsel", plainDo: "Du schiebst deinen Arm unter seine Achsel und bereitest Würfe vor.",
     slots: [CLINCH], gas: 1, controlGain: 1, opening: { tags: ["bodylock", "hip", "reap", "single"] },
     desc: "Arm unter der Achsel des Gegners: die zentrale Offensiv-Position im Clinch für Takedowns und Würfe.",
     keys: ["Tief einhaken, Schulter hoch", "Auf den zweiten Underhook hinarbeiten", "Kopf an Kopf"],
@@ -89,6 +97,7 @@ const clinch: CardDef[] = [
   },
   {
     id: "two_on_one", name: "2-on-1", de: "Russian Tie", kind: "setup", rarity: "selten",
+    plain: "Zwei Hände, ein Arm", plainDo: "Du hältst einen Arm mit beiden Händen und brichst seine Haltung.",
     slots: [CLINCH], gas: 1, controlGain: 2, opening: { tags: ["drag", "single"] },
     desc: "Beide Hände an einem Arm: Handgelenk greifen, Arm an die Brust, ferne Schulter absenken, um die Haltung zu brechen.",
     keys: ["Arm an die eigene Brust", "Ferne Schulter absenken", "Arm Drag bereithalten"],
@@ -97,6 +106,7 @@ const clinch: CardDef[] = [
   },
   {
     id: "arm_drag", name: "Arm Drag", de: "Arm ziehen, Rücken nehmen", kind: "angriff", rarity: "episch",
+    plain: "Arm ziehen, dahinter", plainDo: "Du ziehst seinen Arm vorbei und stehst hinter ihm.",
     slots: [CLINCH], tags: ["drag"], tempo: 2, gas: 1,
     success: { pos: "back", role: "top", controlSelf: 1 },
     desc: "Arm am Trizeps über den Körper ziehen, tiefer Schritt, Taille fassen: Du stehst hinter ihm. Punkte gibt es erst mit Hooks.",
@@ -106,6 +116,7 @@ const clinch: CardDef[] = [
   },
   {
     id: "snap_down", name: "Snap Down", de: "Kopf runterziehen", kind: "angriff", rarity: "selten",
+    plain: "Kopf runterziehen", plainDo: "Du ziehst seinen Kopf runter und hältst ihn vorne fest.",
     slots: [CLINCH], tags: ["snap"], tempo: 2, gas: 1,
     success: { pos: "fhl", role: "top", controlSelf: 1 },
     dilemmaWith: "double_leg",
@@ -117,8 +128,9 @@ const clinch: CardDef[] = [
   },
   {
     id: "head_up", name: "Head Up & Posture", de: "Kopf hoch, Haltung", kind: "reaktion", rarity: "basis",
+    plain: "Kopf hoch bleiben", plainDo: "Stoppt das Runterziehen deines Kopfes.",
     slots: [CLINCH], counters: ["snap"], gas: 0,
-    lesson: "Kopf hoch stoppt den Snap Down – aber aufrecht stehst du offen für den Shot. Danaher: Angriffe kommen in Paaren.",
+    lesson: "Kopf hoch stoppt das Runterziehen (Snap Down) – doch aufrecht sind deine Beine offen (Shot). Angriffe kommen paarweise.",
     desc: "„Keep your head up and back straight“: Collar Tie brechen, wegkreisen.",
     keys: ["Kopf hoch, Rücken gerade", "Collar Tie früh lösen", "Wegkreisen"],
     mistakes: ["Aus der Taille vorgebeugt stehen"],
@@ -126,6 +138,7 @@ const clinch: CardDef[] = [
   },
   {
     id: "ankle_pick", name: "Ankle Pick", de: "Fußgelenk greifen", kind: "angriff", rarity: "selten",
+    plain: "Fuß schnappen", plainDo: "Du greifst seine Ferse, schiebst ihn um und landest seitlich oben.",
     slots: [CLINCH], tags: ["legs"], tempo: 2, gas: 1, requiresControl: 1,
     success: { pos: "side", role: "top", points: 2, controlSelf: 1 },
     desc: "Kopf kontrollieren, Gegner zum Schritt zwingen, Ferse greifen und nach vorn treiben. Danaher und Evolve empfehlen ihn BJJ-Anfängern.",
@@ -135,6 +148,7 @@ const clinch: CardDef[] = [
   },
   {
     id: "body_lock_trip", name: "Body Lock Trip", de: "Körperklammer & Fußfeger", kind: "angriff", rarity: "episch",
+    plain: "Umklammern und Bein stellen", plainDo: "Du umklammerst ihn, stellst ein Bein dahinter und kippst ihn um.",
     slots: [CLINCH], tags: ["bodylock", "reap"], tempo: 3, gas: 2,
     success: { pos: "side", role: "top", points: 2, controlSelf: 1 },
     desc: "Hände hinter seinem Rücken verschließen, Brust an Brust, Hüfte drehen, Bein hinter seine Basis – Trip.",
@@ -145,8 +159,9 @@ const clinch: CardDef[] = [
   },
   {
     id: "frames_hips_back", name: "Frames & Hips Back", de: "Frames & Hüfte zurück", kind: "reaktion", rarity: "basis",
+    plain: "Wegdrücken, Hüfte zurück", plainDo: "Stoppt Umklammern und Würfe über die Hüfte.",
     slots: [CLINCH], counters: ["bodylock", "hip"], gas: 1,
-    lesson: "Frames und Hüfte zurück stoppen Body Lock und Hüftwurf – gegen den Shot brauchst du den Sprawl.",
+    lesson: "Wegdrücken und Hüfte zurück (Frames) stoppt Umklammern und Hüftwurf – gegen Beinangriffe brauchst du den Sprawl.",
     desc: "Frames an Schultern/Hüfte, Hüfte zurück, Gewicht runter, Griffe aufbrechen.",
     keys: ["Frames an Schulter und Hüfte", "Hüfte zurück, tief bleiben", "Griff an den Fingern lösen"],
     mistakes: ["Brust an Brust stehen bleiben"],
@@ -154,6 +169,7 @@ const clinch: CardDef[] = [
   },
   {
     id: "o_goshi", name: "O-Goshi", de: "Große Hüfte", kind: "angriff", rarity: "selten",
+    plain: "Über die Hüfte werfen", plainDo: "Du drehst ihn über deine Hüfte und landest seitlich oben.",
     slots: [CLINCH], tags: ["hip"], tempo: 3, gas: 2, requiresControl: 1,
     success: { pos: "side", role: "top", points: 2, controlSelf: 1 },
     desc: "Ärmel plus Arm um die Taille, Füße innerhalb seiner Füße, Hüfte tiefer – drehen statt heben.",
@@ -164,6 +180,7 @@ const clinch: CardDef[] = [
   },
   {
     id: "o_soto", name: "O-Soto-Gari", de: "Große Außensichel", kind: "angriff", rarity: "episch",
+    plain: "Bein von hinten wegsicheln", plainDo: "Du drückst ihn nach hinten, sichelst sein Bein weg, landest oben.",
     slots: [CLINCH], tags: ["reap"], tempo: 3, gas: 2, requiresControl: 1,
     success: { pos: "side", role: "top", points: 2, controlSelf: 1 },
     desc: "Ärmel und Revers, Gewicht auf sein Zielbein bringen, erst den Oberkörper brechen, dann das Bein sicheln.",
@@ -174,9 +191,10 @@ const clinch: CardDef[] = [
   },
   {
     id: "whizzer", name: "Whizzer", de: "Überhaken", kind: "reaktion", rarity: "selten",
+    plain: "Arm überhaken, Hüfte rein", plainDo: "Stoppt den Griff an nur einem Bein.",
     slots: [CLINCH], counters: ["single"], gas: 0,
     onCounter: { pos: "fhl", role: "top" },
-    lesson: "Der Whizzer stoppt den Single Leg, wenn der Sprawl zu spät kam – gegen den Double reicht er nicht.",
+    lesson: "Arm überhaken (Whizzer) rettet ein gepacktes Bein (Single Leg) – gegen beide Beine (Double Leg) reicht es nicht.",
     desc: "Arm tief über seinem Arm einhaken, hochziehen, Hüfte hinein. Gemacht, um den Single Leg zu verhindern.",
     keys: ["Über dem Ellbogen einhaken", "Hüfte hinein, Kopfdruck", "Freie Hand bricht die Griffe"],
     mistakes: ["Passiv hängen", "Kein Kopfdruck"],
@@ -189,6 +207,7 @@ const clinch: CardDef[] = [
 const fhl: CardDef[] = [
   {
     id: "guillotine", name: "Guillotine", de: "Frontaler Würger", kind: "angriff", rarity: "episch",
+    plain: "Würger von vorne", plainDo: "Du umklammerst seinen Hals von vorne – er muss abklopfen.",
     slots: [FHL_TOP], tags: ["choke"], tempo: 2, gas: 2, requiresControl: 2, submission: true,
     onCountered: { pos: "guard", role: "bottom" },
     desc: "Aus dem Front Headlock tief einhaken, Unterarm hoch und Hüfte vor. Misslingt sie, landest du unten in der Guard.",
@@ -199,6 +218,7 @@ const fhl: CardDef[] = [
   },
   {
     id: "go_behind", name: "Go-Behind", de: "Hinter den Gegner", kind: "angriff", rarity: "selten",
+    plain: "Rumlaufen, hinter ihn", plainDo: "Du drehst dich um ihn herum und bist hinter ihm.",
     slots: [FHL_TOP], tags: ["behind"], tempo: 2, gas: 1,
     success: { pos: "back", role: "top", controlSelf: 1 },
     desc: "Ellbogen wegziehen, dahinter spinnen, Knie in die Lücke: Back Take aus dem Front Headlock.",
@@ -208,6 +228,7 @@ const fhl: CardDef[] = [
   },
   {
     id: "sit_out", name: "Sit-out", de: "Aussitzen & aufstehen", kind: "angriff", rarity: "basis",
+    plain: "Raussitzen und aufstehen", plainDo: "Du drehst dich raus, befreist den Kopf und stehst auf.",
     slots: [FHL_BOTTOM], tags: ["escape"], tempo: 2, gas: 1,
     success: { pos: "clinch", role: "neutral" },
     desc: "Aus der Turtle ein Bein durchschieben, Hüfte drehen, Kopf befreien und zurück in den Stand.",
@@ -217,8 +238,9 @@ const fhl: CardDef[] = [
   },
   {
     id: "elbow_block", name: "Elbow Block", de: "Ellbogen zu, mitdrehen", kind: "reaktion", rarity: "selten",
+    plain: "Ellbogen zu, mitdrehen", plainDo: "Stoppt, dass er um dich herum hinter dich kommt.",
     slots: [FHL_BOTTOM], counters: ["behind", "advance"], gas: 1,
-    lesson: "Ellbogen an die Knie und mitdrehen stoppt den Go-Behind – den Hals schützt das Kinn.",
+    lesson: "Ellbogen an die Knie und mitdrehen (Elbow Block) – so kommt er nicht hinter dich (Go-Behind).",
     desc: "Ellbogen eng an die Knie, mit dem Gegner mitdrehen, damit er nicht hinter dich kommt.",
     keys: ["Ellbogen an die Knie", "Gesicht zum Gegner drehen"],
     mistakes: ["Hände weit auf der Matte"],
@@ -230,6 +252,7 @@ const fhl: CardDef[] = [
 const guard: CardDef[] = [
   {
     id: "hip_bump", name: "Hip Bump Sweep", de: "Hüftstoß-Sweep", kind: "angriff", rarity: "selten",
+    plain: "Hüfte hoch, umwerfen", plainDo: "Du setzt dich auf, stößt ihn um und sitzt auf ihm.",
     slots: [GUARD_BOTTOM], tags: ["sweep"], tempo: 2, gas: 1,
     success: { pos: "mount", role: "top", points: 2, controlSelf: 1 },
     dilemmaWith: "kimura_guard",
@@ -240,6 +263,7 @@ const guard: CardDef[] = [
   },
   {
     id: "kimura_guard", name: "Kimura", de: "Schulterhebel aus der Guard", kind: "angriff", rarity: "episch",
+    plain: "Arm nach hinten drehen", plainDo: "Du drehst seinen Arm hinter seinen Rücken – er muss abklopfen.",
     slots: [GUARD_BOTTOM], tags: ["shoulderlock"], tempo: 3, gas: 2, requiresControl: 1, submission: true,
     dilemmaWith: "hip_bump",
     desc: "Postet er gegen den Hip Bump die Hand: Handgelenk fassen, Figure-Four, Ellbogen an die Rippen, Rotation Richtung Rücken.",
@@ -250,6 +274,7 @@ const guard: CardDef[] = [
   },
   {
     id: "armbar_guard", name: "Armbar", de: "Juji-Gatame aus der Guard", kind: "angriff", rarity: "episch",
+    plain: "Arm strecken mit Hüfte", plainDo: "Du streckst seinen Arm mit deiner Hüfte – er muss abklopfen.",
     slots: [GUARD_BOTTOM], tags: ["armlock"], tempo: 3, gas: 2, requiresControl: 1, submission: true,
     dilemmaWith: "triangle",
     desc: "Handgelenk kontrollieren, Hüfte hoch und abwinkeln, Knie zusammen, Daumen hoch – langsam strecken.",
@@ -260,6 +285,7 @@ const guard: CardDef[] = [
   },
   {
     id: "triangle", name: "Triangle", de: "Sankaku-Jime", kind: "angriff", rarity: "legendaer",
+    plain: "Beine-Dreieck um Hals", plainDo: "Deine Beine umschließen Hals und einen Arm – er muss abklopfen.",
     slots: [GUARD_BOTTOM], tags: ["trianglechoke"], tempo: 3, gas: 2, requiresControl: 2, submission: true,
     dilemmaWith: "armbar_guard",
     desc: "Zieht er den Arm aus der Armbar: ein Arm drin, einer draußen, 45°-Winkel, Kopf ziehen.",
@@ -270,6 +296,7 @@ const guard: CardDef[] = [
   },
   {
     id: "scissor_sweep", name: "Scissor Sweep", de: "Scheren-Sweep", kind: "angriff", rarity: "selten",
+    plain: "Beine-Schere, umkippen", plainDo: "Du ziehst ihn ran, scherst mit den Beinen und sitzt oben.",
     slots: [GUARD_BOTTOM], tags: ["sweep"], tempo: 3, gas: 1,
     success: { pos: "mount", role: "top", points: 2, controlSelf: 1 },
     desc: "Kragen plus Ärmel, Knie quer über seine Brust, Ärmel zurückziehen und mit den Beinen scheren.",
@@ -279,8 +306,9 @@ const guard: CardDef[] = [
   },
   {
     id: "base_post", name: "Base & Post", de: "Basis & Hand posten", kind: "reaktion", rarity: "basis",
+    plain: "Breit stehen, Hand abstützen", plainDo: "Stoppt, dass er dich von unten umwirft.",
     slots: [GUARD_TOP], counters: ["sweep"], gas: 0,
-    lesson: "Die gepostete Hand stoppt den Sweep – aber genau dieser Arm ist jetzt frei für die Kimura (Dilemma!).",
+    lesson: "Hand abstützen (Post) stoppt das Umwerfen (Sweep) – aber genau dieser Arm ist jetzt frei für die Kimura.",
     desc: "Breite Basis, Hand auf der Matte posten: Der Sweep verpufft. Achtung, der gepostete Arm ist angreifbar.",
     keys: ["Knie breit", "Hand posten, sofort zurückholen"],
     mistakes: ["Arm gestreckt stehen lassen (Kimura)"],
@@ -288,8 +316,9 @@ const guard: CardDef[] = [
   },
   {
     id: "posture_defense", name: "Posture & Elbows", de: "Haltung & Ellbogen", kind: "reaktion", rarity: "selten",
+    plain: "Aufrecht, Ellbogen eng", plainDo: "Stoppt Armstreck-Hebel und Beine-Dreieck um deinen Hals.",
     slots: [GUARD_TOP], counters: ["armlock", "trianglechoke"], gas: 1,
-    lesson: "Haltung schützt vor Armbar und Triangle – aber wer eine Submission verteidigt, läuft oft in die andere.",
+    lesson: "Aufrecht bleiben (Posture) schützt vor Armstrecken und Beine-Dreieck – wer eins abwehrt, läuft oft ins andere.",
     desc: "Aufrichten, Ellbogen eng, nie einen Arm drin und einen draußen lassen.",
     keys: ["Rücken gerade", "Beide Arme drin oder beide draußen", "Ellbogen eng"],
     mistakes: ["Haltung brechen lassen", "Arm über die Mittellinie"],
@@ -297,6 +326,7 @@ const guard: CardDef[] = [
   },
   {
     id: "stack_pass", name: "Stack Pass", de: "Stapel-Pass", kind: "angriff", rarity: "basis",
+    plain: "Beine stapeln, vorbei", plainDo: "Du drückst seine Beine zusammen, gehst vorbei und liegst seitlich.",
     slots: [GUARD_TOP], tags: ["pass"], tempo: 3, gas: 2,
     success: { pos: "side", role: "top", points: 3, controlSelf: 1 },
     desc: "Haltung zuerst, beide Beine kontrollieren, Druck aus der Hüfte – den Gegner stapeln und herum in die Seitkontrolle.",
@@ -307,6 +337,7 @@ const guard: CardDef[] = [
   },
   {
     id: "knee_slice", name: "Knee Slice", de: "Knie-Schnitt-Pass", kind: "angriff", rarity: "episch",
+    plain: "Knie schneidet durch", plainDo: "Du schiebst dein Knie über sein Bein und liegst seitlich.",
     slots: [GUARD_TOP], tags: ["pass"], tempo: 2, gas: 2, requiresControl: 1,
     success: { pos: "side", role: "top", points: 3, controlSelf: 1 },
     desc: "Erst Crossface, dann das Knie quer über den Oberschenkel schneiden, Underhook gewinnen.",
@@ -320,6 +351,7 @@ const guard: CardDef[] = [
 const side: CardDef[] = [
   {
     id: "to_mount", name: "Side to Mount", de: "Zum Mount", kind: "angriff", rarity: "selten",
+    plain: "Aufsteigen, draufsetzen", plainDo: "Du schiebst dein Knie über seinen Bauch und sitzt auf ihm.",
     slots: [SIDE_TOP], tags: ["advance"], tempo: 2, gas: 1,
     success: { pos: "mount", role: "top", points: 4, controlSelf: 1 },
     desc: "Knie flach über den Bauch schieben, Hüfte schwer: Aufstieg in die Reitposition. 4 Punkte.",
@@ -329,6 +361,7 @@ const side: CardDef[] = [
   },
   {
     id: "americana", name: "Americana", de: "Ude-Garami", kind: "angriff", rarity: "selten",
+    plain: "Arm nach unten drehen", plainDo: "Du drückst seinen gebeugten Arm Richtung Hüfte – er muss abklopfen.",
     slots: [SIDE_TOP, MOUNT_TOP], tags: ["shoulderlock"], tempo: 3, gas: 2, requiresControl: 2, submission: true,
     dilemmaWith: "armbar_mount",
     desc: "Arm 90° gebeugt, Handgelenk bleibt auf der Matte, Ellbogen Richtung seiner Hüfte schieben.",
@@ -339,6 +372,7 @@ const side: CardDef[] = [
   },
   {
     id: "kimura_side", name: "Kimura (Side)", de: "Schulterhebel aus der Seitkontrolle", kind: "angriff", rarity: "episch",
+    plain: "Arm nach hinten drehen", plainDo: "Von der Seite drehst du seinen Arm nach hinten – er muss abklopfen.",
     slots: [SIDE_TOP], tags: ["shoulderlock"], tempo: 3, gas: 2, requiresControl: 2, submission: true,
     desc: "Fernes Handgelenk fassen, Figure-Four, seinen Ellbogen an deine Rippen, Rotation Richtung Rücken.",
     keys: ["Figure-Four", "Ellbogen bleibt an deinem Körper", "Rotation Richtung Rücken"],
@@ -348,6 +382,7 @@ const side: CardDef[] = [
   },
   {
     id: "shrimp_recover", name: "Shrimp & Recover Guard", de: "Shrimp & Guard zurück", kind: "angriff", rarity: "basis",
+    plain: "Wegrutschen, Beine dazwischen", plainDo: "Du drückst weg, rutschst seitlich raus und bringst die Beine zurück.",
     slots: [SIDE_BOTTOM], tags: ["escape"], tempo: 2, gas: 1,
     success: { pos: "guard", role: "bottom" },
     desc: "Frame am Hals, Bridge, weg-shrimpen, Knie in die Lücke, Guard aufbauen.",
@@ -357,6 +392,7 @@ const side: CardDef[] = [
   },
   {
     id: "underhook_knees", name: "Underhook to Knees", de: "Underhook auf die Knie", kind: "angriff", rarity: "selten",
+    plain: "Arm drunter, aufstehen", plainDo: "Du schiebst einen Arm unter seinen, kommst auf die Knie und hoch.",
     slots: [SIDE_BOTTOM], tags: ["escape"], tempo: 3, gas: 2,
     success: { pos: "clinch", role: "neutral" },
     onCountered: { pos: "fhl", role: "bottom" },
@@ -371,6 +407,7 @@ const side: CardDef[] = [
 const mount: CardDef[] = [
   {
     id: "armbar_mount", name: "Armbar (Mount)", de: "Juji-Gatame aus dem Mount", kind: "angriff", rarity: "episch",
+    plain: "Arm strecken von oben", plainDo: "Du schwingst über seinen Kopf und streckst den Arm – er muss abklopfen.",
     slots: [MOUNT_TOP], tags: ["armlock"], tempo: 3, gas: 2, requiresControl: 3, submission: true,
     dilemmaWith: "americana",
     onCountered: { pos: "guard", role: "top" },
@@ -382,6 +419,7 @@ const mount: CardDef[] = [
   },
   {
     id: "mount_to_back", name: "Mount to Back", de: "Vom Mount zum Rücken", kind: "angriff", rarity: "episch",
+    plain: "Mitdrehen, auf Rücken", plainDo: "Dreht er sich weg, rutschst du mit an seinen Rücken.",
     slots: [MOUNT_TOP], tags: ["behind"], tempo: 2, gas: 1,
     success: { pos: "back", role: "top", controlSelf: 1 },
     desc: "Dreht er sich gegen den Druck weg, folgst du mit Seatbelt in den Rücken.",
@@ -391,6 +429,7 @@ const mount: CardDef[] = [
   },
   {
     id: "upa", name: "Upa", de: "Bridge & Roll", kind: "angriff", rarity: "basis",
+    plain: "Brücke und rollen", plainDo: "Du fängst Arm und Fuß, hebst die Hüfte, rollst nach oben.",
     slots: [MOUNT_BOTTOM], tags: ["bridge"], tempo: 2, gas: 1,
     success: { pos: "guard", role: "top", controlSelf: 1 },
     desc: "Arm an die Brust fangen, gleichseitigen Fuß haken, explosiv 45° zur gefangenen Seite bridgen und rollen. Gracie Combatives Lektion 1.",
@@ -400,8 +439,9 @@ const mount: CardDef[] = [
   },
   {
     id: "wrist_free", name: "Wrist Free", de: "Handgelenk befreien", kind: "reaktion", rarity: "selten",
+    plain: "Handgelenk hochholen", plainDo: "Stoppt Hebel, die deinen gebeugten Arm verdrehen.",
     slots: [MOUNT_BOTTOM, SIDE_BOTTOM], counters: ["shoulderlock"], gas: 1,
-    lesson: "Gegen die Americana hilft nur: Handgelenk von der Matte holen und den Arm zurück an den Körper ziehen.",
+    lesson: "Gegen Arm-nach-unten-drehen (Americana): Handgelenk von der Matte holen, Ellbogen zurück an den Körper.",
     desc: "Die Americana braucht dein Handgelenk auf der Matte. Hol es hoch und zieh den Ellbogen zurück an die Rippen.",
     keys: ["Handgelenk von der Matte lösen", "Ellbogen zurück an die Rippen", "Arm nicht strecken – sonst droht die Armbar"],
     mistakes: ["Arm dabei ausstrecken", "Zu spät reagieren, wenn der Arm schon 90° gebeugt fixiert ist"],
@@ -409,6 +449,7 @@ const mount: CardDef[] = [
   },
   {
     id: "elbow_knee", name: "Elbow-Knee Escape", de: "Ellbogen-Knie-Escape", kind: "angriff", rarity: "basis",
+    plain: "Wegrutschen, Knie dazwischen", plainDo: "Du drückst ihn weg, rutschst seitlich und schiebst dein Knie dazwischen.",
     slots: [MOUNT_BOTTOM], tags: ["escape"], tempo: 3, gas: 1,
     success: { pos: "guard", role: "bottom" },
     desc: "Frames, kleine Bridge, zur Seite shrimpen, Knie als Schild – zurück in die (Half) Guard.",
@@ -422,6 +463,7 @@ const mount: CardDef[] = [
 const back: CardDef[] = [
   {
     id: "seatbelt_hooks", name: "Seatbelt & Hooks", de: "Gurtgriff & Haken", kind: "setup", rarity: "episch",
+    plain: "Festschnallen, Füße rein", plainDo: "Du hältst ihn von hinten fest und hakst beide Füße ein.",
     slots: [BACK_TOP], gas: 1, controlGain: 2, backPoints: 4,
     desc: "Seatbelt, Brust am Rücken, beide Hooks rein – Füße nicht kreuzen. Erst jetzt gibt es die 4 Rückenpunkte (einmal pro Rückenphase).",
     keys: ["Seatbelt vor den Hooks", "Fernen Hook zuerst", "Füße nie kreuzen"],
@@ -430,6 +472,7 @@ const back: CardDef[] = [
   },
   {
     id: "rnc", name: "Rear Naked Choke", de: "Hadaka-Jime", kind: "angriff", rarity: "legendaer",
+    plain: "Würger von hinten", plainDo: "Dein Arm umschließt von hinten seinen Hals – er muss abklopfen.",
     slots: [BACK_TOP], tags: ["choke"], tempo: 2, gas: 2, requiresControl: 2, submission: true,
     desc: "Unterarmklinge unter das Kinn, Hand zum Bizeps, Brust weiten, Ellbogen zusammen. Die Endstation der Kette.",
     keys: ["Unterarmklinge, nicht Ellbogenspitze", "Brust weiten", "Ellbogen zusammen"],
@@ -439,8 +482,9 @@ const back: CardDef[] = [
   },
   {
     id: "hand_defense", name: "Hand Fighting", de: "Hände verteidigen", kind: "reaktion", rarity: "basis",
+    plain: "Hände gegen Hände", plainDo: "Stoppt Würger und Armhebel mit beiden Händen.",
     slots: [BACK_BOTTOM], counters: ["choke", "armlock"], gas: 1,
-    lesson: "Hände verteidigen zuerst: Zwei Hände gegen eine stoppen den Würger – Ellbogen eng gegen die Armbar.",
+    lesson: "Zwei Hände gegen eine stoppen den Würger (Hand Fighting) – Ellbogen eng schützt vor dem Armhebel.",
     desc: "Beide Hände ans würgende Handgelenk, runter und weg ziehen, Ellbogen eng. Kontinuierlich, nicht einmalig.",
     keys: ["Zwei Hände gegen eine", "Kinn auf die Brust", "Ellbogen eng"],
     mistakes: ["Nur an einem Finger ziehen", "Arme strecken (Armbar)"],
@@ -448,6 +492,7 @@ const back: CardDef[] = [
   },
   {
     id: "back_escape", name: "Back Escape", de: "Rücken-Escape", kind: "angriff", rarity: "selten",
+    plain: "Rausdrehen, Rücken befreien", plainDo: "Du rutschst raus und drehst dich zu ihm – Rücken ist frei.",
     slots: [BACK_BOTTOM], tags: ["escape"], tempo: 2, gas: 2,
     success: { pos: "side", role: "bottom" },
     desc: "Erst Hände, dann unteren Hook lösen, über den oberen Hook steigen, Schulter auf die Matte, zum Gegner drehen. Side Control unten ist Erfolg.",

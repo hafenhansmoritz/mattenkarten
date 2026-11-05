@@ -13,6 +13,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Distanz ----------
   {
     ...B, id: "b_stance", name: "Stance & Motion", de: "Grundstand & Bewegung", kind: "setup",
+    plain: "Gut stehen, Kinn runter", plainDo: "Du stehst stabil – Angriff und Abwehr werden leichter.",
     slots: [DIST], gas: 0, controlGain: 1,
     desc: "Orthodox oder Southpaw: Füße schulterbreit versetzt, Knie gebeugt, Kinn runter. Wer gut steht, kann angreifen und verteidigen.",
     keys: ["Orthodox = links vorn, Southpaw = rechts vorn", "Füße nie auf einer Linie", "In offener Auslage um die Außenposition des Führfußes kämpfen"],
@@ -21,8 +22,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_distance", name: "Distance Management", de: "Distanz halten", kind: "reaktion",
+    plain: "Abstand halten", plainDo: "Stoppt Schläge und Umklammern – du steppst aus der Reichweite.",
     slots: [DIST], gas: 0, counters: ["strike", "clinch"],
-    lesson: "Distanz halten nimmt Schlägen und dem Clinch-Eintritt die Wucht – gegen einen tiefen Shot hilft nur der Sprawl.",
+    lesson: "Abstand halten nimmt Schlägen und dem Umklammern die Wucht (Clinch) – gegen tiefe Beinangriffe hilft nur Beine zurückwerfen (Sprawl).",
     desc: "Zurück- oder seitlich wegsteppen, Hände oben. Kontert Schläge und Clinch-Versuche, aber keine Beinangriffe.",
     keys: ["Hände oben, Kinn runter", "Seitlich aus der Linie gehen"],
     mistakes: ["Gerade rückwärts laufen", "Hände fallen lassen"],
@@ -30,6 +32,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_close_distance", name: "Close the Distance", de: "Distanz schließen", kind: "angriff",
+    plain: "Rein gehen, festhalten", plainDo: "Du gehst ganz nah ran und packst ihn – ihr steht eng umklammert.",
     slots: [DIST], gas: 1, tempo: 4, tags: ["clinch"],
     success: { pos: "clinch", role: "neutral" },
     desc: "Hinter einer Bewegung in den Clinch gehen: Gracie-Prinzip „ganz draußen oder ganz drinnen“.",
@@ -40,6 +43,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Clinch ----------
   {
     ...B, id: "b_pummel", name: "Pummeling", de: "Pummeln (Inside-Kampf)", kind: "setup",
+    plain: "Arme innen schieben", plainDo: "Du schiebst deinen Arm unter seine Achsel – du bekommst mehr Kontrolle.",
     slots: [CLINCH], gas: 0, controlGain: 1,
     desc: "Arme abwechselnd nach innen „schwimmen“, um die Inside Position (Underhook) zu gewinnen.",
     keys: ["Innen schwimmen, nicht außen ziehen", "Hüfte nah"],
@@ -48,8 +52,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_hips_back", name: "Hips Back", de: "Hüfte & Bein zurück", kind: "reaktion",
+    plain: "Hüfte zurück", plainDo: "Stoppt Beinangriffe – Hüfte und Bein gehen weg vom Gegner.",
     slots: [CLINCH], gas: 0, counters: ["shot", "legs"],
-    lesson: "Hüfte zurück schützt die Beine – hält aber keinen Kopf unten. Für den Front Headlock brauchst du den echten Sprawl.",
+    lesson: "Hüfte zurück schützt deine Beine – aber nur Beine weit zurückwerfen drückt seinen Kopf runter (Sprawl).",
     desc: "Hüfte und vorderes Bein zurücknehmen, Gewicht verteilen. Stoppt Beinangriffe aus dem Clinch, ohne selbst Position zu gewinnen.",
     keys: ["Gewicht gleichmäßig auf beiden Beinen", "Hüfte weg vom Gegner"],
     mistakes: ["Aus der Taille vorbeugen (Snap-Down-Gefahr)"],
@@ -57,6 +62,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_o_uchi", name: "O-Uchi-Gari", de: "Große Innensichel", kind: "angriff",
+    plain: "Bein innen wegsicheln", plainDo: "Du hakst sein Bein weg – er fällt, du landest zwischen seinen Beinen.",
     slots: [CLINCH], gas: 1, tempo: 4, tags: ["reap"],
     success: { pos: "guard", role: "top", points: 2, controlSelf: 0 },
     desc: "Von innen das Bein des Gegners einhaken, Hände und Bein arbeiten in dieselbe Richtung. Landet oft direkt in der Guard.",
@@ -68,6 +74,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Front Headlock oben ----------
   {
     ...B, id: "b_fhl_pressure", name: "Head Pressure", de: "Kopf-Druck", kind: "setup",
+    plain: "Kopf runterdrücken", plainDo: "Dein Gewicht drückt seinen Kopf runter – du bekommst mehr Kontrolle.",
     slots: [FHL_TOP], gas: 0, controlGain: 1,
     desc: "Schulter auf den Nackenansatz, Kinn greifen, Gewicht auf Kopf und Hände des Gegners.",
     keys: ["Knie vom Boden", "Gewicht auf den Nacken"],
@@ -77,8 +84,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_fhl_sprawl_hold", name: "Sprawl Hold", de: "Sprawl-Druck halten", kind: "reaktion",
+    plain: "Hüfte schwer, Beine hinten", plainDo: "Stoppt Aufstehen – deine schwere Hüfte hält ihn unten.",
     slots: [FHL_TOP], gas: 0, counters: ["escape"],
-    lesson: "Wer den Kopf kontrolliert, stoppt das Aufstehen mit Hüftdruck – Escapes brauchen Raum.",
+    lesson: "Hüfte schwer, Beine hinten – so kommt er nicht hoch, denn Entkommen braucht Platz (Sprawl).",
     desc: "Hüfte schwer, Beine nach hinten: Der Gegner kommt nicht hoch.",
     keys: ["Hüfte runter", "Auf den Zehen bleiben"],
     mistakes: ["Knie auf der Matte"],
@@ -86,6 +94,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_fhl_turnover", name: "Turtle Turnover", de: "Turtle umdrehen", kind: "angriff",
+    plain: "Umdrehen, Brust drauf", plainDo: "Du drehst ihn auf den Rücken – du liegst seitlich quer obendrauf.",
     slots: [FHL_TOP], gas: 1, tempo: 4, tags: ["advance"],
     success: { pos: "side", role: "top", controlSelf: 0 },
     desc: "Aus dem Front Headlock den Gegner auf den Rücken drehen und in die Top-Kontrolle kommen.",
@@ -96,6 +105,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Front Headlock unten ----------
   {
     ...B, id: "b_fhl_handfight", name: "Hand Fighting", de: "Hände lösen", kind: "setup",
+    plain: "Griffe lösen", plainDo: "Du löst seine Griffe – dein Befreiungsversuch wird schneller.",
     slots: [FHL_BOTTOM], gas: 0, controlGain: 0, opening: { tags: ["escape"] },
     desc: "Griffe am Kopf und Ellbogen lösen, bevor du aufstehst.",
     keys: ["Zwei Hände gegen eine", "Ellbogen an die Knie"],
@@ -104,8 +114,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_fhl_chin", name: "Chin Tuck", de: "Kinn ein, Ellbogen an Knie", kind: "reaktion",
+    plain: "Kinn ein, Ellbogen eng", plainDo: "Stoppt Würger – Kinn und Ellbogen schützen den Hals.",
     slots: [FHL_BOTTOM], gas: 0, counters: ["choke"],
-    lesson: "Kinn ein schützt den Hals vor der Guillotine – den Weg hinter dich stoppt es nicht.",
+    lesson: "Kinn einziehen schützt den Hals vor dem Würger von vorn (Guillotine) – hinter dich kommt er trotzdem.",
     desc: "Turtle-Grundhaltung: Kinn eingezogen, Ellbogen an den Knien, keine Lücke für den Arm.",
     keys: ["Kinn auf die Brust", "Ellbogen eng"],
     mistakes: ["Kopf heben", "Hände weit weg stützen"],
@@ -113,6 +124,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_fhl_standup", name: "Stand Up", de: "Aufstehen", kind: "angriff",
+    plain: "Hände frei, aufstehen", plainDo: "Du befreist dich und stehst auf – ihr steht wieder eng zusammen.",
     slots: [FHL_BOTTOM], gas: 1, tempo: 4, tags: ["escape"],
     success: { pos: "clinch", role: "neutral" },
     desc: "Hände lösen, Hüfte unter den Körper bringen und zurück in den Stand.",
@@ -123,6 +135,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Guard oben ----------
   {
     ...B, id: "b_guard_posture", name: "Posture", de: "Haltung aufbauen", kind: "setup",
+    plain: "Aufrecht sitzen", plainDo: "Du sitzt aufrecht, Hände auf seiner Hüfte – du gewinnst Kontrolle.",
     slots: [GUARD_TOP], gas: 0, controlGain: 1,
     desc: "In der Guard aufrecht sitzen, Hände auf Hüfte oder Bauch: Ohne Haltung kein Pass – und Triangle/Armbar drohen.",
     keys: ["Rücken gerade", "Hände auf die Hüfte des Gegners"],
@@ -131,8 +144,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_guard_elbows", name: "Elbows In", de: "Ellbogen eng", kind: "reaktion",
+    plain: "Ellbogen eng", plainDo: "Stoppt Armhebel – deine Arme bleiben nah am Körper.",
     slots: [GUARD_TOP], gas: 0, counters: ["armlock"],
-    lesson: "Ellbogen eng schützt den Arm vor der Armbar – gegen die Triangle brauchst du Haltung.",
+    lesson: "Ellbogen an die Rippen – dann findet er keinen Arm zum Strecken (Armbar). Gegen Beinwürger hilft aufrechte Haltung (Triangle).",
     desc: "Arme nah am Körper halten, nie einen Arm gestreckt in der Guard lassen.",
     keys: ["Ellbogen an die Rippen", "Kein gestreckter Arm"],
     mistakes: ["Hand auf die Brust des Gegners drücken"],
@@ -140,6 +154,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_guard_open_pass", name: "Open & Pass", de: "Guard öffnen & passen", kind: "angriff",
+    plain: "Beine öffnen, vorbeigehen", plainDo: "Du öffnest seine Beine, gehst vorbei – du liegst quer auf ihm.",
     slots: [GUARD_TOP], gas: 1, tempo: 5, tags: ["pass"],
     success: { pos: "side", role: "top", points: 3, controlSelf: 0 },
     desc: "Guard öffnen, Beine kontrollieren, um sie herum in die Seitkontrolle. Langsam, aber sicher.",
@@ -150,6 +165,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Guard unten ----------
   {
     ...B, id: "b_break_posture", name: "Break Posture", de: "Haltung brechen", kind: "setup",
+    plain: "Ranziehen, Arme festhalten", plainDo: "Du ziehst ihn zu dir runter – deine Angriffe von unten werden stärker.",
     slots: [GUARD_BOTTOM], gas: 0, controlGain: 1,
     desc: "Mit Beinen und Griffen den Gegner nach vorne ziehen. Erst gebrochene Haltung macht Submissions aus der Guard möglich.",
     keys: ["Knie zur Brust ziehen", "Arme kontrollieren"],
@@ -158,8 +174,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_guard_frame", name: "Hip Escape & Frame", de: "Hüfte raus, Knie-Schild", kind: "reaktion",
+    plain: "Hüfte raus, Knie dazwischen", plainDo: "Stoppt Vorbeigehen – Hüfte weg, Knie als Schild.",
     slots: [GUARD_BOTTOM], gas: 0, counters: ["pass"],
-    lesson: "Guard Retention: Hüfte raus und Knie als Schild stoppen den Pass – Sweeps und Submissions brauchst du trotzdem.",
+    lesson: "Hüfte weg, Knie dazwischen – er kommt nicht vorbei (Guard Retention). Gewinnen musst du mit Umdrehen (Sweep) oder Aufgabegriff (Submission).",
     desc: "Wenn der Pass kommt: Hüfte wegbewegen, Knie zwischen euch bringen, Guard halten.",
     keys: ["Knie als Schild", "Mehrere kleine Hüftbewegungen"],
     mistakes: ["Flach auf dem Rücken liegen"],
@@ -167,6 +184,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_tech_standup", name: "Technical Stand-up", de: "Technisch aufstehen", kind: "angriff",
+    plain: "Abstützen und aufstehen", plainDo: "Du stützt dich ab und stehst auf – ihr steht wieder auf Abstand.",
     slots: [GUARD_BOTTOM], gas: 1, tempo: 4, tags: ["escape"],
     success: { pos: "dist", role: "neutral" },
     desc: "Hand und Fuß als Stützen, Hüfte zurückziehen und in den Stand zurück.",
@@ -177,6 +195,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Side Control oben ----------
   {
     ...B, id: "b_side_crossface", name: "Crossface & Block Hips", de: "Crossface & Hüfte blocken", kind: "setup",
+    plain: "Brust drauf, Kopf wegdrehen", plainDo: "Brust auf Brust, sein Kopf weggedreht – du gewinnst mehr Kontrolle.",
     slots: [SIDE_TOP], gas: 0, controlGain: 1,
     desc: "Brust an Brust, Crossface oder Underhook, Hüfte des Gegners blocken.",
     keys: ["Brustkontakt halten", "Kopf des Gegners wegdrehen"],
@@ -185,8 +204,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_side_hips", name: "Hip Block", de: "Hüfte zumachen", kind: "reaktion",
+    plain: "Knie an die Hüfte", plainDo: "Stoppt Wegrutschen – dein Knie blockt seine Hüfte.",
     slots: [SIDE_TOP], gas: 0, counters: ["escape"],
-    lesson: "Wer die Hüfte blockt, verhindert Shrimp und Underhook-Escape – Druck folgt dem Gegner.",
+    lesson: "Knie an seine Hüfte, Gewicht folgt – so kann er nicht wegrutschen (Hip Block gegen Shrimp).",
     desc: "Knie an die Hüfte, Gewicht nachführen: Kein Raum für den Shrimp.",
     keys: ["Knie an die Hüfte", "Gewicht folgen lassen"],
     mistakes: ["Hoch kommen, Raum lassen"],
@@ -194,6 +214,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_side_mount", name: "Step to Mount", de: "Mount-Versuch", kind: "angriff",
+    plain: "Drübersteigen, draufsitzen", plainDo: "Du schiebst dein Knie über seinen Bauch – du sitzt auf ihm.",
     slots: [SIDE_TOP], gas: 1, tempo: 4, tags: ["advance"],
     success: { pos: "mount", role: "top", points: 4, controlSelf: 0 },
     desc: "Knie über den Bauch schieben und in den Mount steigen.",
@@ -204,6 +225,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Side Control unten ----------
   {
     ...B, id: "b_side_frames", name: "Frames", de: "Frames setzen", kind: "setup",
+    plain: "Unterarme dagegenstemmen", plainDo: "Du stemmst die Unterarme gegen ihn – dein Befreiungsversuch wird schneller.",
     slots: [SIDE_BOTTOM], gas: 0, controlGain: 0, opening: { tags: ["escape"] },
     desc: "Naher Ellbogen an Hals/Kiefer, ferne Hand an die Hüfte. Frames zuerst, dann Bridge, dann Shrimp.",
     keys: ["Frame first, then bridge, then shrimp", "Knochen statt Muskeln"],
@@ -212,8 +234,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_side_arms", name: "Protect Arms", de: "Arme schützen", kind: "reaktion",
+    plain: "Ellbogen eng, Hände zusammen", plainDo: "Stoppt Schulterhebel – Ellbogen eng, Hände verbunden.",
     slots: [SIDE_BOTTOM], gas: 0, counters: ["shoulderlock"],
-    lesson: "Arme eng schützt vor Kimura und Americana – den Aufstieg in den Mount musst du mit den Knien blocken.",
+    lesson: "Arme eng am Körper schützen deine Schulter (Kimura, Americana) – gegen das Draufsteigen (Mount) blocken deine Knie.",
     desc: "Ellbogen eng an den Körper, Hände zusammen – keine Figure-Four-Angriffsfläche.",
     keys: ["Ellbogen eng", "Hände verbinden"],
     mistakes: ["Arm auf der Matte ausstrecken"],
@@ -221,6 +244,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_side_bridge_shrimp", name: "Bridge & Shrimp", de: "Bridge & Shrimp", kind: "angriff",
+    plain: "Hüfte hoch, wegrutschen", plainDo: "Du drückst hoch, rutschst weg – deine Beine sind wieder zwischen euch.",
     slots: [SIDE_BOTTOM], gas: 1, tempo: 4, tags: ["escape"],
     success: { pos: "guard", role: "bottom" },
     desc: "Bridge zum Gegner, dann weg-shrimpen und das Knie in die Lücke bringen.",
@@ -231,6 +255,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Mount oben ----------
   {
     ...B, id: "b_mount_base", name: "Base & Heavy Hips", de: "Basis & Hüfte schwer", kind: "setup",
+    plain: "Hüfte schwer, Knie eng", plainDo: "Dein Gewicht sinkt auf seine Hüfte – du gewinnst mehr Kontrolle.",
     slots: [MOUNT_TOP], gas: 0, controlGain: 1,
     desc: "Stabile Basis, Gewicht auf der Hüfte des Gegners, Knie eng.",
     keys: ["Gewicht auf die Hüfte", "Knie eng an den Körper"],
@@ -239,8 +264,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_mount_post", name: "Post & Wide Base", de: "Breite Basis / Hand posten", kind: "reaktion",
+    plain: "Hand weit abstützen", plainDo: "Stoppt Abwerfen – deine Hand stützt dich seitlich ab.",
     slots: [MOUNT_TOP], gas: 0, counters: ["bridge"],
-    lesson: "Breite Basis stoppt den Upa – aber gegen den Elbow-Knee-Escape (Shrimp) hilft sie kaum.",
+    lesson: "Hand weit abstützen stoppt das Abwerfen per Brücke (Upa) – gegen Wegrutschen mit dem Knie (Elbow-Knee-Escape) hilft das kaum.",
     desc: "Bei der Bridge die freie Hand weit posten oder Basis verbreitern.",
     keys: ["Hand weit weg posten", "Hüfte tief"],
     mistakes: ["Beide Hände am Gegner"],
@@ -248,6 +274,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_mount_to_back", name: "Take the Back", de: "Zum Rücken", kind: "angriff",
+    plain: "Hinterher, an den Rücken", plainDo: "Er dreht sich weg, du folgst – du bist hinter ihm.",
     slots: [MOUNT_TOP], gas: 1, tempo: 4, tags: ["behind"],
     success: { pos: "back", role: "top", controlSelf: 0 },
     desc: "Dreht sich der Gegner weg, folgst du in den Rücken. Rückenpunkte gibt es erst mit Hooks.",
@@ -258,6 +285,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Mount unten ----------
   {
     ...B, id: "b_mount_frames", name: "Frames", de: "Frames & Ellbogen rein", kind: "setup",
+    plain: "Ellbogen rein, Platz schaffen", plainDo: "Du schaffst Platz mit den Unterarmen – Entkommen und Abwerfen werden schneller.",
     slots: [MOUNT_BOTTOM], gas: 0, controlGain: 0, opening: { tags: ["escape", "bridge"] },
     desc: "Ellbogen nach innen, Unterarme als Frames an der Hüfte: Raum schaffen, bevor du entkommst.",
     keys: ["Ellbogen eng", "Hände an die Hüfte"],
@@ -266,8 +294,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_mount_elbows", name: "Elbows Tight", de: "Ellbogen eng", kind: "reaktion",
+    plain: "Arme nie strecken", plainDo: "Stoppt Armhebel – deine Ellbogen bleiben an den Rippen.",
     slots: [MOUNT_BOTTOM], gas: 0, counters: ["armlock"],
-    lesson: "Gestreckte Arme sind im Mount eine Einladung zur Armbar – gegen die Americana musst du das Handgelenk von der Matte holen.",
+    lesson: "Gestreckte Arme laden zum Armhebel ein (Armbar). Gegen den Schulterhebel (Americana): Handgelenk von der Matte holen.",
     desc: "Arme nie ausstrecken, Ellbogen an den Rippen.",
     keys: ["Ellbogen an die Rippen"],
     mistakes: ["Gegner mit gestreckten Armen wegdrücken"],
@@ -275,6 +304,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_mount_shrimp", name: "Shrimp to Half Guard", de: "Shrimp zur Halbguard", kind: "angriff",
+    plain: "Seitlich rausrutschen", plainDo: "Du rutschst seitlich raus – ein Bein ist wieder zwischen euch.",
     slots: [MOUNT_BOTTOM], gas: 1, tempo: 4, tags: ["escape"],
     success: { pos: "guard", role: "bottom" },
     desc: "Kleine Bridge, zur Seite shrimpen und ein Bein zurück in die Guard holen. „Mount zu Side ist Fortschritt.“",
@@ -285,6 +315,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Back oben ----------
   {
     ...B, id: "b_back_seatbelt", name: "Seatbelt", de: "Seatbelt halten", kind: "setup",
+    plain: "Von hinten fest umarmen", plainDo: "Du umarmst ihn diagonal von hinten – du gewinnst mehr Kontrolle.",
     slots: [BACK_TOP], gas: 0, controlGain: 1,
     desc: "Ein Arm über, ein Arm unter der Schulter, Hände verbunden, Brust am Rücken.",
     keys: ["Brust am Rücken", "Seatbelt vor den Hooks"],
@@ -293,8 +324,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_back_hooks_hold", name: "Follow the Hips", de: "Hooks halten", kind: "reaktion",
+    plain: "Hüfte folgt", plainDo: "Stoppt Entkommen – du bleibst mit Hüfte und Füßen dran.",
     slots: [BACK_TOP], gas: 0, counters: ["escape"],
-    lesson: "Wer der Hüfte folgt, hält den Rücken – der Escape braucht zuerst die Hände, dann den unteren Hook.",
+    lesson: "Folg seiner Hüfte, dann bleibst du hinten dran – er braucht erst freie Hände, dann den unteren Fuß weg (Back Escape).",
     desc: "Bewegt sich der Gegner, folgst du mit Hüfte und Hooks.",
     keys: ["Hüfte folgt", "Füße nicht kreuzen"],
     mistakes: ["Gekreuzte Füße (Fußhebel-Gefahr, keine Punkte)"],
@@ -302,6 +334,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_back_to_mount", name: "Back to Mount", de: "In den Mount drehen", kind: "angriff",
+    plain: "Nachrollen, draufsetzen", plainDo: "Er rutscht zur Seite, du rollst nach – du sitzt auf ihm.",
     slots: [BACK_TOP], gas: 1, tempo: 5, tags: ["advance"],
     success: { pos: "mount", role: "top", points: 4, controlSelf: 0 },
     desc: "Rutscht der Gegner zur Seite, rollst du in den Mount nach.",
@@ -312,6 +345,7 @@ export const BASIC_CARDS: CardDef[] = [
   // ---------- Back unten ----------
   {
     ...B, id: "b_back_handfight", name: "Two-on-One Hands", de: "Handkampf", kind: "setup",
+    plain: "Zwei Hände, ein Handgelenk", plainDo: "Beide Hände ans würgende Handgelenk – dein Befreiungsversuch wird schneller.",
     slots: [BACK_BOTTOM], gas: 0, controlGain: 0, opening: { tags: ["escape"] },
     desc: "Beide Hände ans würgende Handgelenk – erst die Hände, dann die Hooks.",
     keys: ["Zwei Hände gegen eine", "Ellbogen eng"],
@@ -320,8 +354,9 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_back_chin", name: "Chin to Chest", de: "Kinn auf die Brust", kind: "reaktion",
+    plain: "Kinn auf die Brust", plainDo: "Stoppt Würger – dein Kinn deckt den Hals ab.",
     slots: [BACK_BOTTOM], gas: 0, counters: ["choke"],
-    lesson: "„Chin to chest is mandatory“: Das Kinn schützt den Hals – reicht aber allein nicht, um zu entkommen.",
+    lesson: "Kinn auf die Brust – dann kommt kein Unterarm an den Hals (Rear Naked Choke). Entkommen musst du trotzdem selbst.",
     desc: "Kinn einziehen, damit der Unterarm nicht unter das Kinn kommt.",
     keys: ["Kinn auf die Brust", "Schultern hoch"],
     mistakes: ["Kinn hoch, Hals frei"],
@@ -329,6 +364,7 @@ export const BASIC_CARDS: CardDef[] = [
   },
   {
     ...B, id: "b_back_slide", name: "Bottom Hook Off", de: "Unteren Hook lösen", kind: "angriff",
+    plain: "Fuß abstreifen, Schulter runter", plainDo: "Du streifst seinen Fuß ab – er liegt nur noch seitlich auf dir.",
     slots: [BACK_BOTTOM], gas: 1, tempo: 4, tags: ["escape"],
     success: { pos: "side", role: "bottom" },
     desc: "Unteren Hook abstreifen, Schulter auf die Matte. Side Control unten ist hier Fortschritt.",

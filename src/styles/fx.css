@@ -1,0 +1,217 @@
+/* ============================================================
+   Mattenkarten – FX-Layer (src/components/fx/*)
+   Alle Effekte: absolut im relativ positionierten Container,
+   pointer-events: none, respektieren prefers-reduced-motion.
+   ============================================================ */
+
+.fx {
+  position: absolute;
+  pointer-events: none;
+  z-index: 30;
+}
+
+/* ---------- Hitstop ---------- */
+.fx-frozen,
+.fx-frozen * {
+  animation-play-state: paused !important;
+}
+
+/* ---------- ImpactBurst ---------- */
+.fx-burst { width: 0; height: 0; }
+.fx-burst > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  will-change: transform, opacity;
+}
+.fx-burst-flash {
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, 0.85) 30%, rgba(255, 255, 255, 0) 70%);
+  mix-blend-mode: screen;
+}
+.fx-burst-ring {
+  border-radius: 50%;
+  border: 3px solid var(--fx-c, var(--k-angriff, #f0573f));
+  box-shadow: 0 0 18px var(--fx-c, var(--k-angriff, #f0573f)), inset 0 0 12px var(--fx-c, var(--k-angriff, #f0573f));
+}
+.fx-burst-p {
+  border-radius: 50%;
+  background: var(--fx-c, var(--k-angriff, #f0573f));
+  box-shadow: 0 0 8px var(--fx-c, var(--k-angriff, #f0573f));
+}
+.fx-burst-streak {
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff 60%, var(--fx-c, var(--k-angriff, #f0573f)));
+}
+
+/* ---------- FloatText ---------- */
+.fx-float { width: 0; height: 0; z-index: 45; } /* über dem Stempel */
+.fx-float-t {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: center;
+  translate: -50% -50%;
+  white-space: nowrap;
+  font-family: var(--font-display, "Big Shoulders Display", "Arial Narrow", sans-serif);
+  font-weight: 900;
+  font-size: clamp(26px, 5.5vw, 38px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--fx-c, var(--points, #ffd166));
+  -webkit-text-stroke: 1px rgba(11, 15, 26, 0.55);
+  text-shadow:
+    0 2px 0 rgba(11, 15, 26, 0.9),
+    0 0 14px color-mix(in srgb, var(--fx-c, #ffd166) 60%, transparent);
+}
+
+/* ---------- Stamp ---------- */
+.fx-stamp-wrap {
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 40;
+  --fx-c: var(--text, #eaf0ff);
+}
+.fx-tone-good { --fx-c: var(--gas, #5fe3b4); }
+.fx-tone-bad { --fx-c: var(--danger, #ff6b6b); }
+.fx-tone-neutral { --fx-c: var(--points, #ffd166); }
+
+.fx-stamp-wrap > * { grid-area: 1 / 1; }
+.fx-stamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 20px 8px;
+  border: 5px solid var(--fx-c);
+  border-radius: 10px;
+  background: rgba(11, 15, 26, 0.72);
+  box-shadow:
+    0 0 0 3px rgba(11, 15, 26, 0.75),
+    0 0 32px color-mix(in srgb, var(--fx-c) 45%, transparent),
+    inset 0 0 22px color-mix(in srgb, var(--fx-c) 22%, transparent);
+  backdrop-filter: blur(2px);
+}
+.fx-stamp-word {
+  font-family: var(--font-display, "Big Shoulders Display", "Arial Narrow", sans-serif);
+  font-weight: 900;
+  font-size: clamp(40px, 11vw, 76px);
+  line-height: 0.95;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--fx-c);
+  text-shadow: 0 3px 0 rgba(11, 15, 26, 0.85);
+}
+.fx-stamp-sub {
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-weight: 700;
+  font-size: clamp(13px, 3.4vw, 16px);
+  color: var(--text, #eaf0ff);
+  text-align: center;
+  max-width: 22ch;
+}
+.fx-stamp-shock {
+  width: min(70vw, 360px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--fx-c);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--fx-c) 50%, transparent);
+}
+
+/* ---------- DealHand ---------- */
+.fx-deal-item {
+  flex: none;
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+
+/* ---------- Confetti ---------- */
+.fx-confetti {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+}
+
+/* ---------- Pulse ---------- */
+.fx-pulse {
+  position: relative;
+  display: inline-flex;
+  --fx-r: var(--radius, 10px);
+}
+.fx-pulse-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: var(--fx-r);
+  border: 2px solid var(--fx-c, var(--points, #ffd166));
+  box-shadow: 0 0 14px var(--fx-c, var(--points, #ffd166));
+  pointer-events: none;
+  z-index: 2;
+  animation: fx-pulse-out 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) infinite;
+}
+.fx-pulse-ring-2 { animation-delay: 0.8s; }
+.fx-pulse.is-active > :first-child {
+  animation: fx-pulse-nudge 1.6s ease-in-out infinite;
+}
+@keyframes fx-pulse-out {
+  0% { transform: scale(1); opacity: 0.95; }
+  100% { transform: scale(1.14); opacity: 0; }
+}
+@keyframes fx-pulse-nudge {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--fx-c, #ffd166) 70%, transparent)); }
+}
+
+/* ---------- ChainSweep ---------- */
+.fx-sweep {
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  z-index: 5;
+}
+.fx-sweep::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  width: 34%;
+  left: -40%;
+  background: linear-gradient(100deg,
+    transparent 0%,
+    color-mix(in srgb, var(--fx-c, #5fe3b4) 35%, transparent) 35%,
+    rgba(255, 255, 255, 0.85) 50%,
+    color-mix(in srgb, var(--fx-c, #5fe3b4) 35%, transparent) 65%,
+    transparent 100%);
+  mix-blend-mode: screen;
+  animation: fx-sweep 650ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes fx-sweep {
+  0% { transform: translateX(0) skewX(-12deg); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translateX(440%) skewX(-12deg); opacity: 0.2; }
+}
+
+/* ---------- CountUp ---------- */
+.fx-count {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+.fx-count.is-bump {
+  animation: fx-bump 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fx-bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.28); color: var(--points, #ffd166); }
+  100% { transform: scale(1); }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .fx-pulse-ring { animation: none; opacity: 0.9; transform: none; }
+  .fx-pulse-ring-2 { display: none; }
+  .fx-pulse.is-active > :first-child { animation: none; }
+  .fx-sweep::before { animation-duration: 1ms; opacity: 0; }
+  .fx-count.is-bump { animation: none; }
+}

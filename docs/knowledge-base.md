@@ -1,6 +1,6 @@
 # Mattenkarten – Wissensbasis
 
-Stand: 2026-11-05 · Status: zentrale Referenz für Karten- und Regeldesign · Grundlage: Recherchenotizen „Kampfkette und Spielmechanik“ (3 Dateien), „Kampfsport Lernkartenspiel Grundlagen“ (4 Dateien), Bericht „Kampfsport Lernkartenspiel Grundlagen“ und die Design-Spec `docs/superpowers/specs/2026-11-05-mattenkarten-battle-design.md`.
+Stand: 2026-11-05 · Status: zentrale Referenz für Karten- und Regeldesign · Grundlage: Recherchenotizen „Kampfkette und Spielmechanik“ (3 Dateien), „Kampfsport Lernkartenspiel Grundlagen“ (4 Dateien), Bericht „Kampfsport Lernkartenspiel Grundlagen“, „Neulinge und Lernen pro Runde“ (2 Dateien) und die Design-Spec `docs/superpowers/specs/2026-11-05-mattenkarten-battle-design.md`.
 
 ---
 
@@ -14,14 +14,14 @@ Dieses Dokument ist die **einzige verbindliche Wissensquelle** für Mattenkarten
 |---|---|---|
 | **belegt** | Aussage steht in einer abgerufenen Quelle (Link in der Zeile oder im Abschnitt) | ja |
 | **[Sekundär]** | nur über Blog/Medienbericht belegt, Originalquelle (z. B. Instagram-Post, Video, Regelwerk-PDF) nicht selbst geprüft | ja, mit Feld `check` |
-| **[ungeprüft]** | in der Recherche genannt, aber ohne abgerufene Quelle (z. B. erinnerte Zahlen) | nur mit Feld `check` und Eintrag in Abschnitt 8 |
+| **[ungeprüft]** | in der Recherche genannt, aber ohne abgerufene Quelle (z. B. erinnerte Zahlen) | nur mit Feld `check` und Eintrag in Abschnitt 9 |
 | **[FW]** | Fachwissen/Trainerwissen, nicht gegen eine Quelle geprüft | nur mit Feld `check`; vor Release Trainer-Review |
 | **[Design]** | eigene Ableitung für das Spiel, keine Tatsachenbehauptung über Kampfsport | ja, aber nie als Fakt formulieren |
 
 ### 1.2 Regeln für Änderungen
 
-1. **Recherche vor Inhalt.** Bevor eine Technik, ein Konter oder eine Sicherheitsangabe neu aufgenommen oder geändert wird, wird sie recherchiert und mit URL belegt. Ohne Beleg erhält sie den Marker [ungeprüft] oder [FW] und einen Eintrag in Abschnitt 8.
-2. **Jede Aussage hat eine Quelle.** Quellen stehen in der Tabellenzeile oder direkt hinter dem Absatz; alle URLs zusätzlich in Abschnitt 9.
+1. **Recherche vor Inhalt.** Bevor eine Technik, ein Konter oder eine Sicherheitsangabe neu aufgenommen oder geändert wird, wird sie recherchiert und mit URL belegt. Ohne Beleg erhält sie den Marker [ungeprüft] oder [FW] und einen Eintrag in Abschnitt 9.
+2. **Jede Aussage hat eine Quelle.** Quellen stehen in der Tabellenzeile oder direkt hinter dem Absatz; alle URLs zusätzlich in Abschnitt 10.
 3. **Zitate kurz halten.** Wörtliche Zitate bleiben unter 15 Wörtern, stehen in Anführungszeichen und in Originalsprache. Alles andere wird paraphrasiert.
 4. **Zitat, Paraphrase und Zuschreibung trennen.** Insbesondere bei John Danaher: Was nicht wörtlich belegt ist, wird nicht als Danaher-Zitat ausgegeben (siehe 2.7).
 5. **Keine erfundenen Quellen.** Lieber eine Lücke offen dokumentieren als eine Quelle vermuten.
@@ -134,7 +134,7 @@ Verbreitete Ordnung von oben nach unten (allgemeine BJJ-Lehre, nicht Danaher-spe
 
 **Back Control > Mount > Side Control / Knee on Belly > Guard (neutral) > Half Guard > Side Control unten > Mount unten > Back unten.** — [JitsuIQ](https://jitsuiq.com/concepts/positional-hierarchy.html)
 
-Abweichung: Gracie Barra stellt Knee on Belly **über** Side Control und nennt Turtle und Half Mount gesondert. — [Gracie Barra](https://graciebarra.com/2015/03/the-positional-hierarchy). Für das Spiel ist die Reihenfolge Side/KOB gleichwertig zu behandeln, bis ein Trainer entscheidet (Abschnitt 8).
+Abweichung: Gracie Barra stellt Knee on Belly **über** Side Control und nennt Turtle und Half Mount gesondert. — [Gracie Barra](https://graciebarra.com/2015/03/the-positional-hierarchy). Für das Spiel ist die Reihenfolge Side/KOB gleichwertig zu behandeln, bis ein Trainer entscheidet (Abschnitt 9).
 
 Positionsprioritäten laut Cursa: dominant = stabilisieren, Escapes verhindern, aufsteigen, dann finishen; neutral = Inside Position gewinnen, Winkel, Kontrolle; unterlegen = überleben, schützen, Frames, entkommen. — [Cursa](https://cursa.app/en/page/bjj-starter-guide-safety-tapping-and-positional-priorities). Kesting rät Anfängern zu 2–3 Angriffen je Top-Position und 2–3 Escapes oder Sweeps je Bottom-Position. — [Grapplearts Roadmap](https://www.grapplearts.com/a-roadmap-for-grappling/)
 
@@ -375,12 +375,12 @@ Nach jedem Reveal sollte ein kurzer Lerntext sagen, *warum* eine Aktion gewonnen
 
 - Zutaten: gleichzeitiges Aufdecken und Mind Games; Snap-Verdoppeln nach dem Backgammon-Doppelwürfel; aus neun Prototyp-Varianten die einfachste gewählt. — [mobilegamer.biz Recipe](https://mobilegamer.biz/second-dinners-ben-brode-reveals-marvel-snaps-recipe-for-success-literally/)
 - Retreat zeigt „Escaped!“ statt einer Niederlage; Brode: „It made losing feel like victory.“ — ebd.
-- 12-Karten-Decks, ein Kartentyp, Match unter 5 Minuten; Spieler lesen höchstens etwa 8 Wörter pro Screen (Snap im Schnitt 11). — ebd.
+- 12-Karten-Decks, ein Kartentyp, Match unter 5 Minuten; Spieler lesen höchstens etwa 8 Wörter pro Screen (Snap im Schnitt 11). — ebd. **[ungeprüft]:** Die Nachrecherche vom 2026-11-05 fand dafür bei gezielter Suche keinen Beleg; die Zuordnung zu diesem Artikel ist am Text erneut zu prüfen. Belegt ist nur „höchstens etwa 2 Zeilen Kartentext“ (siehe 8.2, Prüfpunkt 31).
 - Kein Mulligan, weil er Neulinge überfordert; Systemprobleme lieber über Kartendesign lösen. — [mobilegamer.biz Onboarding](https://mobilegamer.biz/second-dinner-reveals-the-secrets-of-marvel-snaps-onboarding-and-card-design/)
 - Man sieht die Vorrundenkarten des Gegners; Runden höchstens 35–40 s. — [Game Developer](https://www.gamedeveloper.com/game-platforms/designers-don-t-sleep-on-marvel-snap-s-simultaneous-turns)
 - Erste Prototypen auf Visitenkarten erzwangen kurze Texte; VFX sollen „guide the player in what the card does“. — [Game Developer Prototyping](https://www.gamedeveloper.com/design/why-second-dinner-first-prototyped-marvel-snap-using-physical-cards)
 
-**Mapping:** Tap-Moment als „ehrenvoller Ausstieg“ mit Ehren-XP; Kartentexte kurz (Richtwert 8–11 Wörter); Grundtechniken pro Position als immer verfügbare Option lösen das „keine spielbare Karte“-Problem über Design statt Mulligan.
+**Mapping:** Tap-Moment als „ehrenvoller Ausstieg“ mit Ehren-XP; Kartentexte kurz (höchstens 2 Zeilen belegt; Richtwert 8–11 Wörter nur als Design-Ziel); Grundtechniken pro Position als immer verfügbare Option lösen das „keine spielbare Karte“-Problem über Design statt Mulligan.
 
 ### 7.4 Comeback-Regeln
 
@@ -432,7 +432,156 @@ Vorlage: [simeydotme/pokemon-cards-css](https://github.com/simeydotme/pokemon-ca
 
 ---
 
-## 8. Offene Prüfpunkte
+## 8. Neulinge & Lernen in jeder Runde
+
+Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`, `lernen_pro_runde.md`, Stand 2026-11-05). Bezug ist die Rundenschleife der Spec: eine Karte wählen, beide decken auf, Auflösung („Sprawl kontert den Beinangriff“), Positionswechsel. Zielgruppe sind Menschen ohne Kampfsporterfahrung. Aufbau je Unterabschnitt: erst **Befund** mit Quelle und Marker, dann **So setzt Mattenkarten das um** (immer [Design], also Ableitung und keine Tatsachenbehauptung). Abschnitt 7.8 bleibt die Kurzfassung zum Tutorial; hier stehen Details und Lernwirkung.
+
+### 8.1 Onboarding-Muster
+
+**Befund**
+- **Hearthstone:** Das Tutorial besteht seit dem Rework (Patch 27.6, Oktober 2023) aus drei geskripteten Bossmissionen statt sechs. In Mission 1 kosten Karten kein Mana; gelehrt werden nur Ausspielen, Angreifen, Angriff und Leben. Mana, Hero Power und Keywords (Battlecry) kommen erst in Mission 2. Mission 1 startet ohne Starthand, Mission 2 und 3 mit nur drei Karten; Münzwurf und Deckreihenfolge sind festgelegt. — [Hearthstone Wiki: Tutorial](https://hearthstone.wiki.gg/wiki/Tutorial) · belegt
+- **Hearthstone-Leitplanken:** Der Zug lässt sich nicht beenden, solange Mana oder Angriffe übrig sind; eigene Figuren können nicht mit Zaubern anvisiert werden; Verlieren und Aufgeben sind nicht möglich. Mission 3 garantiert die passende Lösungskarte (Flamestrike). Das Tutorial ist seit 2022 überspringbar und seit 2023 wiederholbar; danach folgen fünf Quests und kontextuelle Hinweise auf neuen Screens. — ebd.; [Hearthstone Wiki: New player experience](https://hearthstone.wiki.gg/wiki/New_player_experience) · belegt
+- **Marvel Snap, gestaffelte Mechaniken:** Das erste Match ist geskriptet und hat zunächst nur eine Location; man spielt sofort, „without explaining moves or costs“. Freischalt-Reihenfolge: eine Location, dann drei Locations mit Siegbedingung „2 von 3“, das Energiesystem erst nach dem ersten Sieg, danach Karten- und Location-Fähigkeiten, Snap-Wetten erst nach einigen Stunden. Starterkarten haben keinen Fähigkeitstext. — [Deconstructor of Fun](https://www.deconstructoroffun.com/blog/2023/5/23/marvel-snap-the-definitive-deconstruction) · belegt
+- **Marvel Snap, Lehren über Karten:** Neue Mechaniken kommen über die Reihenfolge freigeschalteter Karten (erst Ongoing-Karten, dann On-Reveal-Ketten). Gegen „kein spielbarer Zug in Runde 1“ gibt es keinen Mulligan, sondern eine garantierte Karte in der Starthand (Quicksilver). — [mobilegamer.biz Onboarding](https://mobilegamer.biz/second-dinner-reveals-the-secrets-of-marvel-snaps-onboarding-and-card-design/) · belegt
+- **Wahlmöglichkeiten begrenzen:** Choice Overload gilt als Daumenregel ab etwa sieben Optionen (Miller 1956, keine getestete Schwelle); Neulinge profitieren von kleinen, kategorisierten Mengen, Experten eher von großen (Chernev 2003; Mogilner et al. 2008). Iyengar und Lepper (2000): sechs statt 24 Marmeladen ergaben eine höhere Kaufrate. — [Game Developer: Spoiled for choice](https://www.gamedeveloper.com/design/spoiled-for-choice-the-psychology-of-choice-overload-in-games-and-how-to-avoid-it) · belegt (Sekundärdarstellung der Studien). NN/g empfiehlt Progressive Disclosure mit höchstens zwei Ebenen. — [NN/g Progressive Disclosure](https://www.nngroup.com/articles/progressive-disclosure/) · belegt
+- **Überspringbar, Schritt für Schritt:** Apple empfiehlt eine aktive Rolle ab dem Start, kurze Anweisungen „one step at a time“, Kompetenz vor der nächsten Stufe, kein vorausgesetztes Wissen, überspringbare Tutorials (Carcassonne: „Go ahead“/„Later“), Nicht-Essenzielles erst nach dem Onboarding sowie einen Referenzbereich mit kontextuellen Tipps. Clash Royale nutzt fünf kurze, progressive Tutorials. — [Apple Developer: Onboarding for Games](https://developer.apple.com/app-store/onboarding-for-games/) · belegt
+- **Coach-Figur und gerichtete Aufgaben:** Duolingo Chess besteht zu etwa 75 % aus Puzzles mit Coach-Figur (Oscar); frühe Aufgaben sind direktiv, spätere offen; erst Regeln und Figurenbewegung, Eröffnungen später. Der Bot passt sich an Siege und Niederlagen an. — [Duolingo Blog: Chess](https://blog.duolingo.com/chess-course), [Fast Company](https://www.fastcompany.com/91317214/duolingo-will-start-teaching-chess-soon) · belegt
+
+**So setzt Mattenkarten das um** [Design]
+- **Kampf 1 zeigt nur eine Phase** der Kette (z. B. nur Distanz/Stand), ohne Gas und Kontrolle; Ressourcen erscheinen erst ab Kampf 2 bis 3 (Hearthstone ohne Mana, Snap-Energie erst nach dem ersten Sieg).
+- **Dreieck erleben statt erklären:** In Kampf 1 kündigt der Gegner seinen Zug an, der Spieler hat genau eine passende Konterkarte. Das ergibt den ersten Aha-Moment ohne Regeltext.
+- **Optionen begrenzen:** 2–3 wählbare Karten in Kampf 1, 3–4 in frühen Kämpfen, höchstens etwa 5 später. Unspielbare Karten werden ausgegraut oder in frühen Phasen gar nicht gezogen; eine spielbare Karte ist garantiert (Quicksilver-Prinzip; die immer verfügbare Grundtechnik der Spec erfüllt das bereits). **Widerspruch zur Spec:** Die Spec zieht immer auf 5 Handkarten; für die Tutorial-Kämpfe ist eine kleinere Hand zu prüfen (Abschnitt 9).
+- **Leitplanken:** Die ersten 1–3 Kämpfe sind nicht verlierbar, unsinnige Züge sind gesperrt statt erklärt; danach passt sich die KI-Stärke an (Duolingo-Prinzip).
+- **Neue Technik = neue Karte:** Techniken kommen über die Freischalt-Reihenfolge ins Spiel, jede neue Karte trägt genau eine neue Idee (Reihenfolge siehe 8.10).
+- **Überspringen und Nachschlagen:** Das Tutorial ist überspringbar (mit kurzem Einstufungstest für Spieler mit Vorwissen, siehe 8.3) und wiederholbar. Ein Lexikon dient als Nachschlagewerk, nie als Pflichtlektüre.
+- **Coach Marks:** Pro Hinweisblase genau eine Aussage, etwa eine Zeile, direkt am betroffenen Element (Karte, Kettenleiste, Gas-Anzeige). Hinweise erscheinen erst, wenn das Element zum ersten Mal relevant wird.
+
+### 8.2 Klartext und Icons
+
+**Befund**
+- Icons sind ohne Kontext mehrdeutig; ein Text-Label muss „present alongside an icon“ sein und dauerhaft sichtbar bleiben, weil Hover auf Touch-Geräten nicht funktioniert. Nur wenige Icons sind universell verständlich. Faustregel: Fällt einem in etwa fünf Sekunden kein passendes Icon ein, kommuniziert es vermutlich nicht. Erkennung und Erinnerung (nach etwa zwei Wochen) mit Nutzern testen. — [NN/g Icon Usability](https://www.nngroup.com/articles/icon-usability/) · belegt
+- Marvel Snap begrenzt Kartentext möglichst auf zwei Zeilen, mit den strengsten Limits für Neulingskarten; Fähigkeiten stehen in „short, snappy sentences“ mit klarer Wenn-dann-Logik. — [Marvel Snap Zone (Entwicklerantwort)](https://marvelsnapzone.com/answers/text-per-card/), [Game Developer Prototyping](https://www.gamedeveloper.com/design/why-second-dinner-first-prototyped-marvel-snap-using-physical-cards) · belegt
+- **„8 Wörter pro Screen“ [ungeprüft]:** Eine gezielte Suche fand für diese Marvel-Snap-Regel keinen Beleg; belegt ist nur die Zwei-Zeilen-Grenze. Die Angabe in 7.3 ist deshalb ebenfalls als [ungeprüft] markiert und darf nur als Design-Ziel verwendet werden (Abschnitt 9).
+- Hearthstone führt Keywords erst in Mission 2 ein, also nachdem die Grundhandlung sitzt; Duolingo Chess lehrt erst Regeln, dann Fachwissen. — [Hearthstone Wiki](https://hearthstone.wiki.gg/wiki/Tutorial), [Duolingo Blog](https://blog.duolingo.com/chess-course) · belegt
+- Glossare und Erklärnotizen helfen Novizen, werden für Fortgeschrittene aber redundant (Expertise Reversal). — [Kalyuga 2007 (PDF)](https://www.uky.edu/~gmswan3/EDC608/Kalyuga2007_Article_ExpertiseReversalEffectAndItsI.pdf) · belegt
+- Ein Doppel-Label (Alltagssprache groß, Fachbegriff klein) ist eine begründete Ableitung, aber in keinem untersuchten Spiel als evaluierte Praxis belegt. · [ungeprüft]
+
+**So setzt Mattenkarten das um** [Design]
+- **Icons nie allein:** Jedes Icon steht mit sichtbarem Wort daneben, auch auf dem Handy, z. B. Lunge plus „Puste“ für Gas, Hand plus „Kontrolle“ für Kontrolle. Abstrakte Ressourcen fehlen in Kampf 1 ganz.
+- **Doppel-Label:** Titel in Alltagssprache („Quer auf ihm liegen“), Fachbegriff klein darunter („Side Control“). Nach mehreren erfolgreichen Begegnungen dreht sich die Gewichtung um: Fachbegriff groß, Erklärung klein (passt zum Ausblenden nach Expertise).
+- **Rollen als Verben:** Setup, Reaktion und Angriff erscheinen als Wirkung („Täuschen“, „Kontern“, „Zugreifen“), dazu ein dauerhaft sichtbares Mini-Dreieck am Rand.
+- **Kartentext:** eine „Was passiert?“-Zeile in Wenn-dann-Form, höchstens zwei Zeilen auf dem Handy; interne Tags wie `shot` erscheinen nicht auf der Karte. Der Richtwert „8–11 Wörter“ aus 7.3 gilt nur als Ziel, nicht als belegte Regel.
+- **Fachbegriffe später:** Englische BJJ-Begriffe werden erst eingeblendet, wenn die Handlung verstanden ist; korrekte Schreibweise nach 1.2 (Southpaw, Orthodox/Regular).
+
+### 8.3 Ausblendende Hinweise
+
+**Befund**
+- **Chess.com Coach** gibt in Puzzles gestufte Hinweise: Stufe 1 ein gesprochener verbaler Hinweis, Stufe 2 die Figur markieren, Stufe 3 den nächsten Zug zeigen. Dazu kommen optionale „Puzzle Goals“ (Ziel sofort nennen, „especially useful for new players“) und Fehler-Feedback; alles ist einzeln abschaltbar. — [Chess.com Announcement](https://www.chess.com/announcements/view/level-up-your-puzzle-practice-with-coach) · belegt. Ob Chess.com Hinweise automatisch reduziert, ist nicht dokumentiert; das Ausblenden ist dort nutzergesteuert. · [ungeprüft]
+- **Expertise Reversal:** Methoden, die Novizen helfen, verlieren mit wachsender Expertise ihren Nutzen oder schaden, weil sie zum Vorwissen redundant werden. Berichtete Effektgrößen-Differenzen 0,45–2,99. Novizen profitieren von langsamem Ausblenden, Fortgeschrittene von schnellem (Reisslein 2005). Adaptive Tutorials erzielen bessere Lerngewinne als nicht-adaptive (Effekt etwa 0,46–0,69); schnelle Diagnose gelingt über „first-step“-Tests. Lernerkontrolle hilft nur mit genug Vorwissen; Novizen brauchen Systemführung. — [Kalyuga 2007 (PDF)](https://www.uky.edu/~gmswan3/EDC608/Kalyuga2007_Article_ExpertiseReversalEffectAndItsI.pdf) · belegt
+- Ausgeblendete Hilfen schlugen dauerhafte Prompts (Nückles et al. 2010, über Kalyuga-Artikel). — [Chartered College](https://my.chartered.college/impact_article/expertise-reversal-effect-and-its-instructional-implications/) · [Sekundär]
+- **Element Interactivity:** Bei vielen gleichzeitig zu verarbeitenden Elementen sind Worked Examples besser als freies Problemlösen; dieselbe Aufgabe ist für Experten durch Chunking leicht. — [Chen, Castro-Alonso, Paas & Sweller 2018](https://pmc.ncbi.nlm.nih.gov/articles/PMC6099118) · belegt
+
+**So setzt Mattenkarten das um** [Design]
+- **Dreistufiger Coach-Knopf** (Chess.com-Muster): (1) Ziel in Alltagssprache („Er wird gleich nach vorn stürmen. Was stoppt das?“), (2) passende Kartenrolle hervorheben, (3) konkrete Karte leuchten lassen.
+- **Ausblend-Regel:** Stufe 3 erscheint automatisch nur in den ersten Kämpfen, danach nur auf Anfrage. Hat ein Spieler eine Situationsart 2–3-mal richtig gelöst, verschwindet der Hinweis für genau diese Situation. Diese Schwelle ist eine Hypothese für den Playtest.
+- **Telegrafieren** der Gegnerabsicht senkt die Elementinteraktivität beim gleichzeitigen Aufdecken und wird mit steigendem Gürtel seltener (Spec `telegraph`, siehe 7.8).
+- **Erst zeigen, dann selbst spielen:** Der erste Zug eines neuen Konzepts ist ein kommentierter Demo-Zug des Coachs (Example vor Problem für Novizen).
+- **Einstufung:** Spieler mit Vorwissen beantworten 2–3 Schnellsituationen und überspringen damit Hinweisstufen.
+
+### 8.4 Feedback nach jeder Auflösung
+
+**Befund**
+- **Shute 2008** (Review of Educational Research, DOI [10.3102/0034654307313795](https://doi.org/10.3102/0034654307313795)): Empfehlung „Provide elaborated feedback to enhance learning“; Feedback soll Was, Wie und Warum beschreiben. Reines Richtig/Falsch „does not have much utility for learning“. Zu langes Feedback wird ignoriert, Leitlinie „as simple as possible but no simpler“. Bei schwierigen Aufgaben „immediate feedback, at least initially“; bei einfachen Aufgaben verzögern, um Unterbrechungen zu vermeiden. Für frühe Lernphasen: „Directive feedback may be most helpful during the early stages of learning“. — [Shute 2008 (PDF)](https://myweb.fsu.edu/vshute/pdf/shute%202008_b.pdf) · belegt
+- **Hattie & Timperley 2007** (Review of Educational Research 77(1), 81–112, DOI [10.3102/003465430298487](https://doi.org/10.3102/003465430298487)): vier Ebenen (Aufgabe, Prozess, Selbstregulation, Person). Die ersten drei gelten als lernwirksam, Lob der Person nicht. — [BERA Blog](https://www.bera.ac.uk/blog/how-to-optimise-the-use-of-hattie-and-timperleys-feedback-levels-for-student-learning) · [Sekundär]
+- **Wouters & van Oostendorp 2013** (Computers & Education 60(1), 412–425): Meta-Analyse zu Instruktionsunterstützung in Lernspielen, 29 Studien, 107 Vergleiche, Gesamteffekt d = 0,34. Unterstützung zur Auswahl relevanter Information (u. a. Feedback, Modeling, Hinweise) d = 0,46; Unterstützung zur Organisation und Integration (u. a. Reflexion, Selbsterklärung) nur d = 0,14. Effekt auf kognitive Fertigkeiten/Transfer d = 0,62, auf die Spielleistung selbst nur d = 0,19. Modeling d = 0,46. — [TUM Clearinghouse Kurzreview (PDF)](https://www.clearinghouse.edu.tum.de/wp-content/uploads/2018/12/CHU_KR-2_Wouters1_2013_Spielbasiertes-Lernen.pdf), [dblp](https://dblp.uni-trier.de/rec/journals/ce/WoutersO13.html) · belegt über Kurzreview; der isolierte Feedback-Effekt und die DOI sind [ungeprüft]
+- **Clark, Tanner-Smith & Killingsworth 2016** (Review of Educational Research 86(1), 79–122, DOI [10.3102/0034654315582065](https://doi.org/10.3102/0034654315582065)): Spiele gegen Nicht-Spiel-Bedingungen 0,33 [0,19; 0,48], k = 57; erweiterte gegen Standard-Spieldesigns (z. B. mehr Scaffolding) 0,34 [0,17; 0,51], k = 20. Die Effekte variierten mit Spielmechanik, Gestaltung und Studienqualität. — [Open Development & Education Library](https://docs.opendeved.net/lib/YHX5ZVR8), [SRI Brief](https://www.sri.com/publication/education-learning-pubs/digital-learning-pubs/digital-games-design-and-learning-a-systematic-review-and-meta-analysis-brief/) · belegt (Abstract)
+
+**So setzt Mattenkarten das um** [Design]
+- **Jede Auflösung bekommt einen Warum-Satz**, nicht nur Gewonnen/Verloren: „Sprawl: Hüfte nach hinten, Gewicht auf seinen Rücken. Der Beinangriff findet keine Beine.“ Richtwert 15–20 Wörter (Hypothese), sofort nach dem Aufdecken, weil Anfänger prozedurales Wissen lernen.
+- **Prozess statt Person:** „Gegen einen tiefen Angriff hilft Hüfte weg“ statt „Super gemacht!“. Konfetti und Lob sind Spielbelohnung, nicht Lerninhalt.
+- **Direktiv am Anfang:** Bei einem Fehler nennt das Feedback in frühen Kämpfen die bessere Karte; später nur den Grund.
+- **Später kürzen oder verschieben:** Für Fortgeschrittene wandern Erklärungen in die Kampf-Zusammenfassung (verzögertes Feedback, weniger Unterbrechung).
+- **Siegquote ist kein Lernmaß:** Weil die Spielleistung nur schwach mit Lernen zusammenhängt (d = 0,19 gegenüber 0,62), braucht das Spiel ein eigenes Verständnis-Signal, z. B. die Trefferquote der Vorhersage aus 8.5.
+
+### 8.5 Vorhersage vor dem Aufdecken
+
+**Befund**
+- **Brod, Hasselhorn & Bunge 2018** (Learning and Instruction 55, 22–31, DOI [10.1016/j.learninstruc.2018.01.013](https://doi.org/10.1016/j.learninstruc.2018.01.013)): Inhalte, zu denen vorher eine Vorhersage abgegeben wurde, wurden besser gelernt als nur gezeigte. Vor allem falsche Vorhersagen trugen dazu bei; die Pupillenerweiterung (Überraschung) hing mit dem Lerngewinn zusammen. N = 36; eine ursächliche Rolle der Überraschung ist nicht belegt. — [idw-Pressemitteilung DIPF](https://idw-online.de/en/news693157) · [Sekundär]
+
+**So setzt Mattenkarten das um** [Design]
+- **Die Kartenwahl ist schon eine Vorhersage** („Er greift die Beine an, also Sprawl“). Zusätzlich gibt es einen optionalen Tipp „Ich erwarte …“: ein Tap auf die vermutete Gegnerrolle vor dem Aufdecken, mit kleinem Bonus bei Treffer.
+- **Überraschung nutzen:** War die Vorhersage falsch, wird die Erklärung prominenter gezeigt (kurze Animation plus Satz); bei richtiger Vorhersage genügt ein Bestätigungssatz.
+- Die Vorhersage-Trefferquote pro Kampf dient als Lernkurve (siehe 8.4).
+
+### 8.6 Selbsterklärung sparsam
+
+**Befund**
+- **Bisra et al. 2018** (Educational Psychology Review, DOI [10.1007/s10648-018-9434-x](https://doi.org/10.1007/s10648-018-9434-x)): 64 Studien, etwa 6.000 Teilnehmende, g = 0,55. Selbsterklärung wirkte besser als Erklärung durch Lehrende und besser als keine Erklärung. Selbsterklärung per Auswahlmenü war die schwächste Form; der Zeitpunkt des Prompts machte wenig Unterschied; die passende Führung hängt vom Kenntnisstand ab. — [BPS Research Digest](https://bps.org.uk/research-digest/self-explanation-powerful-learning-technique-according-meta-analysis-64-studies) · [Sekundär]
+- In Lernspielen zeigte Reflexions- und Integrationsunterstützung (darunter Selbsterklärung) nur d = 0,14, Auswahlunterstützung wie Feedback d = 0,46 (Wouters & van Oostendorp 2013, siehe 8.4). Eigene Literatur zu Selbsterklärung in Spielen (ter Vrugte, de Jong u. a.) wurde nicht ausgewertet. — [Universität Twente](https://research.utwente.nl/en/publications/self-explanations-in-game-based-learning-from-tacit-to-transferab/)
+
+**So setzt Mattenkarten das um** [Design]
+- **Frequenz:** Vorhersage in jeder Runde (ist Mechanik), Warum-Satz in jeder Runde kurz, aktive Selbsterklärung höchstens 1–2-mal pro Kampf und optional, meist in der Zusammenfassung.
+- **Format:** „Wähle den Grund“ (Auswahl) nur als Einstieg, weil am schwächsten belegt; später freie Antwort oder Sprachantwort, die der optionale KI-Coach (`api/coach.ts`) bewertet. Die Wirksamkeit dieser KI-Bewertung ist eine Hypothese.
+
+### 8.7 Lerninhalt ist die Mechanik
+
+**Befund**
+- **Habgood & Ainsworth 2011** (Journal of the Learning Sciences, DOI [10.1080/10508406.2010.508029](https://doi.org/10.1080/10508406.2010.508029)): Studie 1 mit 58 Kindern (7–11 Jahre) verglich eine intrinsische, eine extrinsische (Quiz angehängt) und eine Kontrollversion von „Zombie Division“. Bei fester Spielzeit lernten Kinder mit der intrinsischen Version mehr. In Studie 2 (16 Kinder, freie Wahl) spielten sie die intrinsische Version „7 times longer“. — [Nottingham Repository](https://nottingham-repository.worktribe.com/output/23577510/motivating-children-to-learn-effectively-exploring-the-value-of-intrinsic-integration-in-educational-games) · belegt (Abstract). Getestet mit Mathematik und Kindern; die Übertragung auf Kampfsport ist nicht untersucht.
+- Clark et al. 2016: Die Effekte hingen von der Spielmechanik ab, nicht vom Medium Spiel an sich (siehe 8.4).
+
+**So setzt Mattenkarten das um** [Design]
+- **Die Konter-Matrix ist der Lerninhalt:** Sprawl schlägt Double Leg, Guillotine bestraft den Shot mit gesenktem Kopf, Upa gegen Mount (Katalog in Abschnitt 4). Wer gewinnt, hat die Logik verstanden. Keine Quizfragen zwischen den Runden ohne Bezug zur Kartenwahl.
+- **Positionsabhängige Hände:** In Mount unten stehen nur Flucht- und Schutzkarten zur Wahl. So lernt man die Ziele jeder Position ohne Text.
+- **Risiko Schere-Stein-Papier:** Ist der Konter abstrakt, lernt man das Spiel und nicht den Sport. Jede Konterbeziehung braucht deshalb ein Bewegungsprinzip im Warum-Satz und eine Quelle aus Abschnitt 4.
+- Die bestehende Freischalt-Lektion mit Kontrollfrage (Abschnitt 6) bleibt als Ergänzung in der Bibliothek, nicht im Kampf.
+
+### 8.8 Multimedia-Prinzipien nach Mayer
+
+**Befund**
+- Mayer beschreibt u. a. **Pre-Training** (wer Namen und Eigenschaften der Hauptkonzepte vorab kennt, lernt besser), **Signaling** (das Wesentliche hervorheben), **Coherence** (Überflüssiges weglassen), **Spatial Contiguity** (Wort und Bild nah beieinander), **Segmenting** (in nutzergesteuerte Häppchen teilen), **Redundancy** (gedruckter Text zu Grafik plus Sprache hilft nicht) und **Personalization** (Gesprächston). — [Mayer 2020, Multimedia Principles (PDF)](https://ugc.futurelearn.com/uploads/files/7d/d6/7dd6188d-c343-4311-b064-ac98d2c95abc/Multimedia_Principles._R._E._Mayer__2020.pdf) · belegt
+- **Multimedia-Prinzip:** Wort plus Grafik schlägt Wort allein, Median-Effektgröße über 1 in 13 Experimenten (Mayer im Interview). — [Torkar 2022, CEPS Journal, DOI 10.26529/cepsj.1238](https://cepsj.si/index.php/cepsj/article/download/1238/595) · belegt. Effektgrößen der einzelnen Prinzipien (Signaling, Segmenting, Coherence) wurden nicht abgerufen. · [ungeprüft]
+- **Concreteness Fading** (Fyfe, McNeil, Son & Goldstone 2014, Educational Psychology Review 26, 9–25): konkret beginnen, dann schrittweise und ausdrücklich zur abstrakten Darstellung übergehen. — [DOI 10.1007/s10648-014-9249-3](https://www.doi.org/10.1007/S10648-014-9249-3) · belegt; untersucht vor allem in Mathematik und Naturwissenschaften.
+
+**So setzt Mattenkarten das um** [Design]
+- **Pre-Training:** Vor Kampf 1 ein Tipp-Durchlauf von 10–20 Sekunden „Lerne die 3 Lagen“ (Stehen, Klammern, Boden) mit Bildern zum Antippen statt Text.
+- **Ein Konzept pro Runde (Segmenting):** Jede Auflösung transportiert genau ein Prinzip.
+- **Bild direkt am Satz (Spatial Contiguity):** kurze Loop-Animation oder Skelett-Pose der Aktion neben dem Warum-Satz; der entscheidende Körperteil leuchtet (Signaling, z. B. die Hüfte beim Sprawl).
+- **Weglassen (Coherence):** kein Deko-Text, keine Erklärung, die schon im Bild steckt; die Kettenleiste zeigt nur die aktuelle Phase hervorgehoben.
+- **Gesprächston:** Coach spricht in der Du-Form und kurz.
+- **Concreteness Fading:** konkret („Er schießt auf deine Beine, Hüfte zurück“), dann Symbol („Ebenenwechsel“), dann Prinzip („Wer tiefer ist, kontrolliert“). Prinzipienkarten erst in höheren Gürteln.
+
+### 8.9 Fehler gezielt wiederholen
+
+**Befund**
+- Duolingo übt Fehler einer Lektion am Lektionsende erneut, wiederholt falsch beantwortete Inhalte früher und richtige später und kombiniert Abstände mit aktivem Abruf. — [Duolingo Blog: Spaced repetition](https://blog.duolingo.com/spaced-repetition-for-learning) · belegt. Das Schätzmodell „Birdbrain“ wurde nicht im Detail geprüft. — [Duolingo Blog: Birdbrain](https://blog.duolingo.com/learning-how-to-help-you-learn-introducing-birdbrain)
+- Adesope, Trevisan & Sundararajan 2017 (Review of Educational Research, DOI [10.3102/0034654316689306](https://journals.sagepub.com/doi/10.3102/0034654316689306)): Meta-Analyse zum Übungstesten; Adesope betont niedrigschwellige Tests mit Feedback. — [WSU News](https://news.wsu.edu/news/2018/01/09/educational-psychology-article-among-nations-most-read/) · [Sekundär]; Gesamteffekt siehe Prüfpunkt 25.
+- Testing-Effekt und Spacing sind in Abschnitt 6 belegt (Dunlosky et al. 2013, Roediger & Karpicke 2006, Cepeda et al. 2008).
+
+**So setzt Mattenkarten das um** [Design]
+- **Kampf-Zusammenfassung (höchstens etwa 30 s):** 1–3 Schlüsselmomente, vor allem die Runde mit Positionsverlust: „Du warst in der Guard unten und hast X gewählt. Was hätte besser gepasst?“ Erst abrufen, dann Erklärung.
+- **Fehler-Deck:** Falsch gekonterte Situationen kommen im nächsten Kampf gezielt wieder, weil die KI die Karte erneut spielt. Die Wiederholung ist als Gegnerverhalten getarnt (passt zu 8.7).
+- **Tägliche Mattenrunde:** drei Situationen aus früheren Fehlern, wachsende Abstände für Gemeistertes; Planung über die Leitner-Stufen aus Abschnitt 6.
+
+### 8.10 Lernreihenfolge für Kampfsport-Neulinge
+
+**Befund**
+- **Gracie Barra:** Positionshierarchie von dominant bis unterlegen (siehe 3.2). Anfänger sollen für jede Hauptposition oben und unten wissen, was zu tun ist: oben erkennen, kontrollieren, finishen, hineinkommen; unten erkennen, entkommen, Submissions verteidigen, sich hocharbeiten. Warnung sinngemäß: Viele Omoplata-Varianten nützen nichts ohne Mount-Flucht. — [Gracie Barra: The Positional Hierarchy](https://graciebarra.com/2015/03/the-positional-hierarchy) · belegt
+- **Danaher** (über Händlerblog): Der Elbow Escape sei „one of the most important techniques in BJJ“; Reihenfolge erst defensiv, dann offensiv (Fluchten, dann Guard zum Rücken, dann Würger); Grundbewegungen (Hüftflucht, Brücke) und Frames vor der Anwendung gegen Widerstand; Techniken als System. — [BJJ Fanatics: Three techniques for beginners](https://bjjfanatics.com/blogs/news/three-techniques-for-beginners-with-john-danaher) · [Sekundär]. Deckt sich mit 2.4.
+- **Gracie Combatives:** 36 Kerntechniken in 23 einstündigen Lektionen, je eine Stand- und eine Bodentechnik in vereinfachten Drill-Abschnitten; Lektionen in beliebiger Reihenfolge; danach „Reflex Development“-Klassen, die Techniken kombinieren; kein Wettkampf-Sparring. Die Begründung (häufigste und erfolgreichste Techniken in realen Kämpfen) ist eine Eigenangabe. — [Gracie University: Gracie Combatives](https://www.gracieuniversity.com/pages/public/information?ip=96) · belegt als Selbstbeschreibung
+- Eine Studie, die Reihenfolgen im BJJ-Anfängerunterricht empirisch vergleicht, wurde nicht gefunden. · Lücke
+
+**So setzt Mattenkarten das um** [Design, Synthese aus Quellen und Lernwissenschaft]
+1. **Positionen und Ziele zuerst:** Lagen erkennen und einordnen („Wer ist oben, wer hat Vorteil?“); jede Position zeigt ihr Ziel-Icon mit Wort (oben: kontrollieren; unten: entkommen oder Guard herstellen).
+2. **Fluchten:** Brücke/Upa und Hüftflucht/Elbow Escape; Reihenfolge Frame, Bridge, Shrimp nach 4.5.
+3. **Takedown gegen Sprawl** als erstes Konterpaar im Stand, mit Stance (Orthodox/Southpaw) und Distanz als Rahmen.
+4. **Transitions:** Guard, Pass, Side Control, Mount, Rücken.
+5. **Submissions zuletzt** und nur aus dominanter Position (BJJ-Grundsatz „Position before submission“, siehe 2.8).
+- Gracie-Muster „eine Stand- plus eine Bodenidee pro Lektion“ passt zu einem Konzept pro Kampf; „Reflex Development“ entspricht späteren gemischten Kämpfen nach geblockter Einführung (vgl. Interleaving und Brady 2004 in Abschnitt 6).
+- **Widerspruch zur Spec (nach Regel 6 dokumentiert, nicht aufgelöst):** Das Spec-Tutorial führt (1) Dreieck und Takedown, (2) Reaktion und Sprawl, (3) Kontrolle und Submission ein; die Quellen empfehlen Positionen, Ziele und Fluchten vor Takedowns und Submissions. Entscheidung siehe Abschnitt 9.
+
+---
+
+## 9. Offene Prüfpunkte
 
 Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätigen, bevor es ohne `check`-Feld in Karten erscheint.
 
@@ -476,9 +625,25 @@ Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätig
 29. Wirkung der App selbst: keine Studie, dass Lern-Apps BJJ-Leistung verbessern; digitale CLA ungetestet. Eigene Messung (Positionserkennung auf der Matte) einplanen.
 30. Hat Duolingo das Energiesystem nach dem Protest geändert?
 
+**Neulinge und Lernen pro Runde (Abschnitt 8)**
+31. „8 Wörter pro Screen“ (Marvel Snap, in 7.3): gezielte Suche ohne Treffer; nur „höchstens 2 Zeilen Kartentext“ ist belegt. Bis zur Primärquelle (z. B. GDC-Talk „Designing MARVEL SNAP“) nur als Design-Ziel verwenden.
+32. Wouters & van Oostendorp 2013: isolierter Effekt von Feedback und die DOI am Volltext prüfen (bisher nur TUM-Kurzreview).
+33. Clark et al. 2016: Werte zu mehreren Sitzungen und „enhanced scaffolding“ aus dem Volltext.
+34. Brod et al. 2018 und Bisra et al. 2018 nur über Pressemitteilung bzw. Research Digest belegt; Kernaussagen am Original prüfen.
+35. Habgood & Ainsworth 2011: Effektgrößen aus dem Volltext; Übertragbarkeit von Mathematik und Kindern auf Kampfsport und Erwachsene ist ungetestet.
+36. Effektgrößen der einzelnen Mayer-Prinzipien (Signaling, Segmenting, Coherence) aus Mayer, *Multimedia Learning*, 3. Aufl.
+37. Doppel-Label (Alltagssprache plus Fachbegriff): keine Evaluation gefunden; im Playtest mit Nicht-Kampfsportlern prüfen („Was macht diese Karte?“) und Icon-Erkennung nach NN/g testen.
+38. Design-Schwellen ohne Beleg: Warum-Satz 15–20 Wörter, 2–3 Optionen in Kampf 1, Hinweis-Ausblendung nach 2–3 richtigen Lösungen, Zusammenfassung ≤ 30 s, Selbsterklärung höchstens 1–2-mal pro Kampf. Im Playtest messen.
+39. Spec-Konflikt Handgröße: Die Spec zieht immer auf 5 Handkarten; für die Tutorial-Kämpfe 2–3 wählbare Karten entscheiden.
+40. Spec-Konflikt Tutorial-Reihenfolge: Spec beginnt mit Dreieck und Takedown, die Quellen (Gracie Barra, Danaher [Sekundär]) mit Positionen, Zielen und Fluchten. Entscheidung durch Trainer und Playtest.
+41. Danaher-Aussagen zur Anfänger-Reihenfolge (Elbow Escape, defensiv vor offensiv) nur über Händlerblog; Primärquelle (Video/Instructional) fehlt.
+42. Chess.com: Werden Hinweise je Lernpfad automatisch reduziert oder nur vom Nutzer abgeschaltet?
+43. Adesope et al. 2017: Moderatoren (Feedback, Format) zusätzlich zu Prüfpunkt 25; Cepeda et al. 2006 nicht abgerufen.
+44. Lichess-Learn-Details (Sterne, Ablauf) auf der Seite nicht bestätigt; Slay-the-Spire-Onboarding nur über schwache Sekundärquelle.
+
 ---
 
-## 9. Quellenverzeichnis
+## 10. Quellenverzeichnis
 
 **Danaher, Gracie, Phasenmodelle**
 - https://wartribegear.com/blogs/jiu-jitsu-mindset/john-danahers-philosophy-on-approaching-submission
@@ -678,3 +843,46 @@ Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätig
 - https://www.npmjs.com/package/vue-pokemon-cards-css
 - https://m1.material.io/motion/duration-easing.html
 - https://blog.playtestcloud.com/first-time-user-experience-can-make-or-break-your-game/
+
+**Neulinge, Onboarding, Lernen pro Runde (Abschnitt 8)**
+- https://hearthstone.wiki.gg/wiki/New_player_experience
+- https://www.deconstructoroffun.com/blog/2023/5/23/marvel-snap-the-definitive-deconstruction
+- https://marvelsnapzone.com/answers/text-per-card/
+- https://www.pockettactics.com/marvel-snap/ben-brode-gdc
+- https://gdcvault.com/play/1029024/Designing-MARVEL-SNAP (nicht ausgewertet)
+- https://developer.apple.com/app-store/onboarding-for-games/
+- https://www.pocketgamer.biz/ftue-clash-royale/
+- https://blog.duolingo.com/chess-course
+- https://www.fastcompany.com/91317214/duolingo-will-start-teaching-chess-soon
+- https://en.lichess.org/blog/V5EX3CgAAIoE7aBR/something-for-the-beginners
+- https://www.gamedeveloper.com/design/spoiled-for-choice-the-psychology-of-choice-overload-in-games-and-how-to-avoid-it
+- https://www.nngroup.com/articles/progressive-disclosure/
+- https://www.nngroup.com/articles/icon-usability/
+- https://ugc.futurelearn.com/uploads/files/7d/d6/7dd6188d-c343-4311-b064-ac98d2c95abc/Multimedia_Principles._R._E._Mayer__2020.pdf
+- https://www.uky.edu/~gmswan3/EDC608/Kalyuga2007_Article_ExpertiseReversalEffectAndItsI.pdf
+- https://ro.uow.edu.au/edupapers/140
+- https://pmc.ncbi.nlm.nih.gov/articles/PMC6099118
+- https://www.chess.com/announcements/view/level-up-your-puzzle-practice-with-coach
+- https://www.chess.com/announcements/view/update-game-reviews-coach-now-with-more-in-depth-line-explanation (nicht im Detail abgerufen)
+- https://create.roblox.com/docs/production/game-design/onboarding.md
+- https://medium.com/googleplaydev/why-the-first-ten-minutes-is-crucial-if-you-want-to-keep-players-coming-back-to-your-mobile-game-4a89031b6308
+- https://www.devtodev.com/resources/articles/main-metrics-ftue
+- https://saschb2b.github.io/game-mechanics/games/slay-the-spire/design-tensions (schwache Sekundärquelle)
+- https://myweb.fsu.edu/vshute/pdf/shute%202008_b.pdf (Shute 2008, DOI 10.3102/0034654307313795)
+- https://www.bera.ac.uk/blog/how-to-optimise-the-use-of-hattie-and-timperleys-feedback-levels-for-student-learning (Hattie & Timperley 2007, DOI 10.3102/003465430298487)
+- https://www.clearinghouse.edu.tum.de/wp-content/uploads/2018/12/CHU_KR-2_Wouters1_2013_Spielbasiertes-Lernen.pdf
+- https://dblp.uni-trier.de/rec/journals/ce/WoutersO13.html
+- https://docs.opendeved.net/lib/YHX5ZVR8 (Clark et al. 2016, DOI 10.3102/0034654315582065)
+- https://www.sri.com/publication/education-learning-pubs/digital-learning-pubs/digital-games-design-and-learning-a-systematic-review-and-meta-analysis-brief/
+- https://idw-online.de/en/news693157 (Brod et al. 2018, DOI 10.1016/j.learninstruc.2018.01.013)
+- https://bps.org.uk/research-digest/self-explanation-powerful-learning-technique-according-meta-analysis-64-studies (Bisra et al. 2018, DOI 10.1007/s10648-018-9434-x)
+- https://research.utwente.nl/en/publications/self-explanations-in-game-based-learning-from-tacit-to-transferab/ (nicht im Detail eingesehen)
+- https://nottingham-repository.worktribe.com/output/23577510/motivating-children-to-learn-effectively-exploring-the-value-of-intrinsic-integration-in-educational-games (Habgood & Ainsworth 2011, DOI 10.1080/10508406.2010.508029)
+- https://www.doi.org/10.1007/S10648-014-9249-3 (Fyfe et al. 2014, Concreteness Fading)
+- https://cepsj.si/index.php/cepsj/article/download/1238/595 (Torkar 2022, DOI 10.26529/cepsj.1238)
+- https://blog.duolingo.com/spaced-repetition-for-learning
+- https://blog.duolingo.com/learning-how-to-help-you-learn-introducing-birdbrain
+- https://journals.sagepub.com/doi/10.3102/0034654316689306 (Adesope et al. 2017)
+- https://news.wsu.edu/news/2018/01/09/educational-psychology-article-among-nations-most-read/
+- https://bjjfanatics.com/blogs/news/three-techniques-for-beginners-with-john-danaher
+- https://www.gracieuniversity.com/pages/public/information?ip=96

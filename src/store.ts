@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { ARCHETYPES, STARTER_COLLECTION, STARTER_DECK } from "./data/campaign";
 import { CARD } from "./data/cards";
+import type { Mistake } from "./engine/types";
 
 const KEY = "mattenkarten-save-v2";
 
@@ -17,11 +18,13 @@ export interface Progress {
   mastery: Record<string, number>; // richtige Antworten pro Karte (kosmetisch)
   sound: boolean;
   introSeen: boolean;
+  seen: string[];            // gesehene Positions-Steckbriefe ("pos|role")
+  mistakes: Mistake[];       // Fehler-Deck
 }
 
 const fresh = (): Progress => ({
   collection: [...STARTER_COLLECTION], deck: [...STARTER_DECK], beaten: [], xp: 0, wins: 0, losses: 0,
-  taps: 0, releases: 0, mastery: {}, sound: true, introSeen: false,
+  taps: 0, releases: 0, mastery: {}, sound: true, introSeen: false, seen: [], mistakes: [],
 });
 
 function load(): Progress {
@@ -43,6 +46,9 @@ interface Store extends Progress {
   set: (patch: Partial<Progress>) => void;
   winAgainst: (archId: string) => string[]; // gibt neu freigeschaltete Karten zurück
   addXP: (n: number) => void;
+  markSeen: (key: string) => void;
+  addMistakes: (m: Mistake[]) => void;
+  removeMistake: (id: string) => void;
   reset: () => void;
 }
 
@@ -50,6 +56,12 @@ export const useGame = create<Store>((set, get) => ({
   ...load(),
   set: (patch) => set(patch),
   addXP: (n) => set({ xp: get().xp + n }),
+  markSeen: (key) => { if (!get().seen.includes(key)) set({ seen: [...get().seen, key] }); },
+  addMistakes: (m) => {
+    const cur = get().mistakes.filter((x) => !m.some((y) => y.id === x.id));
+    set({ mistakes: [...cur, ...m].slice(-40) });
+  },
+  removeMistake: (id) => set({ mistakes: get().mistakes.filter((x) => x.id !== id) }),
   winAgainst: (archId) => {
     const arch = ARCHETYPES.find((a) => a.id === archId);
     const s = get();
@@ -65,7 +77,7 @@ export const useGame = create<Store>((set, get) => ({
 }));
 
 useGame.subscribe((s) => {
-  const { set: _s, winAgainst: _w, addXP: _a, reset: _r, ...data } = s;
+  const { set: _s, winAgainst: _w, addXP: _a, reset: _r, markSeen: _m, addMistakes: _am, removeMistake: _rm, ...data } = s;
   try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* Speichern nicht möglich – Spiel läuft trotzdem */ }
 });
 

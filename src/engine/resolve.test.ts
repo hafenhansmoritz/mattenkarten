@@ -37,8 +37,8 @@ describe("Dreieck", () => {
     expect(outcome.winner).toBe("o");
     expect(state.pos).toBe("fhl");
     expect(state.top).toBe("o");
-    expect(outcome.headline).toContain("Sprawl");
-    expect(outcome.lesson).toMatch(/Sprawl kontert Beinangriffe/);
+    expect(outcome.headline).toMatch(/Sprawl|Beine weg, Hüfte drauf/);
+    expect(outcome.lesson).toMatch(/\(Sprawl\) stoppt Beinangriffe/);
     expect(state.p.lastCounteredBy).toEqual(["shot"]);
   });
 

@@ -86,7 +86,13 @@ function score(state: MatchState, side: Side, card: CardDef, arch: Archetype, pr
 }
 
 export function chooseCard(state: MatchState, arch: Archetype, rng: Rng, side: Side = "o"): { card: string; intent: CardKind | null } {
-  const options = playableCards(state, side).filter((x) => x.playable);
+  let options = playableCards(state, side).filter((x) => x.playable);
+  // Tutorial: Gegner spielt nur Karten eines Typs (falls möglich)
+  const scripted = side === "o" ? state.options?.scriptedKind : undefined;
+  if (scripted) {
+    const only = options.filter((x) => CARD[x.id].kind === scripted);
+    if (only.length > 0) options = only;
+  }
   if (options.length === 0) throw new Error("Keine spielbare Karte – Grundtechniken fehlen für diesen Slot");
 
   const oppHistory = state[other(side)].history;

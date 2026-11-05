@@ -1,0 +1,47 @@
+/* ============ Arena v2: Lern-Ebene, FX, klare Führung ============ */
+.arena2 { overflow-x: hidden; }
+.arena2 .chain { position: relative; }
+.arena2 .stage { position: relative; }
+.fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 12; }
+.arena2 .reveal { background: transparent; backdrop-filter: none; justify-content: flex-start; padding-top: 4px; pointer-events: none; }
+.arena2 .reveal-cards { transform: scale(.66); transform-origin: top center; transition: transform .4s var(--ease-out); }
+.arena2 .reveal.settled .reveal-cards { transform: scale(.56); }
+.arena2 .stage { min-height: 330px; justify-content: flex-end; }
+.arena2 .stage-fighters { margin-top: auto; }
+.arena2 .hand { display: flex; }
+.arena2 .fx-deal-item { flex: none; }
+
+.fres { display: flex; flex-direction: column; gap: 3px; }
+.fhud.o .fres { align-items: flex-end; }
+
+.explain-zone { position: relative; z-index: 20; display: flex; flex-direction: column; gap: 10px; padding: 10px max(12px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); background: linear-gradient(180deg, rgba(11,15,26,0), rgba(11,15,26,.96) 14%); }
+.explain-zone .btn.primary { align-self: stretch; }
+
+.coach-bubble { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; margin: 0 max(12px, env(safe-area-inset-left, 0px)) 8px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(160deg, #2a3a66, #1a2546); border: 1px solid rgba(242,179,61,.55); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+.explain-zone .coach-bubble { margin-inline: 0; }
+.coach-bubble p { margin: 0; font-size: 15px; line-height: 1.4; }
+.coach-bubble svg { width: 40px; height: 40px; }
+
+.arena2 .handzone { display: flex; flex-direction: column; gap: 6px; }
+.arena2 .hand-info { gap: 8px; }
+.arena2 .hand { padding-top: 14px; }
+.arena2 .hand-slot.basic { opacity: .96; }
+.more-btn { align-self: flex-start; margin: 0 max(12px, env(safe-area-inset-left, 0px)); background: none; border: 1px dashed var(--line-strong); color: var(--text-2); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.hand.blocked { overflow: hidden; padding-top: 4px; }
+.sel-info { margin: 0 max(12px, env(safe-area-inset-left, 0px)); padding: 8px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+.sel-info p { margin: 2px 0 0; color: var(--text-2); font-size: 14px; }
+.arena2 .playbar { align-items: center; }
+
+.arena2 .end-card { max-height: 92dvh; overflow-y: auto; max-width: 520px; }
+.arena2 .endscreen { align-items: start; overflow-y: auto; }
+
+@media (max-width: 520px) {
+  .arena2 .stage { min-height: 200px; }
+  .coach-bubble { grid-template-columns: 32px 1fr auto; }
+  .coach-bubble svg { width: 32px; height: 32px; }
+}
+
+/* Feinschliff nach Browser-Durchlauf */
+.arena2 .stage { flex: 0 0 auto; }
+.arena2 .lr-goalline-text { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; }
+.arena2 .lr-goalline { margin-inline: max(12px, env(safe-area-inset-left, 0px)); }

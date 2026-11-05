@@ -71,6 +71,10 @@ export interface CardDef {
   backPoints?: number;
   /** (ergänzt) Lernsatz für die Arena, wenn diese Karte im Reveal entscheidet (v. a. Reaktionen). */
   lesson?: string;
+  /** (Neulinge) Alltagstitel, groß auf der Karte, z. B. "Beine schnappen". */
+  plain?: string;
+  /** (Neulinge) Ein Satz, was passiert, ohne Fachbegriffe (max. ~12 Wörter). */
+  plainDo?: string;
   /** Lerninhalt */
   desc: string;
   keys: string[];
@@ -103,6 +107,73 @@ export interface MatchState {
   log: LogEntry[];
   result: MatchResult | null;
   backPointsAwarded: Record<Side, boolean>; // Hooks-Punkte nur einmal pro Back-Phase
+  /** (Lern-Ebene) Protokoll jedes Zugs für Rückblick, Replay und Fehler-Deck. */
+  history?: TurnRecord[];
+  /** (Tutorial) Optionen, mit denen das Match erstellt wurde. */
+  options?: MatchOptions;
+}
+
+/** Ein gespielter Zug – Grundlage für Rückblick, Replay des entscheidenden Moments und Fehler-Deck. */
+export interface TurnRecord {
+  turn: number;
+  pos: PositionId;          // Position VOR dem Aufdecken
+  top: Side | null;
+  pCard: string;
+  oCard: string;
+  rule: RevealOutcome["rule"];
+  winner: RevealOutcome["winner"];
+  headline: string;
+  lesson?: string;
+  pPlayable: string[];      // was der Spieler hätte spielen können
+  ptsBefore: Record<Side, number>;
+  ptsAfter: Record<Side, number>;
+  posAfter: PositionId;
+  topAfter: Side | null;
+}
+
+export interface MatchOptions {
+  startPos?: PositionId;
+  startTop?: Side | null;
+  handSize?: number;          // Neulinge: 3
+  /** Tutorial: Gegner spielt nur Karten dieses Typs (falls möglich). */
+  scriptedKind?: CardKind;
+  /** Tutorial: Ressourcen ausblenden/ignorieren (kein Gas-Verbrauch, keine Kontrolle nötig). */
+  noResources?: boolean;
+  /** Tutorial-Siegbedingung: Spieler gewinnt, sobald diese Position (aus seiner Sicht) erreicht ist. */
+  winAt?: { pos: PositionId; role: Role }[];
+  /** Tutorial: Spieler-Hand ist fest (wird jede Runde wiederhergestellt). */
+  fixedHand?: string[];
+}
+
+/** Coach-Tipp in drei Stufen (Hinweis → Karte markieren → Zug mit Begründung). */
+export interface Hint { level: 1 | 2 | 3; text: string; cardId?: string }
+
+/** Fehler-Situation für das Fehler-Deck (Abrufübung). */
+export interface Mistake {
+  id: string;               // stabil: pos+role+oCard
+  pos: PositionId;
+  role: Role;
+  oCard: string;            // was der Gegner spielte
+  pCard: string;            // was du spieltest
+  better: string;           // Karte, die gewonnen hätte
+  why: string;              // ein Satz, Alltagssprache
+}
+
+export interface Recap {
+  lessons: string[];        // max. 3 Erkenntnisse aus diesem Match
+  decisive?: { record: TurnRecord; better?: string; why: string };
+  mistakes: Mistake[];
+}
+
+/** Steckbrief einer Position für Neulinge. */
+export interface PositionGuide {
+  pos: PositionId;
+  plain: string;            // Alltagsname, z. B. "Draufsitzen"
+  term: string;             // Fachbegriff, z. B. "Mount"
+  oneLiner: string;         // Was ist das? 1 Satz
+  goal: Partial<Record<Role, string>>;   // Ziel je Rolle, kurz ("Raus hier!")
+  danger?: Partial<Record<Role, string>>;
+  rank: Partial<Record<Role, number>>;   // -4 (schlecht) … 5 (super)
 }
 
 export interface LogEntry { turn: number; text: string; who: Side | "sys" }

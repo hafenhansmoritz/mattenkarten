@@ -1,15 +1,50 @@
-import { useEffect, useId, useMemo } from "react";
+import { useEffect, useId, useMemo, useRef } from "react";
 import {
   animate, motion, useAnimationControls, useMotionValue, useReducedMotion, useSpring, useTransform,
   type MotionValue,
 } from "framer-motion";
 import type { PositionId, Side } from "../../engine/types";
 import {
-  FIGHTER_PARTS, JOINTS, MAT_Y, STROKE, beltPath, layerOrder, scenePose, shadowOf,
+  FIGHTER_PARTS, JOINTS, MAT_Y, STROKE, beltPath, contactPoint, layerOrder, scenePose, shadowOf,
   type Joint, type Part, type Pose, type Pt,
 } from "./poses";
 
 const SPRING = { stiffness: 140, damping: 18, mass: 1 };
+/** Zeitlupe: 0.4× Steifigkeit, Dämpfung mit √0.4 skaliert → gleiches Dämpfungsverhältnis, nur langsamer. */
+const SPRING_SLOW = { stiffness: 56, damping: 11.4, mass: 1 };
+const LEAN_SPRING = { stiffness: 260, damping: 20, mass: 1 };
+/** Anteil der Ausholbewegung je Gelenk: [x-Lean, y-Crouch]. Füße bleiben stehen. */
+const LEAN: Record<Joint, [number, number]> = {
+  head: [1, 1], neck: [1, 1], shoulderF: [1, 1], shoulderB: [1, 1],
+  elbowF: [0.9, 0.9], elbowB: [0.9, 0.9], handF: [0.8, 0.75], handB: [0.8, 0.75],
+  hip: [0.6, 0.8], kneeF: [0.3, 0.3], kneeB: [0.3, 0.3], footF: [0, 0], footB: [0, 0],
+};
+const LEAN_X = 6;
+const LEAN_Y = 4;
+
+export type BodyPart = "legs" | "hips" | "arms" | "neck" | "head" | "torso";
+export interface FighterHighlight {
+  side: Side;
+  part: BodyPart;
+  /** Optional eigene Farbe; Standard ist Gold (--points). */
+  color?: string;
+}
+
+/** Gelenke, um die beim Highlight ein Leuchtring liegt. "torso" = Mitte zwischen Nacken und Hüfte.
+ *  Nur near-Seite (F), damit sich Ringe nicht stapeln – die Gliedmaßen selbst leuchten zusätzlich. */
+const HIGHLIGHT_JOINTS: Record<BodyPart, (Joint | "torso")[]> = {
+  legs: ["kneeF", "footF"],
+  hips: ["hip"],
+  arms: ["elbowF", "handF"],
+  neck: ["neck"],
+  head: ["head"],
+  torso: ["torso"],
+};
+/** Gliedmaßen, die beim Highlight als Glow-Strich nachgezogen werden. */
+const HIGHLIGHT_LIMBS: Partial<Record<BodyPart, (keyof typeof FIGHTER_PARTS)[]>> = {
+  legs: ["legF", "legB"],
+  arms: ["armF", "armB"],
+};
 /** Gelenke, die beim Atmen mitgehen (Hände bleiben am Griff). */
 const BREATHE: ReadonlySet<Joint> = new Set(["head", "neck", "shoulderF", "shoulderB", "elbowF", "elbowB"]);
 
@@ -19,10 +54,21 @@ export interface FightersProps {
   shake?: "x" | "y" | null;
   flash?: Side | null;
   className?: string;
+  /** Leuchtring um das Körperteil, das den Schlagabtausch entschieden hat (pulsiert 2×, bleibt dann schwach sichtbar). */
+  highlight?: FighterHighlight | null;
+  /** Solange true: Springs laufen mit ~0.4× Steifigkeit (dramatischer Takedown). */
+  slowmo?: boolean;
+  /** Kamera-Punch-in: true → in 300 ms auf 1.12× zum Kontaktpunkt zoomen; false → zurück (350 ms). */
+  zoom?: boolean;
+  /** Ausholen vor dem Ergebnis: dieser Kämpfer lehnt sich ~6 px zum Gegner und geht leicht in die Knie. */
+  windup?: Side | null;
 }
 
-export function Fighters({ pos, top, shake = null, flash = null, className }: FightersProps) {
-  const reduced = useReducedMotion();
+export function Fighters({
+  pos, top, shake = null, flash = null, className,
+  highlight = null, slowmo = false, zoom = false, windup = null,
+}: FightersProps) {
+  const reduced = !!useReducedMotion();
   const uid = useId().replace(/:/g, "");
   const { p, o } = useMemo(() => scenePose(pos, top), [pos, top]);
 
@@ -34,8 +80,46 @@ export function Fighters({ pos, top, shake = null, flash = null, className }: Fi
     return () => c.stop();
   }, [reduced, breath]);
 
-  const P = useAnimatedFighter(p, breath, 0, !!reduced);
-  const O = useAnimatedFighter(o, breath, 1, !!reduced);
+  const spring = slowmo && !reduced ? SPRING_SLOW : SPRING;
+  const leanP = useSpring(0, LEAN_SPRING);
+  const leanO = useSpring(0, LEAN_SPRING);
+  useEffect(() => {
+    const tp = windup === "p" && !reduced ? 1 : 0;
+    const to = windup === "o" && !reduced ? 1 : 0;
+    if (reduced) { leanP.jump(0); leanO.jump(0); return; }
+    leanP.set(tp); leanO.set(to);
+  }, [windup, reduced, leanP, leanO]);
+  const dirP = Math.sign(o.hip.x - p.hip.x) || p.face;
+  const dirO = Math.sign(p.hip.x - o.hip.x) || o.face;
+
+  const P = useAnimatedFighter(p, breath, 0, reduced, spring, leanP, dirP);
+  const O = useAnimatedFighter(o, breath, 1, reduced, spring, leanO, dirO);
+
+  // Kamera-Punch-in Richtung Kontaktpunkt
+  const camRef = useRef<SVGGElement>(null);
+  const cam = useMotionValue(1);
+  const focus = useMemo(() => contactPoint(pos, top), [pos, top]);
+  useEffect(() => {
+    const apply = (s: number) => {
+      const el = camRef.current;
+      if (!el) return;
+      if (Math.abs(s - 1) < 1e-4) { el.removeAttribute("transform"); return; }
+      // zoomt um den Kontaktpunkt, verschiebt ihn dabei leicht Richtung Bildmitte
+      const t = (s - 1) / 0.12;
+      const cx = focus.x, cy = focus.y;
+      const sx = (200 - cx) * 0.25 * t, sy = (130 - cy) * 0.25 * t;
+      el.setAttribute("transform", `translate(${r1(cx + sx)} ${r1(cy + sy)}) scale(${s.toFixed(4)}) translate(${-cx} ${-cy})`);
+    };
+    apply(cam.get());
+    return cam.on("change", apply);
+  }, [cam, focus]);
+  useEffect(() => {
+    if (reduced) { cam.jump(1); return; }
+    const c = zoom
+      ? animate(cam, 1.12, { duration: 0.3, ease: [0.2, 0.7, 0.2, 1] })
+      : animate(cam, 1, { duration: 0.35, ease: [0.4, 0, 0.2, 1] });
+    return () => c.stop();
+  }, [zoom, reduced, cam]);
 
   // Szene schütteln
   const shakeCtl = useAnimationControls();
@@ -75,16 +159,25 @@ export function Fighters({ pos, top, shake = null, flash = null, className }: Fi
       aria-label={`Position: ${pos}`}
       style={{ display: "block", width: "100%", height: "auto", overflow: "visible" }}
     >
-      <Mat uid={uid} />
-      <motion.g animate={shakeCtl}>
-        <Shadow f={P} />
-        <Shadow f={O} />
-        {layers.map((l, i) => (
-          <motion.g key={i} animate={l.who === "p" ? flashP : flashO}>
-            <FighterLayer f={F[l.who]} parts={l.parts} color={colors[l.who]} />
-          </motion.g>
-        ))}
-      </motion.g>
+      <g ref={camRef}>
+        <Mat uid={uid} />
+        <motion.g animate={shakeCtl}>
+          <Shadow f={P} />
+          <Shadow f={O} />
+          {layers.map((l, i) => (
+            <motion.g key={i} animate={l.who === "p" ? flashP : flashO}>
+              <FighterLayer f={F[l.who]} parts={l.parts} color={colors[l.who]} />
+            </motion.g>
+          ))}
+          {highlight && (
+            <Highlight
+              key={`${highlight.side}-${highlight.part}`}
+              f={F[highlight.side]} part={highlight.part} reduced={reduced}
+              grad={`mk-hl-${uid}`} color={highlight.color ?? "var(--points, #ffd166)"}
+            />
+          )}
+        </motion.g>
+      </g>
     </svg>
   );
 }
@@ -99,23 +192,30 @@ interface AnimatedFighter {
   shadow: { cx: MotionValue<number>; rx: MotionValue<number> };
 }
 
-function useAnimatedFighter(pose: Pose, breath: MotionValue<number>, phase: number, reduced: boolean): AnimatedFighter {
+function useAnimatedFighter(
+  pose: Pose, breath: MotionValue<number>, phase: number, reduced: boolean,
+  spring: typeof SPRING, lean: MotionValue<number>, dir: number,
+): AnimatedFighter {
+  const xsRaw: Record<string, MotionValue<number>> = {};
   const xs: Record<string, MotionValue<number>> = {};
   const ysRaw: Record<string, MotionValue<number>> = {};
   const ys: Record<string, MotionValue<number>> = {};
   for (const j of JOINTS) {
     /* eslint-disable react-hooks/rules-of-hooks */
-    xs[j] = useSpring(pose[j].x, SPRING);
-    ysRaw[j] = useSpring(pose[j].y, SPRING);
+    xsRaw[j] = useSpring(pose[j].x, spring);
+    ysRaw[j] = useSpring(pose[j].y, spring);
     const k = BREATHE.has(j) ? (j === "head" || j === "neck" ? 1 : 0.6) : 0;
+    const [lx, ly] = LEAN[j];
+    const rx = xsRaw[j];
     const raw = ysRaw[j];
-    ys[j] = useTransform(() => raw.get() - k * (phase ? breath.get() * 0.85 : breath.get()));
+    xs[j] = useTransform(() => rx.get() + dir * LEAN_X * lx * lean.get());
+    ys[j] = useTransform(() => raw.get() + LEAN_Y * ly * lean.get() - k * (phase ? breath.get() * 0.85 : breath.get()));
     /* eslint-enable react-hooks/rules-of-hooks */
   }
   useEffect(() => {
     for (const j of JOINTS) {
-      if (reduced) { xs[j].jump(pose[j].x); ysRaw[j].jump(pose[j].y); }
-      else { xs[j].set(pose[j].x); ysRaw[j].set(pose[j].y); }
+      if (reduced) { xsRaw[j].jump(pose[j].x); ysRaw[j].jump(pose[j].y); }
+      else { xsRaw[j].set(pose[j].x); ysRaw[j].set(pose[j].y); }
     }
   }, [pose]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -175,6 +275,71 @@ function FighterLayer({ f, parts, color }: { f: AnimatedFighter; parts: Part[]; 
           </g>
         );
       })}
+    </g>
+  );
+}
+
+/** Leuchtring + weicher Glow an den Gelenken des entscheidenden Körperteils. Folgt den Springs. */
+function Highlight({ f, part, reduced, grad, color }: {
+  f: AnimatedFighter; part: BodyPart; reduced: boolean; grad: string; color: string;
+}) {
+  const spots = HIGHLIGHT_JOINTS[part];
+  return (
+    <g style={{ color, pointerEvents: "none" }} className="mk-highlight" aria-hidden>
+      <defs>
+        {/* Stop-Farben explizit (currentColor würde im <defs>-Kontext aufgelöst) */}
+        <radialGradient id={grad}>
+          <stop offset="0" stopColor={color} stopOpacity="0.85" />
+          <stop offset="0.45" stopColor={color} stopOpacity="0.35" />
+          <stop offset="1" stopColor={color} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {(HIGHLIGHT_LIMBS[part] ?? []).map((l) => {
+        const [a, b, c] = FIGHTER_PARTS[l];
+        return (
+          <motion.path key={l} d={f.limb(a, b, c)} fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round"
+            strokeWidth={STROKE.limb + 8}
+            style={{ mixBlendMode: "screen" }}
+            initial={{ opacity: 0 }}
+            animate={reduced ? { opacity: 0.35 } : { opacity: [0, 0.6, 0.2, 0.6, 0.28] }}
+            transition={reduced ? { duration: 0 } : { duration: 1.5, times: [0, 0.22, 0.45, 0.67, 1], ease: "easeOut" }} />
+        );
+      })}
+      {spots.map((s) => <HighlightSpot key={s} f={f} spot={s} reduced={reduced} grad={grad} big={s === "torso" || s === "hip" || s === "head"} />)}
+    </g>
+  );
+}
+
+function HighlightSpot({ f, spot, reduced, grad, big }: {
+  f: AnimatedFighter; spot: Joint | "torso"; reduced: boolean; grad: string; big: boolean;
+}) {
+  const [hx, hy] = f.j("hip");
+  const [nx, ny] = f.j("neck");
+  const [jx, jy] = spot === "torso" ? [hx, hy] : f.j(spot);
+  const cx = useTransform(() => (spot === "torso" ? (hx.get() + nx.get()) / 2 : jx.get()));
+  const cy = useTransform(() => (spot === "torso" ? (hy.get() + ny.get()) / 2 : jy.get()));
+  const R = big ? 20 : 14;
+  if (reduced) {
+    return (
+      <g>
+        <motion.circle cx={cx} cy={cy} r={R * 1.5} fill={`url(#${grad})`} opacity={0.55} />
+        <motion.circle cx={cx} cy={cy} r={R} fill="none" stroke="currentColor" strokeWidth={2.5} opacity={0.8} />
+      </g>
+    );
+  }
+  const T = { duration: 1.5, times: [0, 0.22, 0.45, 0.67, 1], ease: "easeOut" as const };
+  return (
+    <g>
+      <motion.circle cx={cx} cy={cy} fill={`url(#${grad})`}
+        initial={{ r: R * 0.6, opacity: 0 }}
+        animate={{ r: [R * 0.6, R * 1.9, R * 1.3, R * 1.9, R * 1.5], opacity: [0, 0.95, 0.45, 0.95, 0.5] }}
+        transition={T} />
+      <motion.circle cx={cx} cy={cy} fill="none" stroke="currentColor" strokeWidth={3}
+        initial={{ r: R * 0.7, opacity: 0 }}
+        animate={{ r: [R * 0.7, R * 1.8, R * 0.8, R * 1.8, R], opacity: [1, 0, 1, 0, 0.55] }}
+        transition={T} />
+      <motion.circle cx={cx} cy={cy} r={3} fill="#fff"
+        initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0.6] }} transition={{ duration: 0.6 }} />
     </g>
   );
 }

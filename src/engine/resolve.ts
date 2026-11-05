@@ -4,7 +4,7 @@ import type { Rng } from "./rng";
 import {
   MAX_CONTROL, MAX_GAS, clamp, dilemmaActive, intersects, other,
 } from "./state";
-import { LESSON, TAG_DE, tagsDe } from "./text";
+import { LESSON, TAG_DE, explain } from "./text";
 import type {
   CardDef, FighterState, MatchState, Outcome, RevealEvent, RevealOutcome, Side, Tag,
 } from "./types";
@@ -195,19 +195,11 @@ function decide(c: Ctx, before: MatchState, cards: Record<Side, CardDef>): Res {
     if (kp === "setup") {
       setupApplies(c, "p", cards.p, false);
       setupApplies(c, "o", cards.o, false);
-      return {
-        winner: "both", rule: "beide-setup",
-        headline: `Griffkampf: ${cards.p.name} trifft auf ${cards.o.name}.`,
-        lesson: LESSON.beideSetup,
-      };
+      return { winner: "both", rule: "beide-setup", ...explain({ rule: "beide-setup", p: cards.p, o: cards.o }) };
     }
     gas(c, "p", 1);
     gas(c, "o", 1);
-    return {
-      winner: "none", rule: "patt",
-      headline: `Beide warten ab – Patt.`,
-      lesson: LESSON.patt,
-    };
+    return { winner: "none", rule: "patt", ...explain({ rule: "patt", p: cards.p, o: cards.o }) };
   }
 
   const sideOf = (k: string): Side => (kp === k ? "p" : "o");
@@ -220,8 +212,7 @@ function decide(c: Ctx, before: MatchState, cards: Record<Side, CardDef>): Res {
     const tap = attackSucceeds(c, a, atk);
     return {
       winner: a, rule: "angriff>setup",
-      headline: tap ? `${atk.name}! Tap – Sieg durch Submission.` : `${atk.name} sitzt – ${set.name} kam zu spät.`,
-      lesson: tap ? LESSON.subWin(before[a].control) : LESSON.angriffSetup,
+      ...explain({ rule: "angriff>setup", side: a, atk, set, tap, ctrlBefore: before[a].control }),
     };
   }
 
@@ -231,11 +222,7 @@ function decide(c: Ctx, before: MatchState, cards: Record<Side, CardDef>): Res {
     const re = cards[other(st)];
     setupApplies(c, st, set, true);
     gas(c, other(st), -1);
-    return {
-      winner: st, rule: "setup>reaktion",
-      headline: `${set.name} lockt ${re.name} heraus – Öffnung!`,
-      lesson: LESSON.setupReaktion,
-    };
+    return { winner: st, rule: "setup>reaktion", ...explain({ rule: "setup>reaktion", side: st, set, re }) };
   }
 
   // Reaktion vs. Angriff
@@ -251,34 +238,12 @@ function decide(c: Ctx, before: MatchState, cards: Record<Side, CardDef>): Res {
 
   if (tagMatch && !dilemma) {
     counterApplies(c, r, re, atk);
-    if (atk.submission) {
-      return {
-        winner: r, rule: "reaktion>angriff",
-        headline: `${re.name}! ${atk.name} verteidigt – Kontrolle weg.`,
-        lesson: LESSON.subDefended,
-      };
-    }
-    return {
-      winner: r, rule: "reaktion>angriff",
-      headline: `${re.name}! ${atk.name} ist gekontert.`,
-      lesson: re.lesson ?? `${re.name} kontert ${tagsDe(re.counters)}.`,
-    };
+    return { winner: r, rule: "reaktion>angriff", ...explain({ rule: "reaktion>angriff", side: r, re, atk }) };
   }
 
   if (dilemma) c.ev.push({ t: "dilemma", side: a });
   const tap = attackSucceeds(c, a, atk);
-  if (dilemma) {
-    return {
-      winner: a, rule: "durch",
-      headline: tap ? `Dilemma! ${atk.name} umgeht ${re.name} – Tap!` : `Dilemma! ${atk.name} umgeht ${re.name}.`,
-      lesson: LESSON.dilemma,
-    };
-  }
-  return {
-    winner: a, rule: "durch",
-    headline: tap ? `${atk.name} geht durch – Tap!` : `${atk.name} geht durch – ${re.name} passt nicht.`,
-    lesson: `${re.name} kontert ${tagsDe(re.counters)} – nicht ${tagsDe(atk.tags)}.`,
-  };
+  return { winner: a, rule: "durch", ...explain({ rule: "durch", side: a, atk, re, tap, dilemma }) };
 }
 
 function attackVsAttack(c: Ctx, before: MatchState, cards: Record<Side, CardDef>): Res {
@@ -287,24 +252,17 @@ function attackVsAttack(c: Ctx, before: MatchState, cards: Record<Side, CardDef>
   if (tp === to) {
     gas(c, "p", -1);
     gas(c, "o", -1);
-    return {
-      winner: "none", rule: "scramble",
-      headline: `Scramble! ${cards.p.name} trifft auf ${cards.o.name}.`,
-      lesson: LESSON.scramble,
-    };
+    return { winner: "none", rule: "scramble", ...explain({ rule: "scramble", p: cards.p, o: cards.o }) };
   }
   const w: Side = tp < to ? "p" : "o";
   const l = other(w);
   const tap = attackSucceeds(c, w, cards[w]);
-  const notes: string[] = [];
-  if (before[w].opening && intersects(before[w].opening!, cards[w].tags)) notes.push("Die Öffnung machte ihn 2 Tempo schneller.");
-  if (before[l].gas <= 2) notes.push("Wer kein Gas mehr hat, wird langsam.");
+  const usedOpening = !!before[w].opening && intersects(before[w].opening!, cards[w].tags);
   return {
     winner: w, rule: "tempo",
-    headline: tap
-      ? `${cards[w].name} ist schneller – Tap!`
-      : `${cards[w].name} ist schneller als ${cards[l].name}.`,
-    lesson: `Angriff gegen Angriff: Das niedrigere Tempo gewinnt (${Math.min(tp, to)} gegen ${Math.max(tp, to)}).`
-      + (notes.length ? " " + notes.join(" ") : ""),
+    ...explain({
+      rule: "tempo", side: w, win: cards[w], lose: cards[l], tw: Math.min(tp, to), tl: Math.max(tp, to), tap,
+      usedOpening, loserTired: before[l].gas <= 2,
+    }),
   };
 }
