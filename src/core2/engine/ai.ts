@@ -146,21 +146,31 @@ function foeModel(s: State2, side: Side, rng: () => number): { card: Card2; w: n
   return ok.map((card, i) => ({ card, w: ws[i] / sum }));
 }
 
+/** Stufe 3 mischt zwischen Karten, die höchstens MIX_WINDOW schlechter sind als die beste. */
+const MIX_WINDOW = 4;
+const MIX_TEMP = 1.5;
+
 /** Stufe 3: eine Runde vorausrechnen gegen das Gegnermodell (liest Historie, Sperren und threats). */
 function lookahead(s: State2, side: Side, ok: Card2[], rng: () => number): string {
   const model = foeModel(s, side, rng);
-  let best = ok[0], bestV = -Infinity;
-  for (const c of ok) {
+  const evs = ok.map((c) => {
     let ev = 0;
     if (model.length === 0) ev = evaluate(resolveRound(s, side === "p" ? c.id : PASS, side === "p" ? PASS : c.id).state, side);
     for (const { card, w } of model) {
       const [pc, oc] = side === "p" ? [c.id, card.id] : [card.id, c.id];
       ev += w * evaluate(resolveRound(s, pc, oc).state, side);
     }
-    ev += rng() * 0.3;
-    if (ev > bestV) { bestV = ev; best = c; }
-  }
-  return best.id;
+    return ev;
+  });
+  // Balance: kein perfekter Konter. Unter den Karten nahe am Besten wird gemischt (Softmax),
+  // sonst spiegeln sich zwei KIs endlos (Rahmen gegen Angriff, Runde für Runde). Sichere Gewinne bleiben sicher.
+  const max = Math.max(...evs);
+  if (max >= 900) return ok[evs.indexOf(max)].id;
+  const ws = evs.map((x) => (x >= max - MIX_WINDOW ? Math.exp((x - max) / MIX_TEMP) : 0));
+  const sum = ws.reduce((a, b) => a + b, 0);
+  let r = rng() * sum;
+  for (let i = 0; i < ok.length; i++) { r -= ws[i]; if (r <= 0 && ws[i] > 0) return ok[i].id; }
+  return ok[evs.indexOf(max)].id;
 }
 
 export { checkCard };
