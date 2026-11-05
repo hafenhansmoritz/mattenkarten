@@ -15,4 +15,4 @@
 .lg-body .legal-draft { background: color-mix(in srgb, var(--points) 12%, transparent); border: 1px solid color-mix(in srgb, var(--points) 45%, transparent); border-radius: var(--radius); padding: 10px 12px; font-size: 14px; }
 .lg-body .ph { background: color-mix(in srgb, var(--points) 22%, transparent); color: var(--text); font-weight: 700; padding: 0 4px; border-radius: 4px; }
 .more-legal { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 4px 0 0; font-size: 14px; }
-.more-legal button { background: none; border: none; padding: 6px 0; font: inherit; color: var(--text-2); text-decoration: underline; cursor: pointer; min-height: 32px; }
+.more-legal button { background: none; border: none; padding: 6px 0; font: inherit; color: var(--text-2); text-decoration: underline; cursor: pointer; min-height: 44px; }

@@ -210,7 +210,7 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
 
       <div className="co-foot">
         {msgs.length === 0 && (
-          <div className="co-chips" role="group" aria-label="Schnellfragen">
+          <div className="co-chips" role="group" aria-label="Schnellfragen" tabIndex={0}>
             {COACH_CHIPS.map((c) => (
               <button key={c} type="button" className="co-chip" disabled={avail !== "on" || !consent} onClick={() => void send(c)}>
                 {c}

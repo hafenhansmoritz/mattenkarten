@@ -115,9 +115,10 @@
 /* ---------- Mehr: Ton-Schalter ---------- */
 .mk-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
 .mk-switch-row strong { display: block; }
-.mk-switch { position: relative; width: 50px; height: 30px; flex: none; border-radius: 99px; border: 1px solid var(--line-strong); background: var(--surface-3); cursor: pointer; padding: 0; transition: background var(--t-fast); }
-.mk-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform var(--t-fast); }
-.mk-switch[aria-checked="true"] { background: var(--gas); }
+.mk-switch { position: relative; width: 54px; height: 44px; flex: none; border: 0; background: none; cursor: pointer; padding: 0; border-radius: 99px; } /* Tap-Fläche 54×44, sichtbare Spur 50×30 */
+.mk-switch::before { content: ""; position: absolute; left: 2px; top: 7px; width: 50px; height: 30px; box-sizing: border-box; border-radius: 99px; border: 1px solid var(--line-strong); background: var(--surface-3); transition: background var(--t-fast); }
+.mk-switch::after { content: ""; position: absolute; top: 11px; left: 6px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform var(--t-fast); }
+.mk-switch[aria-checked="true"]::before { background: var(--gas); }
 .mk-switch[aria-checked="true"]::after { transform: translateX(20px); }
 .mk-switch:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .k2-sm-layer { position: fixed; inset: 0; z-index: 80; overflow-y: auto; background: var(--bg); padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)); text-align: left; }

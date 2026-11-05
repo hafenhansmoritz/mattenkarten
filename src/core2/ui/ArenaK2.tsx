@@ -339,9 +339,15 @@ export function ArenaK2(props: ArenaK2Props) {
     s.result.type === "goal" ? "Ziel erreicht!" :
     s.result.winner === null ? "Unentschieden" : won ? "Sieg nach Punkten" : "Niederlage nach Punkten";
 
+  // Kurze Ansage für Screenreader (eine dauerhafte Live-Region, damit sie zuverlässig vorliest).
+  const announce = phase === "end" && s.result ? resultTitle
+    : phase === "tap" ? "Klopf ab!" : phase === "release" ? "Er klopft ab – loslassen!"
+    : phase === "result" && round ? `Runde ${round.round}: ${round.headline}` : "";
+
   return (
     <div className={`k2-arena${frozen ? " fx-frozen" : ""}${phase === "result" ? " is-result" : ""}`}
       onClick={phase === "result" ? advance : undefined}>
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announce}</p>
       {/* Kopfzeile */}
       <header className="k2-head">
         <button type="button" className="k2-exit" aria-label="Zurück" onClick={(e) => { e.stopPropagation(); onExit(null); }}>‹</button>
@@ -403,7 +409,7 @@ export function ArenaK2(props: ArenaK2Props) {
               )}
             </AnimatePresence>
             {afterStep && <div className="k2-coach-line"><CoachAvatar size={22} /><span>{afterStep.text}</span></div>}
-            <span className="k2-tapnext">Tippen für weiter</span>
+            <button type="button" className="k2-tapnext" onClick={(e) => { e.stopPropagation(); advance(); }}>Tippen für weiter</button>
           </motion.section>
         )}
       </AnimatePresence>
@@ -546,7 +552,7 @@ function PredictPanel({ pending, guess, onGuess, onReveal }: {
 
 function Pips({ n }: { n: number }) {
   return (
-    <span className="k2-pips" aria-label={`${ATEM_LABEL} ${n} von ${KRAFT_MAX}`} title={ATEM_LABEL}>
+    <span className="k2-pips" role="img" aria-label={`${ATEM_LABEL} ${n} von ${KRAFT_MAX}`} title={ATEM_LABEL}>
       <KraftIcon size={11} />
       {Array.from({ length: KRAFT_MAX }, (_, i) => <i key={i} className={i < n ? "on" : ""} />)}
     </span>
@@ -570,7 +576,7 @@ const rowY = (z: Zone) => BOARD_HEAD + ZONES.indexOf(z) * BOARD_ROW + BOARD_ROW 
 /** Beide Karten drehen sich um; gleiche Zone → sie knallen über dieser Leiste zusammen. */
 function RevealLayer({ p, o, same, impact, reduced }: { p: Card2 | null; o: Card2 | null; same: boolean; impact: boolean; reduced: boolean }) {
   return (
-    <motion.div className="k2-reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.25 } }} aria-live="polite">
+    <motion.div className="k2-reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.25 } }}>
       {(["p", "o"] as Side[]).map((side) => {
         const c = side === "p" ? p : o;
         const y = c ? rowY(c.zone) : rowY("huefte");

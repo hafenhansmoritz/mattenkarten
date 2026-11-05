@@ -18,7 +18,7 @@
   /* Text */
   --text: #eaf0ff;
   --text-2: #a9b6d6;
-  --text-3: #6f7ca3;
+  --text-3: #8090b4; /* ≥ 4.5:1 auf --surface/--surface-2 (vorher #6f7ca3: 4.1) */
   --text-ink: #0b0f1a; /* dark text on light chips */
 
   /* Competition mat */

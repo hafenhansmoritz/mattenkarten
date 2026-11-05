@@ -87,7 +87,7 @@ function Coverage({ ids }: { ids: string[] }) {
 
 function MiniDeck({ ids, owned }: { ids: string[]; owned?: Set<string> }) {
   return (
-    <div className="tr-minis">
+    <div className="tr-minis" role="group" aria-label="Karten im Deck" tabIndex={0}>
       {counted(ids).map(({ id, n }) => (
         <div key={id} className={`tr-mini ${owned && !owned.has(id) ? "locked" : ""}`}>
           <Card card={CARD[id]} size="mini" count={n} />

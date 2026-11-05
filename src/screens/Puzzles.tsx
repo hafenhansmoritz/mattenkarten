@@ -362,7 +362,7 @@ function ProgressDots({ list, idx, answers }: { list: Puzzle[]; idx: number; ans
 
 function Stars({ n }: { n: number }) {
   return (
-    <span className="pz-stars" aria-label={`Schwierigkeit ${n} von 3`}>
+    <span className="pz-stars" role="img" aria-label={`Schwierigkeit ${n} von 3`}>
       {[1, 2, 3].map((i) => <i key={i} className={i <= n ? "on" : ""} aria-hidden>★</i>)}
     </span>
   );

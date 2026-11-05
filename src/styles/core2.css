@@ -32,7 +32,7 @@
 
 /* ---------- Kopfzeile ---------- */
 .k2-head { display: grid; grid-template-columns: 32px 1fr auto 1fr; align-items: center; gap: 6px; min-height: 40px; }
-.k2-exit { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text-2); font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0 0 2px; }
+.k2-exit { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text-2); font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0 0 2px; }
 .k2-hud { display: flex; align-items: center; gap: 8px; }
 .k2-hud.o { justify-content: flex-end; }
 .k2-pts { font-family: var(--font-display); font-weight: 900; font-size: 28px; line-height: 1; min-width: 22px; text-align: center; }
@@ -203,7 +203,7 @@
 .k2-why-more p { margin: 4px 0; }
 .k2-played b { color: var(--text); }
 .k2-safety { color: #ffcf8a; }
-.k2-tapnext { align-self: center; font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); animation: k2-blink 1.6s ease-in-out infinite; }
+.k2-tapnext { align-self: center; min-height: 44px; padding: 0 14px; font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); animation: k2-blink 1.6s ease-in-out infinite; }
 
 /* ---------- Coach-Blase ---------- */
 .k2-bubble { position: fixed; left: 12px; right: 12px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); max-width: 520px; margin: 0 auto; z-index: 50; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); background: linear-gradient(160deg, #22325b, #151e36); border: 1px solid rgba(255, 209, 102, 0.45); box-shadow: var(--shadow-3); }

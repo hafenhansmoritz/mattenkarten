@@ -59,13 +59,13 @@
 .pfad-node.locked .pfad-learn { color: var(--text-2); font-size: 13px; }
 .pfad-reward { color: var(--points); display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; }
 .pfad-reward .label { color: var(--text-3); }
-.pfad-next-pill { position: absolute; top: -10px; right: 10px; padding: 3px 8px; border-radius: var(--radius-pill); background: var(--k-angriff); color: #fff; box-shadow: 0 3px 10px rgba(240,87,63,.5); animation: pill-bob 1.6s ease-in-out infinite; }
+.pfad-next-pill { position: absolute; top: -10px; right: 10px; padding: 3px 8px; border-radius: var(--radius-pill); background: var(--k-angriff); color: var(--text-ink); box-shadow: 0 3px 10px rgba(240,87,63,.5); animation: pill-bob 1.6s ease-in-out infinite; }
 @keyframes pill-bob { 50% { transform: translateY(-3px); } }
 
 /* ---------- Filter-Chips ---------- */
 .chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px; margin: 0 -2px; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
-.chip { position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-2); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; isolation: isolate; transition: color var(--t-fast); }
+.chip { position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-2); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; isolation: isolate; transition: color var(--t-fast); }
 .chip.on { color: #fff; border-color: transparent; }
 .chip-bg { position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(180deg, #4f97ff, #2b6fd6); box-shadow: 0 4px 14px rgba(62,139,255,.4); }
 .chip-n { font-size: 12px; min-width: 18px; padding: 0 5px; border-radius: 9px; background: rgba(0,0,0,.25); text-align: center; }

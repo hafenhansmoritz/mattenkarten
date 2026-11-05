@@ -126,7 +126,7 @@ export function Card(props: CardProps) {
       transition={spring}
       style={{ zIndex: selected ? 2 : undefined }}
     >
-      <div className="mk-tilt">
+      <div className="mk-tilt" aria-hidden="true">
         <div className="mk-edge">{faceDown ? <CardBack /> : <CardFront card={card} art={art} />}</div>
       </div>
       {typeof count === "number" && count > 1 && (
