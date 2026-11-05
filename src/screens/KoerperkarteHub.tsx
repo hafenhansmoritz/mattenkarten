@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArenaK2 } from "../core2/ui/ArenaK2";
-import { TUTORIALS_K2 } from "../core2/data/tutorials";
+import { TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD } from "../core2/data/tutorials";
+import { Bosse, readBeaten } from "../core2/ui/Bosse";
+import { BOSSES } from "../core2/data/bosses";
 
 const KEY = "mk.k2.done";
 function readDone(): string[] {
@@ -11,7 +13,8 @@ function writeDone(ids: string[]) {
   try { localStorage.setItem(KEY, JSON.stringify(ids)); } catch { /* egal */ }
 }
 
-type Run = { kind: "tut"; id: string } | { kind: "free"; level: 1 | 2 | 3 } | null;
+type Run = { kind: "tut"; id: string } | { kind: "free"; level: 1 | 2 | 3 } | { kind: "bosses" } | null;
+const ALL_TUTS = [...TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD];
 
 /** Prototyp „Körperkarte“: drei Lektionen nach Danaher-Reihenfolge, dann freies Spiel. */
 export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
@@ -20,7 +23,7 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
   const [seed, setSeed] = useState(() => Date.now() % 100000);
 
   if (run?.kind === "tut") {
-    const t = TUTORIALS_K2.find((x) => x.id === run.id)!;
+    const t = ALL_TUTS.find((x) => x.id === run.id)!;
     return (
       <ArenaK2 key={t.id + seed} mode="tutorial" tutorial={t} aiLevel={t.aiLevel}
         onExit={(won) => {
@@ -29,6 +32,7 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
         }} />
     );
   }
+  if (run?.kind === "bosses") return <Bosse onBack={() => setRun(null)} />;
   if (run?.kind === "free") {
     return <ArenaK2 key={"free" + seed} mode="free" aiLevel={run.level} seed={seed} onExit={() => { setSeed(seed + 1); setRun(null); }} />;
   }
@@ -55,12 +59,26 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
           );
         })}
       </div>
+      <h3 className="display" style={{ marginTop: 18 }}>Extra-Lektion</h3>
+      <div className="more-list">
+        <button className="more-item" onClick={() => setRun({ kind: "tut", id: TUTORIAL_GUARD_ODER_TD.id })}>
+          <strong className="display">{done.includes(TUTORIAL_GUARD_ODER_TD.id) ? "✓ " : ""}{TUTORIAL_GUARD_ODER_TD.title}</strong>
+          <span className="muted small">{TUTORIAL_GUARD_ODER_TD.idea}</span>
+        </button>
+      </div>
       <h3 className="display" style={{ marginTop: 18 }}>Freies Spiel</h3>
       {!allDone && <p className="muted small">Tipp: Erst die drei Lektionen – dann verstehst du das Brett sofort.</p>}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button className="btn" onClick={() => setRun({ kind: "free", level: 1 })}>Locker</button>
         <button className="btn" onClick={() => setRun({ kind: "free", level: 2 })}>Normal</button>
         <button className="btn primary" onClick={() => setRun({ kind: "free", level: 3 })}>Hart</button>
+      </div>
+      <h3 className="display" style={{ marginTop: 18 }}>Bosse</h3>
+      <div className="more-list">
+        <button className="more-item" onClick={() => setRun({ kind: "bosses" })}>
+          <strong className="display">Bosse · {readBeaten().filter((id) => BOSSES.some((b) => b.id === id)).length}/{BOSSES.length} besiegt</strong>
+          <span className="muted small">Vier Gegner mit eigenem Stil: Ringer, Guard, Druck, Rücken. Lern, wie du dagegen spielst.</span>
+        </button>
       </div>
     </div>
   );

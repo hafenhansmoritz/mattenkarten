@@ -6,6 +6,8 @@ import {
   aiChoose, allCards, cardById, legalCards, newMatch, PASS, playRound, POS_LABEL, roleOf, setCardRegistry, slotCards,
 } from "../src/core2/engine/index";
 import { topFor } from "../src/core2/engine/board";
+import { isGrundlage, roundShare, simMatch, type SimPlayer } from "../src/core2/engine/sim";
+import { BOSSES } from "../src/core2/data/bosses";
 import { mulberry32 } from "../src/engine/rng";
 import type { Pos2, Role2, Side, State2 } from "../src/core2/types";
 import { ZONES } from "../src/core2/types";
@@ -62,9 +64,11 @@ interface Agg {
   reach: Map<string, number>; domRoundSum: number; domMatches: number; vorteil: number;
   /** Slot-Entscheidungen: "pos/role" → Anzahl, und "pos/role|karte" → Anzahl. */
   slotDec: Map<string, number>; slotPick: Map<string, number>;
+  /** B29 Didaktik: gespielte Karten, davon Grundlage; Unten-Entscheidungen, davon Grundlage. */
+  playedN: number; grundAll: number; bottomDec: number; grundBottom: number;
 }
 const inc = <K>(m: Map<K, number>, k: K, n = 1) => m.set(k, (m.get(k) ?? 0) + n);
-const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map() });
+const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map(), playedN: 0, grundAll: 0, bottomDec: 0, grundBottom: 0 });
 const total = newAgg();
 
 function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
@@ -88,7 +92,12 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
         rec((a) => a.pass++);
         const all = legalCards(s, side);
         const k = `${s.pos}/${roleOf(s, side)} (${all.length} Karten, alle gesperrt/zu schwach)`; rec((a) => inc(a.noOk, k));
-      } else { const id = ids[side]; rec((a) => inc(a.played, id)); }
+      } else {
+        const id = ids[side]; rec((a) => inc(a.played, id));
+        const role = roleOf(s, side);
+        const g = isGrundlage(cardById(id), s.pos, role);
+        rec((a) => { a.playedN++; if (g) a.grundAll++; if (role === "bottom") { a.bottomDec++; if (g) a.grundBottom++; } });
+      }
     }
     const { state, round } = playRound(s, ids.p, ids.o);
     rec((a) => inc(a.rules, round.rule));
@@ -206,5 +215,42 @@ const checks: [string, boolean, string][] = [
   ["jede Befreiung aus Side/Mount unten ≥ 2% der Slot-Entscheidungen", escLow.length === 0, escLow.join(", ") || "alle"],
   ["Stufen gestaffelt: L2 > L1 ≥ 55%, L3 > L2 ≥ 65%, L3 > L1 ≥ 70% (entschiedene Matches)", s21 >= 0.55 && s32 >= 0.65 && s31 >= 0.7, `L2>L1 ${pct(s21, 1)}, L3>L2 ${pct(s32, 1)}, L3>L1 ${pct(s31, 1)}`],
 ];
+// ---- B29 Didaktik: Grundlage-Karten (Rahmen, Befreiungen, Aufbauen in Festhalte-Lagen) ----
+const grundBottom = total.grundBottom / Math.max(1, total.bottomDec);
+console.log(`\nGrundlage (Rahmen/Befreiungen): ${pct(total.grundAll, total.playedN)} aller gespielten Karten, ${pct(total.grundBottom, total.bottomDec)} der Unten-Entscheidungen`);
+checks.push(["Didaktik: ≥ 25% der Unten-Entscheidungen sind Grundlage", grundBottom >= 0.25, pct(total.grundBottom, total.bottomDec)]);
+
+// ---- B28 Bosse: Spielstil auf Stufe 2/3 ----
+const NB = Math.max(40, Math.round(N / 2));
+const bossVs = (boss: SimPlayer, foe: SimPlayer, sig: string[]) => {
+  let w = 0, l = 0, tap = 0, sr = 0, rounds = 0; const hit = new Map<string, number>();
+  for (let i = 0; i < NB; i++) {
+    const bp = i % 2 === 0;
+    const m = bp ? simMatch(boss, foe, 9000 + i) : simMatch(foe, boss, 9000 + i);
+    const bs: Side = bp ? "p" : "o";
+    const r = m.state.result;
+    if (r?.winner === bs) w++; else if (r?.winner) l++;
+    if (r?.type === "tap") tap++;
+    for (const k of sig) if (m.slots[bs].has(k)) inc(hit, k);
+    if (sig.some((k) => m.slots[bs].has(k))) inc(hit, "*");
+    const rs = roundShare(m, bs, sig); sr += rs.n; rounds += rs.rounds;
+  }
+  return { win: w / Math.max(1, w + l), tap: tap / NB, sig: (hit.get("*") ?? 0) / NB, sigRounds: sr / Math.max(1, rounds), hit };
+};
+console.log(`\nBosse (${NB} Matches je Paarung, Boss abwechselnd p/o; Sieg = entschiedene Matches):`);
+for (const b of BOSSES) {
+  const boss: SimPlayer = { level: b.level, style: b.style };
+  const v1 = bossVs(boss, { level: 1 }, b.signature);
+  const v0 = bossVs({ level: b.level }, { level: 1 }, b.signature);
+  const v2 = bossVs(boss, { level: 2 }, b.signature);
+  const vc = bossVs(boss, { level: 2, style: b.counter }, b.signature);
+  const sigTxt = (v: ReturnType<typeof bossVs>) => b.signature.map((k) => `${k} ${pct(v.hit.get(k) ?? 0, NB)}`).join(", ");
+  console.log(`  ${b.name.padEnd(20)} vs L1 ${pct(v1.win, 1)} (Tap ${pct(v1.tap, 1)}) · Stil: ${sigTxt(v1)}, ${pct(v1.sigRounds, 1)} der Runden – ohne Stil: ${sigTxt(v0)}, ${pct(v0.sigRounds, 1)} der Runden`);
+  console.log(`  ${"".padEnd(20)} vs L2 ${pct(v2.win, 1)} · vs L2+Konter ${pct(vc.win, 1)} (Signatur ${pct(v2.sig, 1)} → ${pct(vc.sig, 1)})`);
+  checks.push([`${b.name}: schlägt L1 ≥ 65%`, v1.win >= 0.65, pct(v1.win, 1)]);
+  checks.push([`${b.name}: Stil sichtbar (Signatur häufiger als ohne Stil)`, v1.sig > v0.sig && v1.sigRounds > v0.sigRounds, `Matches ${pct(v1.sig, 1)} vs ${pct(v0.sig, 1)}, Runden ${pct(v1.sigRounds, 1)} vs ${pct(v0.sigRounds, 1)}`]);
+  checks.push([`${b.name}: verliert manchmal gegen Konter (≥ 10%), Konter wirkt`, 1 - vc.win >= 0.1 && (vc.win < v2.win || vc.sig < v2.sig), `Konter gewinnt ${pct(1 - vc.win, 1)}`]);
+}
+
 console.log("\nZiele:"); for (const [n, ok, v] of checks) console.log(`  [${ok ? "ok" : "--"}] ${n}: ${v}`);
 console.log("\nAuffälligkeiten:"); if (!anomalies.length) console.log("  keine"); for (const a of [...new Set(anomalies)].slice(0, 60)) console.log(`  - ${a}`);

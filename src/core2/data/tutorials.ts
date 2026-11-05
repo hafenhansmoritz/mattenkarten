@@ -125,3 +125,49 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     ],
   },
 ];
+
+/**
+ * Bauplan 38: Zusatz-Lektion „Guard ziehen oder Takedown?“ (bewusst nicht in TUTORIALS_K2 – die drei Kern-Lektionen bleiben die Danaher-Reihe).
+ * BJJ vs. MMA: Guard ziehen ist im BJJ erlaubt, bringt aber keine Punkte (Karte cl_pull_guard, mma: "nein");
+ * im MMA drohen unten Schläge – Ziel ist oben landen oder wieder aufstehen.
+ * Quellen: Evolve MMA, How To Stay Safe And Effective Off Your Back In MMA (https://evolve-mma.com/blog/how-to-stay-safe-and-effective-off-your-back-in-mma/);
+ *          Evolve MMA, 5 Ways To Counter Takedowns In No-Gi BJJ (Underhook als Clinch-Basis, https://evolve-mma.com/blog/5-ways-to-counter-takedowns-in-no-gi-bjj/);
+ *          IBJJF-Punkte (Takedown 2) wie in cards.ts.
+ */
+export const TUTORIAL_GUARD_ODER_TD: TutorialK2Def = {
+  id: "k2-guard-oder-takedown",
+  title: "Guard ziehen oder Takedown?",
+  idea: "BJJ erlaubt Guard ziehen – im MMA bringt dich ein Takedown nach oben.",
+  // Clinch, Underhook sitzt schon (Arme +1): Body Lock ist sofort spielbar.
+  start: { pos: "clinch", top: null, board: { arme: 1 } },
+  // Ziel: oben am Boden landen (Takedown) – nicht unten in der eigenen Guard.
+  goal: [
+    { pos: "half", role: "top" },
+    { pos: "guard", role: "top" },
+    { pos: "turtle", role: "top" },
+  ],
+  aiLevel: 1,
+  maxRounds: 8,
+  steps: [
+    {
+      round: 1, when: "start", highlightZone: "beine",
+      text: "Du und er im Clinch. Zwei Wege zu Boden: Guard ziehen – du landest unten. Oder Takedown – du landest oben.",
+    },
+    {
+      round: 1, when: "start",
+      text: "Im BJJ ist Guard ziehen erlaubt, bringt aber keine Punkte. Im MMA schlägt er dich von oben – die Karte zeigt „MMA nein“.",
+    },
+    {
+      round: 1, when: "pick", requireCard: "cl_body_lock", highlightZone: "huefte",
+      text: "Dein Arm ist schon unter seiner Achsel (Underhook). Umklammere ihn (Body Lock) und kipp ihn um – du landest oben.",
+    },
+    {
+      round: 1, when: "after",
+      text: "Oben gibt es 2 Punkte für den Takedown. Gestoppt? Hol dir wieder den Underhook, dann versuch es neu.",
+    },
+    {
+      round: 2, when: "start",
+      text: "Jetzt du allein: Bring ihn zu Boden und bleib oben. Guard ziehen ist erlaubt – hier aber nicht das Ziel.",
+    },
+  ],
+};

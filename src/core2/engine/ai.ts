@@ -7,6 +7,23 @@ import { cardsOfSlot, checkCard, okCards, PASS, threats, unmetRequires } from ".
 import { cardById } from "./registry";
 import { resolveRound } from "./resolve";
 
+/** B28 Boss-Spielstil: Gewichte, die auf Stufe 2/3 aufgeschlagen werden (siehe data/bosses.ts). */
+export interface AiStyle {
+  /** Bonus für die Lage nach der Runde, Schlüssel "pos/role" aus Sicht des Bosses (z. B. "headlock/top", "guard/bottom"). */
+  pos?: Partial<Record<string, number>>;
+  /** Bonus für das Spielen einer Karte (Karten-ID). */
+  cards?: Partial<Record<string, number>>;
+  /** Bonus je Schritt einer eigenen Aufgabe-Leiste (Aufgabe-ID, z. B. "rnc"). */
+  subs?: Partial<Record<string, number>>;
+}
+
+/** Stilwert einer Lage aus Sicht von side: Positionsvorliebe + eigene Aufgaben-Schritte. */
+export function styleValue(s: State2, side: Side, st: AiStyle): number {
+  let v = st.pos?.[`${s.pos}/${roleOf(s, side)}`] ?? 0;
+  for (const t of s.subs) if (t.owner === side) v += (st.subs?.[t.id] ?? 0) * t.step;
+  return v;
+}
+
 function pick<T>(arr: T[], rng: () => number): T {
   return arr[Math.floor(rng() * arr.length) % arr.length];
 }
@@ -133,7 +150,23 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
   return v + rng() * 0.6; // leichte Streuung, deterministisch
 }
 
-export function aiChoose(s: State2, side: Side, level: 1 | 2 | 3, rng: () => number): string {
+/** Kartenbonus des Stils. Rahmen-Vorlieben gelten nur, wenn in ihrer Zone ein Angriff droht (kein Rahmen ins Leere). */
+function styleCardBonus(s: State2, side: Side, c: Card2, st: AiStyle): number {
+  const v = st.cards?.[c.id] ?? 0;
+  if (v > 0 && c.kind === "rahmen" && !threats(s, side).some((t) => t.zone === c.zone)) return 0;
+  return v;
+}
+
+/** Stufe 2 mit Stil: Kartenbonus, Positionsvorliebe des Ziels (statt der aktuellen Lage) und Aufgaben-Vorliebe. */
+function styleCard(s: State2, side: Side, c: Card2, st: AiStyle): number {
+  let v = styleCardBonus(s, side, c, st);
+  if (c.to && st.pos) v += (st.pos[`${c.to.pos}/${c.to.role}`] ?? 0) - (st.pos[`${s.pos}/${roleOf(s, side)}`] ?? 0);
+  if (c.submission) v += st.subs?.[c.submission.id] ?? 0;
+  return v;
+}
+
+/** style (optional, B28): Boss-Spielstil oder Konter-Heuristik. Stufe 1 ignoriert ihn. */
+export function aiChoose(s: State2, side: Side, level: 1 | 2 | 3, rng: () => number, style?: AiStyle): string {
   const ok = okCards(s, side);
   if (ok.length === 0) return PASS;
   if (level === 1) {
@@ -142,10 +175,10 @@ export function aiChoose(s: State2, side: Side, level: 1 | 2 | 3, rng: () => num
     const sensible = ok.filter((c) => c.kind !== "rahmen" || thrZones.has(c.zone));
     return pick(sensible.length ? sensible : ok, rng).id;
   }
-  if (level === 3) return lookahead(s, side, ok, rng);
+  if (level === 3) return lookahead(s, side, ok, rng, style);
   let best = ok[0], bestV = -Infinity;
   for (const c of ok) {
-    const v = scoreCard(s, side, c, level, rng);
+    const v = scoreCard(s, side, c, level, rng) + (style ? styleCard(s, side, c, style) : 0);
     if (v > bestV) { bestV = v; best = c; }
   }
   return best.id;
@@ -218,14 +251,16 @@ const MIX_WINDOW = 4;
 const MIX_TEMP = 1.5;
 
 /** Stufe 3: eine Runde vorausrechnen gegen das Gegnermodell (liest Historie, Sperren und threats). */
-function lookahead(s: State2, side: Side, ok: Card2[], rng: () => number): string {
+function lookahead(s: State2, side: Side, ok: Card2[], rng: () => number, style?: AiStyle): string {
   const model = foeModel(s, side, rng);
+  // B28: Stil wirkt nur auf offene Lagen – ein sicherer Sieg/Tap bleibt unberührt.
+  const val = (n: State2) => evaluate(n, side) + (style && !n.result ? styleValue(n, side, style) : 0);
   const evs = ok.map((c) => {
-    let ev = 0;
-    if (model.length === 0) ev = evaluate(resolveRound(s, side === "p" ? c.id : PASS, side === "p" ? PASS : c.id).state, side);
+    let ev = style ? styleCardBonus(s, side, c, style) : 0;
+    if (model.length === 0) ev += val(resolveRound(s, side === "p" ? c.id : PASS, side === "p" ? PASS : c.id).state);
     for (const { card, w } of model) {
       const [pc, oc] = side === "p" ? [c.id, card.id] : [card.id, c.id];
-      ev += w * evaluate(resolveRound(s, pc, oc).state, side);
+      ev += w * val(resolveRound(s, pc, oc).state);
     }
     return ev;
   });

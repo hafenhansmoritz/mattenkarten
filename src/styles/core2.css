@@ -275,3 +275,40 @@
 /* Tap-Moment: kleine Szene im Overlay – man sieht Abklopfen und sofortiges Loslassen */
 .k2-tap-fig { width: min(300px, 78vw); margin: -8px auto -4px; pointer-events: none; }
 .k2-tap-fig svg { overflow: hidden !important; }
+
+/* ---------- Kampfkette (Bauplan 40) ---------- */
+.k2-chain { display: flex; align-items: center; gap: 3px; min-height: 22px; padding: 0 3px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; overflow: hidden; }
+.k2-chain-step { padding: 2px 6px; border-radius: 999px; border: 1px solid transparent; transition: background var(--t-mid, .2s), color var(--t-mid, .2s), border-color var(--t-mid, .2s), transform var(--t-mid, .2s); }
+.k2-chain-step.is-tr { font-style: italic; }
+.k2-chain-step.done { color: var(--text-2); }
+.k2-chain-step.on { color: var(--bg, #0b0f1a); background: var(--k2-focus); border-color: var(--k2-focus); font-weight: 800; transform: scale(1.04); box-shadow: 0 0 10px rgba(255, 209, 102, 0.35); }
+.k2-chain-sep { opacity: 0.4; }
+.k2-chain-sep.done { opacity: 0.8; color: var(--text-2); }
+.k2-chain-rep { margin-left: 1px; font-size: 8px; color: var(--k2-focus); font-weight: 700; }
+@media (max-width: 380px) { .k2-chain { font-size: 9px; gap: 2px; } .k2-chain-step { padding: 2px 4px; } }
+.k2-chain.is-reduced .k2-chain-step { transition: none; transform: none; }
+@media (prefers-reduced-motion: reduce) { .k2-chain-step { transition: none; transform: none !important; } }
+.k2-end-lesson { margin: 6px 0 0; font-size: 13px; color: var(--text-2); }
+.k2-end-lesson b { color: var(--k2-focus); }
+
+/* ---------- Bosse (Bauplan 73) ---------- */
+.k2-boss-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.k2-boss { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+.k2-boss.open { border-color: var(--points, #ffd166); }
+.k2-boss.locked { opacity: 0.5; }
+.k2-boss.locked .k2-boss-art { filter: grayscale(1) brightness(0.6); }
+.k2-boss-head { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: center; padding: 8px; cursor: pointer; }
+.k2-boss-head:disabled { cursor: default; }
+.k2-boss-head:focus-visible { outline: 2px solid var(--points, #ffd166); outline-offset: -2px; }
+.k2-boss-art { position: relative; height: 76px; border-radius: var(--radius-sm); overflow: hidden; background: radial-gradient(80% 90% at 50% 100%, rgba(229, 72, 77, 0.35), rgba(20, 51, 111, 0.5) 60%, transparent); }
+.k2-boss-art svg { position: absolute; left: 50%; bottom: -4px; width: 150%; height: auto; transform: translateX(-50%); }
+.k2-boss-n { position: absolute; top: 4px; left: 6px; font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--points, #ffd166); text-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+.k2-boss-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.k2-boss-meta strong { font-size: 19px; }
+.k2-boss-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.k2-boss-chip { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .03em; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-2); }
+.k2-boss-body { padding: 0 12px 12px; }
+.k2-boss-body h4 { margin: 8px 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--points, #ffd166); }
+.k2-boss-body p { margin: 0 0 4px; font-size: 14px; line-height: 1.4; }
+.k2-boss-mma { color: var(--bad, #e05a5a); font-size: 13px !important; }
+.k2-boss-body .btn { margin-top: 8px; width: 100%; }

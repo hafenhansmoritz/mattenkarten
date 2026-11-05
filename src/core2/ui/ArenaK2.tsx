@@ -23,6 +23,8 @@ import { collectRound } from "../collection/store";
 import { Sammlung } from "../collection/Sammlung";
 import { RarityGem } from "./frame";
 import { rarityOf } from "./rarity";
+import { ChainStrip } from "./ChainStrip";
+import type { BossDef } from "../data/bosses";
 import "../../styles/core2.css";
 
 export interface ArenaK2Props {
@@ -38,6 +40,8 @@ export interface ArenaK2Props {
   onResult?: (s: State2) => void;
   /** Optional: eigenes Urteil fürs Ende (z. B. „Challenge geschafft“). */
   verdict?: (s: State2) => { ok: boolean; text: string } | null;
+  /** Optional (Bauplan 73): Boss mit Spielstil – KI-Stufe und Gewichte kommen vom Boss, am Ende steht sein Lehrsatz. */
+  boss?: BossDef;
 }
 
 type Phase = "pick" | "predict" | "flip" | "impact" | "result" | "tap" | "release" | "end";
@@ -127,7 +131,8 @@ function startState(props: ArenaK2Props, seed: number): State2 {
 export function ArenaK2(props: ArenaK2Props) {
   const { mode, tutorial, onExit } = props;
   const tut = mode === "tutorial" ? tutorial : undefined;
-  const aiLevel = tut?.aiLevel ?? props.aiLevel ?? 2;
+  const boss = tut ? undefined : props.boss;
+  const aiLevel = tut?.aiLevel ?? boss?.level ?? props.aiLevel ?? 2;
   const reduced = !!useReducedMotion();
   const game = useGame();
 
@@ -198,7 +203,7 @@ export function ArenaK2(props: ArenaK2Props) {
     const pId = sel ?? (anyLegal ? null : PASS);
     if (!pId) return;
     // Erst die KI-Karte, dann das Ergebnis auf dem (unveränderten) Zustand berechnen.
-    const oId = aiChoose(s, "o", aiLevel, rng);
+    const oId = aiChoose(s, "o", aiLevel, rng, boss?.style);
     const { state: next, round: r } = playRound(s, pId, oId);
     if (shouldPredict(tut, s.round)) {
       setPending({ pId, oId, next, r });
@@ -364,6 +369,8 @@ export function ArenaK2(props: ArenaK2Props) {
           <b className="k2-pts">{s.o.pts}</b>
         </div>
       </header>
+      <ChainStrip pos={shown.pos} subs={shown.subs} history={shown.history} reduced={reduced}
+        last={phase === "impact" || phase === "result" ? round : null} />
       {tut && <div className="k2-tut-idea"><b>{tut.title}</b> · {tut.idea}</div>}
 
       {/* Szene */}
@@ -478,7 +485,7 @@ export function ArenaK2(props: ArenaK2Props) {
           <Confetti run={won} />
           <motion.div className={`k2-end-card ${won ? "won" : s.result.winner === null ? "draw" : "lost"}`}
             initial={{ scale: 0.88, y: 30 }} animate={{ scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 240, damping: 20 }}>
-            <span className="label">{tut ? tut.title : `Körperkarte · KI Stufe ${aiLevel}`}</span>
+            <span className="label">{tut ? tut.title : boss ? `Boss · ${boss.name}` : `Körperkarte · KI Stufe ${aiLevel}`}</span>
             <h2 className="display">{resultTitle}</h2>
             <div className="k2-end-score"><span className="p">{s.p.pts}</span><span className="sep">:</span><span className="o">{s.o.pts}</span></div>
             {tapOk !== null && (
@@ -496,6 +503,7 @@ export function ArenaK2(props: ArenaK2Props) {
                 <li key={w.round}><span className="k2-end-r">R{w.round}</span><span><b>{w.headline}</b> {w.why}</span></li>
               ))}
             </ol>
+            {boss && <p className="k2-end-lesson"><b>Lehre:</b> {boss.lesson}</p>}
             {(() => { const v = props.verdict?.(s); return v ? <p className={`k2-end-verdict ${v.ok ? "ok" : "no"}`}>{v.text}</p> : null; })()}
             {newCards.length > 0 && (
               <button type="button" className="k2-end-collect" onClick={() => setShowSammlung(true)}>
