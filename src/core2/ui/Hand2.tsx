@@ -67,6 +67,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                     <motion.button type="button"
                       className={`k2-hcard kind-${c.kind}${isSel ? " is-sel" : ""}${disabled ? " is-off" : ""}${isLocked ? " is-locked" : ""}`}
                       disabled={disabled}
+                      data-card={c.id}
                       aria-pressed={isSel}
                       aria-label={`${c.plain}, ${KIND_LABEL[c.kind]}, ${ZONE_LABEL[c.zone]}${!ok && l?.reason ? `. ${l.reason}` : ""}`}
                       title={!ok ? l?.reason : blockedByTut ? "Erst die markierte Karte" : c.plainDo}
