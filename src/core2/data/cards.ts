@@ -426,6 +426,17 @@ const halfTop: Card2[] = [
     source: K2.halfDan,
   },
   {
+    // B12: zweiter Pass aus der Half Guard (Underhook statt Crossface) – die Half Guard ist kein Wartezimmer.
+    id: "ht_knee_slide", plain: "Knie durchschieben", term: "Knee Slide Pass",
+    plainDo: "Dein Knie pinnt seinen Oberschenkel und schneidet durch.",
+    kind: "angriff", zone: "huefte", slots: [HALF_T], requires: { arme: 1, huefte: 0 },
+    to: { pos: "side", role: "top", points: 3 },
+    why: "Mit Underhook pinnt dein Knie sein oberes Bein und schneidet durch (Knee Slide) – Oberkörper bleibt kontrolliert.",
+    keys: ["Underhook oder Crossface halten", "Knie flach über seinen Oberschenkel"],
+    mistakes: ["Ohne Oberkörperkontrolle durchschneiden"],
+    source: K2.halfTop,
+  },
+  {
     id: "ht_whizzer", plain: "Arm überhaken", term: "Whizzer",
     plainDo: "Du klemmst seinen Underhook-Arm von oben ein.",
     kind: "rahmen", zone: "arme", slots: [HALF_T],
@@ -569,8 +580,10 @@ const sideTop: Card2[] = [
   {
     id: "sct_kimura", plain: "Arm nach hinten drehen", term: "Kimura (Side)",
     plainDo: "Du drehst seinen fernen Arm hinter seinen Rücken – langsam.",
-    kind: "angriff", zone: "arme", slots: [SIDE_T], requires: { arme: 1 }, kraft: 1,
-    submission: { id: "kimura", name: "Kimura" },
+    // B11: erst wenn seine Hüfte ganz gekeilt ist (Hüfte +2), sonst dreht er sich ein – Wahl: Mount oder Kimura.
+    kind: "angriff", zone: "arme", slots: [SIDE_T], requires: { arme: 1, huefte: 2 }, kraft: 1,
+    // B11: Dilemma-Paar mit dem Kopf-Arm-Würger – hält er den Arm fest am Körper, wird der Hals frei.
+    submission: { id: "kimura", name: "Kimura" }, dilemmaOpens: "kopf",
     why: "Aus der Seitkontrolle einen Arm isolieren (Kimura): erst kontrollieren, dann langsam drehen.",
     keys: ["Figure-Four-Griff", "Sein Ellbogen bleibt an deinem Körper", "Rotation Richtung Rücken"],
     mistakes: ["Ellbogen driftet weg", "Brustkontakt verlieren"],
@@ -590,6 +603,18 @@ const sideTop: Card2[] = [
     source: K2.armTri,
   },
   {
+    // B11: Americana auch aus der Seitkontrolle – braucht dort zusätzlich den Kopf (Crossface), sonst dreht er weg.
+    id: "sct_americana", plain: "Handgelenk auf die Matte", term: "Americana (Side)",
+    plainDo: "Stützt er gegen deinen Hals, pinnst du sein Handgelenk und drehst.",
+    kind: "angriff", zone: "arme", slots: [SIDE_T], requires: { kopf: 1, arme: 1 }, kraft: 1,
+    submission: { id: "americana", name: "Americana" }, dilemmaOpens: "kopf",
+    why: "Crossface hält ihn, sein gebeugter Arm wird auf die Matte gepinnt (Americana) – erst isolieren, dann langsam drehen.",
+    keys: ["Arm 90° gebeugt", "Handgelenk bleibt auf der Matte", "Brustkontakt halten"],
+    mistakes: ["Arm jagen und die Hüfte freigeben", "Mit der Kimura-Richtung verwechseln"],
+    safety: "Langsam, ohne Ruck. " + SAFETY_SUB,
+    source: SRC.americana, check: true,
+  },
+  {
     id: "sct_hip_block", plain: "Hüfte zumachen", term: "Hip Block",
     plainDo: "Du folgst seiner Hüfte und blockst das Wegrutschen.",
     kind: "rahmen", zone: "huefte", slots: [SIDE_T],
@@ -598,15 +623,6 @@ const sideTop: Card2[] = [
     mistakes: ["Oben bleiben, während er wegrutscht"],
     source: SRC.sideEsc,
   },
-  {
-    id: "sct_isolate", plain: "Handgelenk auf die Matte", term: "Arm Isolation (Side)",
-    plainDo: "Stützt er gegen deinen Hals, pinnst du sein Handgelenk.",
-    kind: "aufbauen", zone: "arme", slots: [SIDE_T],
-    why: "Erst den Arm isolieren (Handgelenk auf der Matte), dann kontrollieren, dann langsam beenden.",
-    keys: ["Arm 90° gebeugt", "Brustkontakt halten"],
-    mistakes: ["Arm jagen und die Hüfte freigeben"],
-    source: SRC.americana,
-  },
 ];
 
 // ---------------- Side Control unten (+ geteilte Karte) ----------------
@@ -614,8 +630,7 @@ const elbowKnee: Card2 = {
   id: "bot_elbow_knee", plain: "Ellbogen an Knie", term: "Elbow-Knee Connection",
   plainDo: "Ellbogen und Knie bilden eine Wand an seiner Hüfte.",
   kind: "aufbauen", zone: "huefte", slots: [SIDE_B, HALF_B],
-  // B10: Grundlage zahlt sich aus – der Ellbogen kommt dabei nach innen (Inside Position), Arme +1.
-  alsoGain: { arme: 1 },
+  // B11: „Ellbogen nach innen“ (Inside Position) steckt jetzt in dieser Karte (Slot-Platz für die Kopf-Arm-Abwehr).
   why: "Ellbogen und Knie verbunden (Elbow-Knee) tragen sein Gewicht; trennen sie sich, kommt er Brust auf Brust.",
   keys: ["Knie in seine Hüfttasche", "Ellbogen innen, nah am Knie"],
   mistakes: ["Ellbogen weit vom Körper"],
@@ -673,7 +688,7 @@ const sideBottom: Card2[] = [
     source: K2.sideDan,
   },
   {
-    // B11: Verteidigung gegen den Kopf-Arm-Würger (ersetzt „Ellbogen nach innen“, das jetzt in Ellbogen an Knie steckt).
+    // B11: Verteidigung gegen den Kopf-Arm-Würger (ersetzt „Ellbogen nach innen“, das jetzt in „Ellbogen an Knie“ steckt).
     id: "scb_head_arm_def", plain: "Arm nicht rüberlassen", term: "Arm-Triangle Defense",
     plainDo: "Dein Arm bleibt vor deinem Gesicht – nicht über deinem Hals.",
     kind: "rahmen", zone: "kopf", slots: [SIDE_B],

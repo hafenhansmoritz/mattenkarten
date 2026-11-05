@@ -93,10 +93,16 @@ export function LockIcon({ size = 12 }: { size?: number }) {
   );
 }
 
+/** Sichtbarer Name der Ressource (internes Feld `kraft`): BJJ ist Hebel statt Kraft – man haushaltet mit dem Atem. */
+export const ATEM_LABEL = "Atem";
+
+/** Atem-Symbol (Luftzug). Name bleibt KraftIcon, damit bestehende Importe gelten. */
 export function KraftIcon({ size = 12 }: { size?: number }) {
   return (
     <Svg size={size}>
-      <path d="M13.5 2.5 5 13.5h6l-1 8 8.5-11h-6z" fill="currentColor" stroke="none" />
+      <path d="M3 9h10.5a3 3 0 1 0-3-3" />
+      <path d="M3 15h14a3 3 0 1 1-3 3" />
+      <path d="M3 12h17" />
     </Svg>
   );
 }

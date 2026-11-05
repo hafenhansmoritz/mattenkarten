@@ -91,7 +91,7 @@ describe("Kern 2 – Karten", () => {
     }
   });
 
-  it("Aufgabegriffe: Kraft ≥ 1, Sicherheitshinweis, sinnvolle Zone", () => {
+  it("Aufgabegriffe: Atem ≥ 1, Sicherheitshinweis, sinnvolle Zone", () => {
     const subs = CARDS2.filter((c) => c.submission);
     expect(subs.length).toBeGreaterThanOrEqual(8);
     for (const c of subs) {
@@ -126,7 +126,7 @@ describe("Kern 2 – Karten", () => {
   });
 
   it("Hauptgriffe haben einen Aufbau-Schritt in derselben Zone und Slot", () => {
-    for (const id of ["gb_armbar", "gb_kimura", "gb_triangle", "mt_armbar", "mt_americana", "sct_kimura", "bt_rnc", "bt_armbar", "tt_guillotine"]) {
+    for (const id of ["gb_armbar", "gb_kimura", "gb_triangle", "mt_armbar", "mt_americana", "sct_kimura", "sct_arm_triangle", "bt_rnc", "bt_armbar", "tt_guillotine"]) {
       const c = CARD2[id];
       const s = c.slots[0];
       const setup = cardsFor(s.pos, s.role).some((o) => o.kind === "aufbauen" && o.zone === c.zone);

@@ -95,7 +95,7 @@ describe("Dreieck (gleiche Zone)", () => {
     expect(round.winner).toBe("o");
     expect(state.pos).toBe("clinch");
   });
-  it("Angriff = Angriff bei Gleichstand: Gerangel, beide −1 Kraft", () => {
+  it("Angriff = Angriff bei Gleichstand im Stand: Gerangel, beide −1 Atem", () => {
     const { state, round } = playRound(stand(), "s_clinch", "s_clinch");
     expect(round.winner).toBe("none");
     expect(state.pos).toBe("stand");
@@ -116,14 +116,22 @@ describe("Dreieck (gleiche Zone)", () => {
     expect(round.winner).toBe("o");
     expect(state.board.kopf).toBe(-1);
   });
-  it("Gerangel (B6): ohne Vorsprung in der Zone entscheidet erst der Vorteil, dann die Kraft", () => {
+  it("Gerangel (B6): ohne Vorsprung in der Zone entscheidet erst der Vorteil, am Boden dann der Obere – nie der Atem", () => {
     const a = playRound(stand({ kopf: 1 }), "s_clinch", "s_clinch");
     expect(a.round.winner).toBe("p");
     expect(a.state.pos).toBe("clinch");
+    // Im Stand bleibt es Gerangel, auch mit mehr Atem.
     let s = stand();
     s = { ...s, o: { ...s.o, kraft: 4 } };
     const b = playRound(s, "s_clinch", "s_clinch");
-    expect(b.round.winner).toBe("o");
+    expect(b.round.winner).toBe("none");
+    expect(b.state.pos).toBe("stand");
+    // Am Boden: zwei Positionswechsel, Gleichstand in den Zonen und Brettsumme 0 → der Obere hat die Basis.
+    let g = sideTop({ huefte: 1, beine: -1 });
+    g = { ...g, o: { ...g.o, kraft: 5 } };
+    const c = playRound(g, "sc_mount", "scb_escape");
+    expect(c.state.pos).toBe("mount");
+    expect(c.state.top).toBe("p");
   });
   it("Rahmen = Rahmen: nichts", () => {
     const { state, round } = playRound(stand(), "s_frame_beine", "s_frame_beine");
@@ -132,7 +140,7 @@ describe("Dreieck (gleiche Zone)", () => {
   });
 });
 
-describe("requires, Kraft, Sperre", () => {
+describe("requires, Atem, Sperre", () => {
   it("requires sperrt Angriff mit Grund", () => {
     const l = legalCards(stand(), "p").find((c) => c.id === "s_double")!;
     expect(l.ok).toBe(false);
@@ -141,15 +149,15 @@ describe("requires, Kraft, Sperre", () => {
     // aus Sicht von o: board beine -1 heißt o +1
     expect(legalCards(stand({ beine: -1 }), "o").find((c) => c.id === "s_double")!.ok).toBe(true);
   });
-  it("Kraftkosten: Grund und Bezahlung", () => {
+  it("Atemkosten: Grund und Bezahlung", () => {
     const s = sideTop();
-    expect(legalCards(s, "p").find((c) => c.id === "sc_bigmove")).toEqual({ id: "sc_bigmove", ok: false, reason: "Braucht 4 Kraft" });
+    expect(legalCards(s, "p").find((c) => c.id === "sc_bigmove")).toEqual({ id: "sc_bigmove", ok: false, reason: "Braucht 4 Atem" });
     const s2 = { ...s, p: { ...s.p, kraft: 4 } };
     const { state } = playRound(s2, "sc_bigmove", "scb_build_kopf");
     expect(state.pos).toBe("back");
     expect(state.p.kraft).toBe(1); // 4 − 4 + 1
   });
-  it("Kraft +1 pro Runde, max 5", () => {
+  it("Atem +1 pro Runde, max 5", () => {
     let s = stand();
     s = playRound(s, "s_build_beine", "s_build_arme").state;
     expect(s.p.kraft).toBe(4);
@@ -246,8 +254,8 @@ describe("Positionswechsel & Aufgaben", () => {
     expect(state.subs).toHaveLength(1);
     expect(state.subs[0].step).toBe(1);
   });
-  it("Griff hält fest (B4): Flucht gesperrt, solange eine Leiste gegen den Unteren läuft – auch in derselben Runde", () => {
-    // Gleiche Runde: Kimura sitzt, seine Befreiung scheitert.
+  it("Griff hält fest (B4): ab Schritt 2 ist die Flucht gesperrt – auch wenn der Griff in derselben Runde sitzt", () => {
+    // Gleiche Runde: Kimura ungerahmt → Schritt 2, seine Befreiung scheitert.
     const r = playRound(sideTop(), "sc_kimura", "scb_escape");
     expect(r.state.pos).toBe("side");
     expect(r.state.subs[0].step).toBe(2);
@@ -256,6 +264,15 @@ describe("Positionswechsel & Aufgaben", () => {
     const l = legalCards(r.state, "o").find((c) => c.id === "scb_escape")!;
     expect(l.ok).toBe(false);
     expect(l.reason).toMatch(/Griff lösen/);
+  });
+  it("B4: bei Schritt 1 (nur isoliert) ist Weggehen erlaubt und löscht die Leiste", () => {
+    let s = sideTop();
+    s = { ...s, subs: [{ id: "kimura", name: "Kimura", owner: "p", step: 1, zone: "arme" }] };
+    expect(legalCards(s, "o").find((c) => c.id === "scb_escape")!.ok).toBe(true);
+    const { state } = playRound(s, "sc_cross", "scb_escape");
+    expect(state.pos).toBe("guard");
+    expect(state.top).toBe("p");
+    expect(state.subs).toHaveLength(0);
   });
 });
 
