@@ -13,7 +13,7 @@
 .step-text strong { font-size: 18px; }
 
 /* ---------- Pfad ---------- */
-.pfad { display: flex; flex-direction: column; gap: 22px; }
+.pfad { display: flex; flex-direction: column; gap: 22px; overflow-x: clip; }
 .pfad-belt { display: flex; flex-direction: column; gap: 6px; }
 .pfad-belt-head { display: flex; align-items: center; gap: 12px; padding: 4px 0; }
 .belt-svg { flex: none; overflow: visible; filter: drop-shadow(0 3px 6px rgba(0,0,0,.4)); }
@@ -22,7 +22,7 @@
 .pfad-belt.done .pfad-belt-title .label { color: #59d39a; }
 
 .pfad-nodes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.pfad-node { --dot: 38px; display: grid; grid-template-columns: var(--dot) 1fr; gap: 12px; position: relative; padding-bottom: 12px; }
+.pfad-node { --dot: 38px; display: grid; grid-template-columns: var(--dot) minmax(0, 1fr); gap: 12px; position: relative; padding-bottom: 12px; }
 .pfad-node.boss { --dot: 48px; }
 
 .pfad-rail { position: relative; display: flex; justify-content: center; }

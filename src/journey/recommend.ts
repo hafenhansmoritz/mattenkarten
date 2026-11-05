@@ -63,7 +63,7 @@ export const RECOMMEND: Record<Pos2, Record<StuckRole, Recommendation>> = {
   },
   back: {
     top: { lessonId: "k2-erst-griff-dann-beenden", day: 6, topics: ["aufgabe", "positionen"], why: "Erst sichern, dann den Griff aufbauen." },
-    bottom: { day: 1, topics: ["abklopfen", "positionen"], why: "Hals schützen und früh abklopfen. Den Rest zeigt dein Trainer." },
+    bottom: { lessonId: "p-back-protect", day: 6, topics: ["ruecken", "abklopfen"], why: "Hände an den Hals, Hände kämpfen, dann zur Seite raus." },
   },
 };
 
