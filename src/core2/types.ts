@@ -5,7 +5,7 @@
 // ============================================================
 
 export type Side = "p" | "o";
-export type Pos2 = "stand" | "clinch" | "guard" | "half" | "turtle" | "side" | "mount" | "back";
+export type Pos2 = "stand" | "clinch" | "headlock" | "guard" | "half" | "turtle" | "side" | "mount" | "back";
 export type Role2 = "neutral" | "top" | "bottom";
 /** Die vier Zonen der Körperkarte. */
 export type Zone = "kopf" | "arme" | "huefte" | "beine";

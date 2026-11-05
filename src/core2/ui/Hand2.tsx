@@ -4,6 +4,8 @@ import type { Board, Card2, Zone } from "../types";
 import { ZONES } from "../types";
 import { KIND_LABEL, KraftIcon, LockIcon, ZONE_LABEL, ZONE_SHORT, ZoneIcon, fmtSigned, reqList } from "./meta";
 import { Pulse } from "../../components/fx";
+import { Foil, KindIcon, RarityGem } from "./frame";
+import { RARITY_LABEL, rarityOf } from "./rarity";
 
 export interface Hand2Props {
   /** Alle Karten des Slots (cardsFor(pos, role)). */
@@ -66,21 +68,24 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                 const isSel = selected === c.id;
                 const tooExpensive = c.kraft != null && kraft != null && c.kraft > kraft;
                 const reqs = reqList(c);
+                const rar = rarityOf(c);
                 return (
                   <Pulse key={c.id} active={requireCard === c.id && !isSel} radius="8px" className="k2-hcard-pulse">
                     <motion.button type="button"
-                      className={`k2-hcard kind-${c.kind}${isSel ? " is-sel" : ""}${disabled ? " is-off" : ""}${isLocked ? " is-locked" : ""}`}
+                      className={`k2-hcard kind-${c.kind} rar-${rar}${isSel ? " is-sel" : ""}${disabled ? " is-off" : ""}${isLocked ? " is-locked" : ""}`}
                       disabled={disabled}
                       data-card={c.id}
                       aria-pressed={isSel}
-                      aria-label={`${c.plain}, ${KIND_LABEL[c.kind]}, ${ZONE_LABEL[c.zone]}${!ok && l?.reason ? `. ${l.reason}` : ""}`}
+                      aria-label={`${c.plain}, ${KIND_LABEL[c.kind]}, ${RARITY_LABEL[rar]}, ${ZONE_LABEL[c.zone]}${!ok && l?.reason ? `. ${l.reason}` : ""}`}
                       title={!ok ? l?.reason : blockedByTut ? "Erst die markierte Karte" : c.plainDo}
                       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.9 }}
                       animate={{ opacity: 1, y: isSel && !reduced ? -4 : 0, scale: 1 }}
                       transition={{ type: "spring", stiffness: 380, damping: 26, delay: reduced ? 0 : i * 0.04 }}
                       whileTap={disabled || reduced ? undefined : { scale: 0.95 }}
                       onClick={() => onSelect(isSel ? null : c.id)}>
-                      <span className="k2-hcard-kind">{KIND_LABEL[c.kind]}</span>
+                      <Foil />
+                      <span className="k2-hcard-kind"><KindIcon kind={c.kind} size={9} />{KIND_LABEL[c.kind]}</span>
+                      <RarityGem rarity={rar} size={10} className="k2-hcard-gem" />
                       <span className="k2-hcard-t">{c.plain}</span>
                       {(reqs.length > 0 || c.kraft) && (
                         <span className="k2-hcard-reqs">
@@ -109,12 +114,12 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
         {sel ? (
           <motion.div key={sel.id} className={`k2-hand-info kind-${sel.kind}`}
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
-            <b>{sel.plain}</b> <span className="k2-term">{sel.term}</span>
+            <b>{sel.plain}</b><RarityGem rarity={rarityOf(sel)} size={10} /><span className="k2-rar-t">{RARITY_LABEL[rarityOf(sel)]}</span> <span className="k2-term">{sel.term}</span>
             <p>{sel.plainDo}</p>
           </motion.div>
         ) : (
           <motion.div key="none" className="k2-hand-info is-empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            Wähle eine Karte. Farbe: <i className="kc-a">Angreifen</i> · <i className="kc-b">Aufbauen</i> · <i className="kc-r">Rahmen</i>
+            Wähle eine Karte. <i className="kc-a"><KindIcon kind="angriff" size={10} /> Angreifen</i> · <i className="kc-b"><KindIcon kind="aufbauen" size={10} /> Aufbauen</i> · <i className="kc-r"><KindIcon kind="rahmen" size={10} /> Rahmen</i>
           </motion.div>
         )}
       </AnimatePresence>
