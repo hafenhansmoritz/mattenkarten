@@ -1,79 +1,114 @@
-// Kompakter Karten-Katalog als Wissensgrundlage für den KI-Coach.
+// Kompakter Katalog als Wissensgrundlage für den KI-Coach (No-Gi, Kern 2, 7-Tage-Startprogramm).
 // Läuft im Build-Skript (scripts/build-catalog.mjs → api/_catalog.ts) und ist im Client testbar.
-// Nur Daten aus src/data – der Coach darf nichts anderes lehren.
-import { BANNED_LESSONS, CARDS } from "../data/cards";
-import { KIND_VERB, POSITION_GUIDE, RES } from "../data/positions";
-import type { CardDef, PositionId, Role, Tag } from "../engine/types";
+// Nur Daten aus dem Spiel – der Coach darf nichts anderes lehren.
+// Quellen der Regeln: docs/knowledge-base.md §8.12 (No-Gi, Beinhebel, IBJJF Weißgurt).
+import { CARDS2 } from "../core2/data/cards";
+import type { Card2, Kind2, Pos2, Role2, Zone } from "../core2/types";
+import { CARDS, GI_ONLY } from "../data/cards";
+import type { CardDef } from "../engine/types";
+import { DAYS, NOT_ALONE, READY_CHECKLIST, type ProgramDay } from "../program/days";
+import { LESSONS_PROGRAM } from "../program/lessons";
+import { TUTORIALS_K2 } from "../core2/data/tutorials";
+import { EXPLAIN_QUESTIONS, Q_BY_ID, TOPIC_LABEL } from "../program/questions";
 
-const ROLE_DE: Record<Role, string> = { neutral: "", top: " oben", bottom: " unten" };
-
-const TAG_DE: Record<Tag, string> = {
-  strike: "Schläge", shot: "Beinangriffe", single: "Ein-Bein-Angriffe", legs: "Beinangriffe", clinch: "Clinch-Versuche",
-  snap: "Kopf-Runterziehen", drag: "Armzüge", bodylock: "Umklammern", hip: "Hüftwürfe", reap: "Sicheln",
-  escape: "Fluchten", bridge: "Abwerfen", sweep: "Umdrehen", pass: "Vorbeigehen", advance: "Aufsteigen",
-  choke: "Würger", armlock: "Armhebel", shoulderlock: "Schulterhebel", trianglechoke: "Beinwürger",
-  behind: "Hinter-dich-Gehen",
+// Bewusst lokal statt aus core2/ui/meta.tsx (das ist eine React-Datei mit Icons).
+const POS_DE: Record<Pos2, string> = {
+  stand: "Stand", clinch: "Clinch", guard: "Guard", half: "Halbe Guard (Half Guard)", turtle: "Turtle",
+  side: "Seitenkontrolle (Side Control)", mount: "Mount", back: "Rücken (Back)",
 };
+const ROLE_DE: Record<Role2, string> = { neutral: "", top: " oben", bottom: " unten" };
+const ZONE_DE: Record<Zone, string> = { kopf: "Kopf/Nacken", arme: "Arme", huefte: "Hüfte", beine: "Beine" };
+const KIND_DE: Record<Kind2, string> = { angriff: "Angreifen", aufbauen: "Aufbauen", rahmen: "Rahmen" };
 
-function posLabel(pos: PositionId, role: Role): string {
-  const g = POSITION_GUIDE[pos];
-  return `${g.plain} (${g.term})${ROLE_DE[role]}`;
-}
+const uniq = <T,>(xs: T[]): T[] => [...new Set(xs)];
+const slotLabel = (pos: Pos2, role: Role2) => `${POS_DE[pos]}${ROLE_DE[role]}`;
 
-function uniq<T>(xs: T[]): T[] {
-  return [...new Set(xs)];
-}
-
-function cardLine(c: CardDef): string {
-  const title = c.plain ? `${c.plain} (${c.name}${c.de ? ` / ${c.de}` : ""})` : `${c.name}${c.de ? ` (${c.de})` : ""}`;
+/** Eine Zeile je Kern-2-Karte: Alltagsname, Fachbegriff, Position, Was, Warum, Merke, Fehler, Sicherheit. */
+export function card2Line(c: Card2): string {
   const parts: string[] = [
-    `[${c.id}] ${title}`,
-    `Typ: ${KIND_VERB[c.kind].short}${c.basic ? ", Grundtechnik" : ""}${c.submission ? ", Aufgabegriff" : ""}`,
-    `Wo: ${uniq(c.slots.map((s) => posLabel(s.pos, s.role))).join("; ")}`,
+    `[${c.id}] ${c.plain} (${c.term})`,
+    `Typ: ${KIND_DE[c.kind]}, Zone ${ZONE_DE[c.zone]}${c.submission ? ", Aufgabegriff" : ""}`,
+    `Wo: ${uniq(c.slots.map((s) => slotLabel(s.pos, s.role))).join("; ")}`,
+    `Was: ${c.plainDo}`,
+    `Warum: ${c.why}`,
   ];
-  if (c.plainDo) parts.push(`Was: ${c.plainDo}`);
-  parts.push(`Technik: ${c.desc}`);
-  if (c.tags?.length) parts.push(`Familie: ${uniq(c.tags.map((t) => TAG_DE[t])).join(", ")}`);
-  if (c.counters?.length) parts.push(`Kontert: ${uniq(c.counters.map((t) => TAG_DE[t])).join(", ")}`);
-  if (c.success) parts.push(`Erfolg → ${posLabel(c.success.pos, c.success.role)}${c.success.points ? `, +${c.success.points} Pkt` : ""}`);
+  if (c.to) parts.push(`Erfolg → ${slotLabel(c.to.pos, c.to.role)}${c.to.points ? `, +${c.to.points} Pkt` : ""}`);
   if (c.keys.length) parts.push(`Merke: ${c.keys.join("; ")}`);
   if (c.mistakes.length) parts.push(`Fehler: ${c.mistakes.join("; ")}`);
   if (c.safety) parts.push(`Sicherheit: ${c.safety}`);
-  if (c.lesson) parts.push(`Lernsatz: ${c.lesson}`);
   if (c.check) parts.push("(ohne Primärquelle – vom Trainer prüfen lassen)");
   return parts.join(" | ");
 }
 
-function positionLine(pos: PositionId): string {
-  const g = POSITION_GUIDE[pos];
-  const roles = (Object.keys(g.goal) as Role[]).map((r) => {
-    const danger = g.danger?.[r] ? ` Gefahr: ${g.danger[r]}` : "";
-    return `${r === "neutral" ? "beide" : r === "top" ? "oben" : "unten"}: Ziel ${g.goal[r]}${danger}`;
+function dayLines(d: ProgramDay): string[] {
+  const lessons = d.lessons.map((l) => {
+    if (l.kind === "map") return "Positions-Landkarte";
+    if (l.kind === "exam") return "Prüfung (12 Fragen)";
+    const t = [...TUTORIALS_K2, ...LESSONS_PROGRAM].find((x) => x.id === l.id);
+    return t ? `${t.title} – ${t.idea}` : l.id;
   });
-  return `${g.plain} (${g.term}) – ${g.oneLiner} ${roles.join(" / ")}`;
+  const topics = uniq([...d.puzzle, ...(d.pics ?? [])].map((id) => Q_BY_ID[id]?.topic).filter(Boolean).map((t) => TOPIC_LABEL[t!]));
+  return [
+    `### Tag ${d.n}: ${d.title}`,
+    `- Ziel: ${d.goal}`,
+    `- Warum: ${d.why}`,
+    `- Lektion: ${lessons.join("; ")}`,
+    ...(topics.length ? [`- Themen: ${topics.join(", ")}`] : []),
+    `- Drill (solo): ${d.drill.title} – ${d.drill.steps.join(" ")} Sicherheit: ${d.drill.safety}`,
+  ];
 }
 
+/** Alte Kampagne: nur Namen, damit Match-Analysen Karten-ids in Alltagsnamen übersetzen können. */
+function oldCardIndex(cards: CardDef[]): string {
+  return cards
+    .filter((c) => !GI_ONLY.has(c.id))
+    .map((c) => `[${c.id}] ${c.plain && c.plain !== c.name ? `${c.plain} (${c.name})` : c.name}`)
+    .join("; ");
+}
+
+/** Regeln, die IMMER gelten (No-Gi, IBJJF Weißgurt als Standard). KB §8.12. */
+export const RULES_NOGI = [
+  "No-Gi (ohne Anzug): Griffe an Körperteilen – Handgelenk, 2-gegen-1, Underhook, Overhook/Whizzer, Collar Tie (Nacken), Body Lock, Gurtgriff (Seatbelt). Keine Kragen-, Ärmel-, Hosen- oder Gürtelgriffe.",
+  "Standard-Regelwerk: IBJJF Weißgurt (die strengste Regel).",
+  "Für Weißgurte verboten: Heel Hook, Kneebar, Toe Hold, Wadenquetscher (Calf Slicer), Reaping (Knie-Sicheln), Slam/Suplex, Neck Crank, Wirbelsäulenhebel, Kani Basami, Handgelenk- und Fingerhebel.",
+  "Gerader Fußhebel (Straight Ankle Lock) ist der einzige Anfänger-Beinhebel – nur mit Trainer, nicht in Woche 1.",
+  "Beinhebel: früh abklopfen, nie rausdrehen. Der Schaden kommt oft vor dem Schmerz (ca. 2 cm Fersenbewegung reichen für eine Verletzung).",
+  "Abklopfen (Tap): früh, mit Hand, Fuß oder Wort. Beim Tap sofort loslassen. Schwindel oder Sternchen beim Würger = sofort abklopfen.",
+  "Position vor Aufgabe: erst Kontrolle, dann beenden. Erst befreien, dann angreifen.",
+  "IBJJF-Punkte: Takedown 2, Sweep 2, Passieren 3, Mount 4, Rücken mit beiden Haken 4.",
+];
+
 /** Baut den kompletten Katalog-Text (Deutsch, kompakt, eine Zeile je Karte). */
-export function buildCatalog(cards: CardDef[] = CARDS): string {
-  const positions = (Object.keys(POSITION_GUIDE) as PositionId[]).map(positionLine);
+export function buildCatalog(cards: Card2[] = CARDS2, days: ProgramDay[] = DAYS): string {
   return [
-    "## Spielregeln (Dreieck)",
-    `- ${KIND_VERB.angriff.explain}`,
-    `- ${KIND_VERB.setup.explain}`,
-    `- ${KIND_VERB.reaktion.explain}`,
-    `- ${RES.gas.name} (Ausdauer): ${RES.gas.explain}`,
-    `- ${RES.control.name} (Kontrolle): ${RES.control.explain}`,
-    `- ${RES.opening.name} (Öffnung): ${RES.opening.explain}`,
-    "- Kampfkette: Distanz → Clinch → Takedown → Kontrolle → Aufgabegriff (Submission).",
+    "## Regeln (gelten immer)",
+    ...RULES_NOGI.map((r) => `- ${r}`),
     "",
-    "## Positionen (beste zuerst: Rücken > Draufsitzen > Quer drauf > Guard)",
-    ...positions.map((p) => `- ${p}`),
+    "## Spielprinzip (Kern 2: Körperkarte)",
+    `- Jede Lage hat vier Zonen: ${Object.values(ZONE_DE).join(", ")}. Wer eine Zone gewinnt, kontrolliert sie.`,
+    `- Kartenarten: ${KIND_DE.aufbauen} (Zone gewinnen), ${KIND_DE.angriff} (Position wechseln oder Aufgabegriff, braucht gewonnene Zonen), ${KIND_DE.rahmen} (abwehren, kontern).`,
+    "- Aufgabegriffe laufen in 3 Schritten bis zum Tap – Position vor Aufgabe.",
+    `- Positionen: ${Object.values(POS_DE).join(", ")}. Beste oben zuerst: Rücken > Mount > Seitenkontrolle > Halbe Guard > Guard.`,
     "",
-    "## Karten",
-    ...cards.map(cardLine),
+    "## 7-Tage-Startprogramm",
+    ...days.flatMap(dayLines),
+    `- Bereit fürs erste Training: ${READY_CHECKLIST.map((c) => c.text).join("; ")}.`,
+    `- Nicht allein üben: ${NOT_ALONE.join("; ")}.`,
     "",
-    "## Verbotene Techniken (nur als Regel erklären, NIE anleiten)",
-    ...BANNED_LESSONS.map((b) => `- ${b.name}: ${b.why}`),
-    "- Außerdem für Weißgurte verboten: Kneebar, Toe Hold, Handgelenkhebel (Wristlock), Fingerhebel, Wadenquetscher, Suplex.",
+    "## Karten (Kern 2, No-Gi)",
+    ...cards.map(card2Line),
+    "",
+    "## Ein-Satz-Erklärungen (Musterantworten)",
+    ...EXPLAIN_QUESTIONS.map((q) => `- ${q.q} → ${q.why} (Kernpunkte: ${q.explain!.points.join("; ")})`),
+    "",
+    "## Klassische Kampagne (nur Namen, für Match-Analysen)",
+    oldCardIndex(CARDS),
   ].join("\n");
+}
+
+export interface GradeItem { q: string; model: string; points: string[] }
+
+/** Bewertbare Ein-Satz-Fragen: Der Server nimmt nur diese ids an (kein freier Prompt vom Client). */
+export function buildGradeItems(): Record<string, GradeItem> {
+  return Object.fromEntries(EXPLAIN_QUESTIONS.map((q) => [q.id, { q: q.q, model: q.why, points: q.explain!.points }]));
 }

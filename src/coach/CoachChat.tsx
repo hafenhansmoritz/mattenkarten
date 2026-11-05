@@ -36,6 +36,7 @@ export function CoachConsentCard({ onAccept, compact }: { onAccept: () => void; 
       <p>
         Der Coach ist eine KI. Damit er antworten kann, wird {compact ? "eine Zusammenfassung deines Matches" : "deine Frage (mit dem bisherigen Gespräch)"} über
         unseren Server an <b>Anthropic</b> (USA) geschickt und dort verarbeitet. Kein Name, kein Konto.
+        {" "}Mit deiner Zustimmung bewertet der Coach auch deine Ein-Satz-Antworten („Erklär in einem Satz“) – dafür geht nur die Antwort mit der Frage dorthin.
       </p>
       {!compact && <p>Schreib keine Namen oder Gesundheitsangaben hinein. Unter 16? Nur mit Erlaubnis deiner Eltern.</p>}
       <p className="co-consent-links">

@@ -27,7 +27,7 @@
   <li>Keine Cookies, kein Tracking, keine Analyse-Tools.</li>
   <li>Dein Spielstand bleibt auf deinem Gerät (im Browser-Speicher). Wir bekommen ihn nicht.</li>
   <li>Schriften liegen auf unserem eigenen Server – es wird nichts von Google geladen.</li>
-  <li>Nur wenn du den KI-Coach benutzt und vorher zustimmst, geht deine Frage über unseren Server an Anthropic, damit eine Antwort erzeugt werden kann.</li>
+  <li>Nur wenn du den KI-Coach benutzt und vorher zustimmst, geht deine Frage (oder deine Ein-Satz-Antwort zur Bewertung) über unseren Server an Anthropic, damit eine Antwort erzeugt werden kann.</li>
   <li>Wie bei jeder Website verarbeitet unser Hosting-Anbieter technische Zugriffsdaten (z. B. IP-Adresse).</li>
 </ul>
 
@@ -70,23 +70,24 @@ E-Mail: <span class="ph">[E-MAIL]</span>
 <p>Löschen: Du kannst alle Einträge jederzeit entfernen, indem du in deinem Browser die Website-Daten für diese Seite löschst (bei installierter App: App deinstallieren). Dein Fortschritt ist dann weg.</p>
 
 <h2>4. KI-Coach (Anthropic)</h2>
-<p>Der KI-Coach ist freiwillig. Er wird erst benutzt, wenn du ihm eine Frage stellst oder auf „Analyse vom Coach“ tippst – und erst, nachdem du dem Hinweis in der App zugestimmt hast.</p>
+<p>Der KI-Coach ist freiwillig. Er wird erst benutzt, wenn du ihm eine Frage stellst, auf „Analyse vom Coach“ tippst oder eine Ein-Satz-Antwort mit „Prüfen“ abschickst – und erst, nachdem du dem Hinweis in der App zugestimmt hast.</p>
 <h3>Was übertragen wird</h3>
 <ul>
   <li><b>Im Chat:</b> deine Frage und die bisherigen Nachrichten des aktuellen Gesprächs (höchstens 12 Nachrichten, je höchstens 4.000 Zeichen).</li>
   <li><b>Bei der Match-Analyse:</b> eine Zusammenfassung des gerade gespielten Matches (Ergebnis, Anzahl Züge, Punkte, Spielmomente, Name des Computer-Gegners, Kartenvorschläge).</li>
+  <li><b>Bei „Erklär in einem Satz“ (Startprogramm und Wiederholung):</b> deine frei geschriebene Antwort (höchstens 300 Zeichen) und die Kennung der Frage, damit der Coach sie mit der Musterantwort vergleicht. Zurück kommt nur „passt / fehlt“ mit einem kurzen Tipp. Ohne Zustimmung wird nichts gesendet. Dann – oder wenn der Coach nicht erreichbar ist – vergleichst du selbst mit der Musterantwort. Deine Antwort wird weder in der App noch von uns gespeichert; gespeichert wird nur lokal, ob du die Frage richtig hattest (siehe Abschnitt 3, Wiederholung).</li>
   <li>Kein Name, keine E-Mail, kein Konto. Dein Spielstand wird nicht mitgeschickt.</li>
 </ul>
 <h3>Wie es übertragen wird</h3>
-<p>Dein Browser schickt die Anfrage an unsere Server-Funktion (<code>/api/coach</code>) bei Vercel. Diese leitet nur den Text an die Programmierschnittstelle (API) von <b>Anthropic</b> weiter, die die Antwort erzeugt. Anthropic erhält dabei nicht deine IP-Adresse, sondern die des Servers. Unsere Funktion nutzt deine IP-Adresse kurzzeitig im Arbeitsspeicher, um Missbrauch zu begrenzen (höchstens 20 Anfragen in 10 Minuten); sie wird dafür nicht dauerhaft gespeichert. Die Inhalte deiner Fragen schreiben wir nicht in Logs. Der Chatverlauf wird in der App nicht gespeichert und ist weg, sobald du den Coach verlässt.</p>
+<p>Dein Browser schickt die Anfrage an unsere Server-Funktion (<code>/api/coach</code>) bei Vercel. Diese leitet nur den Text an die Programmierschnittstelle (API) von <b>Anthropic</b> weiter, die die Antwort erzeugt. Anthropic erhält dabei nicht deine IP-Adresse, sondern die des Servers. Unsere Funktion nutzt deine IP-Adresse kurzzeitig im Arbeitsspeicher, um Missbrauch zu begrenzen (höchstens 20 Anfragen in 10 Minuten); sie wird dafür nicht dauerhaft gespeichert. Die Inhalte deiner Fragen und Antworten schreiben wir nicht in Logs. Der Chatverlauf wird in der App nicht gespeichert und ist weg, sobald du den Coach verlässt.</p>
 <h3>Empfänger</h3>
 <p><b>Anthropic</b> <span class="ph">[VERTRAGSPARTNER UND ANSCHRIFT LAUT ANTHROPIC-VERTRAG/KONTO EINTRAGEN, z. B. Anthropic, PBC, San Francisco, USA]</span>. Anthropic verarbeitet die Daten als Auftragsverarbeiter <span class="ph">[DPA/Commercial Terms von Anthropic prüfen und bestätigen]</span>. Nach Angaben von Anthropic werden Daten aus der kommerziellen API nicht zum Training von Modellen verwendet <span class="ph">[AKTUELLE ANTHROPIC-BEDINGUNGEN PRÜFEN]</span>. Speicherdauer bei Anthropic: <span class="ph">[LAUT ANTHROPIC-RICHTLINIE EINTRAGEN]</span>.</p>
 <p>Die Verarbeitung findet in den USA statt. Grundlage für die Übermittlung: <span class="ph">[EU-US Data Privacy Framework – Zertifizierung prüfen – und/oder EU-Standardvertragsklauseln]</span>.</p>
 <h3>Rechtsgrundlage und Widerruf</h3>
-<p>Art. 6 Abs. 1 lit. a DSGVO (deine Einwilligung). Du kannst sie jederzeit im Coach mit „Zustimmung zurücknehmen“ widerrufen; danach werden keine Fragen mehr gesendet. Die bis dahin erfolgte Verarbeitung bleibt rechtmäßig. Ohne Einwilligung kannst du die App vollständig nutzen, nur ohne KI-Coach.</p>
+<p>Art. 6 Abs. 1 lit. a DSGVO (deine Einwilligung). Du kannst sie jederzeit im Coach mit „Zustimmung zurücknehmen“ widerrufen; danach werden keine Fragen oder Antworten mehr gesendet. Die bis dahin erfolgte Verarbeitung bleibt rechtmäßig. Ohne Einwilligung kannst du die App vollständig nutzen, nur ohne KI-Coach.</p>
 <h3>Bitte beachten</h3>
 <ul>
-  <li>Schreib keine Namen, Kontaktdaten oder Gesundheitsangaben (z. B. Verletzungen, Krankheiten) in den Chat. Der Coach gibt dazu ohnehin keine Auskunft – bei Beschwerden frag eine Ärztin oder einen Arzt.</li>
+  <li>Schreib keine Namen, Kontaktdaten oder Gesundheitsangaben (z. B. Verletzungen, Krankheiten) in den Chat oder in Ein-Satz-Antworten. Der Coach gibt dazu ohnehin keine Auskunft – bei Beschwerden frag eine Ärztin oder einen Arzt.</li>
   <li>Antworten werden von einer KI erzeugt und können falsch sein. Sie ersetzen weder Trainer noch Arzt.</li>
   <li>Wenn du jünger als 16 bist, nutze den KI-Coach nur mit Zustimmung deiner Eltern.</li>
 </ul>

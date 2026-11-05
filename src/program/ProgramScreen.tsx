@@ -11,7 +11,7 @@ import { PositionMap } from "./PositionMap";
 import { HealthGate } from "./HealthGate";
 import { Quiz, type QuizResult } from "./Quiz";
 import { AREAS, buildExam, scoreExam } from "./exam";
-import { AREA_LABEL } from "./questions";
+import { AREA_LABEL, explainFor } from "./questions";
 import {
   completeDay, currentDay, drillsDone, knotState, sameDayHint, useProgram, type ProgramProgress,
 } from "./store";
@@ -292,7 +292,7 @@ function DayRun({ day, p, update, onExit }: {
                   <span className="pg-switch" aria-hidden="true" />
                 </button>
               )}
-              <Quiz ids={[...day.puzzle, ...(day.pics ?? [])]} kicker="Rätsel" onDone={go} timed={day.n >= 4 && timed ? 8 : undefined} />
+              <Quiz ids={[...day.puzzle, ...(day.pics ?? []), ...explainFor(day.n)]} kicker="Rätsel" onDone={go} timed={day.n >= 4 && timed ? 8 : undefined} />
             </>
           )}
 

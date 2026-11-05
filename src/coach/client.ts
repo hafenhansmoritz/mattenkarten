@@ -12,6 +12,8 @@ const ERROR_TEXT: Record<CoachErrorCode | "network" | "unknown", string> = {
   rate_limited: "Der Coach braucht eine kurze Pause. Versuch es in ein paar Minuten noch mal.",
   upstream: "Der Coach ist gerade nicht erreichbar. Versuch es gleich noch mal.",
   method_not_allowed: "Der Coach ist gerade nicht erreichbar.",
+  unknown_question: "Diese Frage kann der Coach nicht bewerten.",
+  answer_too_long: "Die Antwort ist zu lang. Ein Satz reicht.",
   network: "Keine Verbindung. Prüf dein Internet und versuch es noch mal.",
   unknown: "Da ist etwas schiefgelaufen. Versuch es noch mal.",
 };

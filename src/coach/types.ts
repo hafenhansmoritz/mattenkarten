@@ -1,7 +1,7 @@
 // Vertrag zwischen Client (src/coach) und Server (api/coach.ts).
 // Bewusst ohne Imports, damit api/ diese Datei als reinen Typ-Import nutzen kann.
 
-export type CoachMode = "chat" | "analysis";
+export type CoachMode = "chat" | "analysis" | "grade";
 
 export interface CoachMessage {
   role: "user" | "assistant";
@@ -31,12 +31,25 @@ export interface CoachRequest {
   mode: CoachMode;
   messages?: CoachMessage[];
   match?: CoachMatchSummary;
+  /** mode "grade": id einer Ein-Satz-Frage (src/program/questions.ts, kind "erklaeren"). */
+  id?: string;
+  /** mode "grade": die Ein-Satz-Antwort des Nutzers (≤ COACH_LIMITS.maxAnswerChars). */
+  answer?: string;
+}
+
+/** Antwort von mode "grade" (JSON, nicht gestreamt). */
+export interface GradeVerdict {
+  ok: boolean;
+  /** Was fehlte (leer, wenn ok). */
+  missing: string;
+  /** Ein kurzer Tipp. */
+  tip: string;
 }
 
 /** Fehlercodes des Servers ({ error: code }). */
 export type CoachErrorCode =
   | "no_key" | "bad_request" | "too_many_messages" | "message_too_long" | "forbidden_origin"
-  | "rate_limited" | "upstream" | "method_not_allowed";
+  | "rate_limited" | "upstream" | "method_not_allowed" | "unknown_question" | "answer_too_long";
 
 export interface CoachStatus {
   ok: boolean;
@@ -44,4 +57,4 @@ export interface CoachStatus {
 }
 
 /** Limits (Server prüft, Client kürzt vorab). */
-export const COACH_LIMITS = { maxMessages: 12, maxChars: 4000 } as const;
+export const COACH_LIMITS = { maxMessages: 12, maxChars: 4000, maxAnswerChars: 300 } as const;

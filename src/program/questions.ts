@@ -49,8 +49,13 @@ export interface Question {
    * Bilderrätsel: große Silhouetten-Szene, optional ein Körperteil hervorgehoben.
    * Frage „Wo bist du?“ oder „Was ist hier falsch?“. Optionen ohne Kartennamen.
    */
-  kind?: "image";
+  kind?: "image" | "erklaeren";
   image?: { pos: Pos2; top: Side | null; mark?: { side: Side; part: BodyPart } };
+  /**
+   * Freie Wiedergabe (kind: "erklaeren"): Du schreibst einen Satz. `why` ist die Musterantwort,
+   * `points` die Kernpunkte, an denen der Coach (oder du selbst) die Antwort misst. options = [], answer = -1.
+   */
+  explain?: { points: string[] };
   /** Quelle in der KB (Abschnitt) – Nachweis für Trainer. */
   src?: string;
   check?: boolean;
@@ -535,6 +540,50 @@ export const IMAGE_QUESTIONS: Question[] = [
   },
 ];
 
-/** Alle Fragen (Text + Bild) – Nachschlagen und Prüfung. */
-export const ALL_QUESTIONS: Question[] = [...QUESTIONS, ...IMAGE_QUESTIONS];
+// ---------- Freie Wiedergabe (Tag 2–6): „Erklär in einem Satz …“ ----------
+// Selbsterklärung in eigenen Worten (KB 8.6: freie Antwort statt Auswahl; KI-Bewertung = Hypothese).
+// Mit Coach-Zustimmung bewertet api/coach.ts (mode "grade") gegen `points`, sonst bewertest du dich selbst.
+const ex = (id: string, day: number, topic: Topic, q: string, why: string, points: string[], src: string): Question =>
+  ({ id, day, topic, kind: "erklaeren", q, options: [], answer: -1, why, explain: { points }, src });
+
+export const EXPLAIN_QUESTIONS: Question[] = [
+  ex("qe-mount-elbows", 2, "mount",
+    "Erklär in einem Satz, warum du unten im Mount erst die Ellbogen an die Knie bringst.",
+    "Ellbogen an den Knien bilden deinen Rahmen. Gestreckte Arme laden zum Armhebel ein – erst schützen, dann befreien.",
+    ["Ellbogen und Knie bilden einen Rahmen (Schutz)", "Gestreckte Arme laden zum Armhebel ein", "Erst schützen, dann befreien"],
+    "KB 4.5; Karten mb_knee_inside, mb_elbows_tight"),
+  ex("qe-side-frame", 3, "side",
+    "Erklär in einem Satz, warum du unten in Side Control erst rahmst und dann wegrutschst.",
+    "Der Rahmen hält Abstand. So hast du den Platz, den deine Hüfte zum Wegrutschen braucht.",
+    ["Der Rahmen (Unterarm) hält Abstand", "Platz für die Hüfte zum Wegrutschen (Shrimp)"],
+    "KB 2.4, 4.5 (BJJ Atlas: Frame first)"),
+  ex("qe-guard-posture", 4, "guard",
+    "Erklär in einem Satz, warum du oben in der Guard zuerst aufrecht sitzt.",
+    "Aufrecht schützt du Hals und Arme. Wer nach vorn kippt, läuft in Würger und Hebel.",
+    ["Aufrecht schützt Hals und Arme", "Nach vorn kippen führt in Würger oder Hebel"],
+    "KB 4.5; Karte gt_posture"),
+  ex("qe-stand-sprawl", 5, "stand",
+    "Erklär in einem Satz, warum beim Sprawl deine Beine nach hinten schießen.",
+    "Er greift ins Leere, weil deine Beine weg sind. Deine Hüfte drückt ihn Richtung Matte.",
+    ["Die Beine sind weg, er findet nichts zum Greifen", "Die Hüfte drückt ihn nach unten"],
+    "KB 4.3 (JitsuIQ); Karte nd_sprawl"),
+  ex("qe-back-hands", 6, "aufgabe",
+    "Erklär in einem Satz, warum du gegen den Würger von hinten zuerst Kinn und Hände einsetzt.",
+    "Kinn auf die Brust und beide Hände an seine Hände schützen deinen Hals. Erst dann löst du die Haken.",
+    ["Kinn runter und Hände an seine Hände schützen den Hals", "Erst den Hals schützen, dann rauskommen"],
+    "KB 4.5 (BJJ Atlas); Karte bb_escape_side"),
+  ex("qe-leglock-tap", 6, "aufgabe",
+    "Erklär in einem Satz, warum du bei einem Beinhebel früh abklopfst, statt rauszudrehen.",
+    "Beim Beinhebel kommt der Schaden oft vor dem Schmerz. Rausdrehen verletzt das Knie, also früh abklopfen.",
+    ["Der Schaden kommt vor dem Schmerz", "Rausdrehen kann das Knie verletzen", "Deshalb früh abklopfen"],
+    "KB 8.12 (Gracie Barra Leg Locks in Training, Lachlan Giles/FloGrappling)"),
+];
+
+/** Ein-Satz-Fragen eines Programm-Tags (kommen nach den Rätseln). */
+export function explainFor(day: number): string[] {
+  return EXPLAIN_QUESTIONS.filter((q) => q.day === day).map((q) => q.id);
+}
+
+/** Alle Fragen (Text + Bild + Ein-Satz) – Nachschlagen, Wiederholung und Fehlerdeck. */
+export const ALL_QUESTIONS: Question[] = [...QUESTIONS, ...IMAGE_QUESTIONS, ...EXPLAIN_QUESTIONS];
 export const Q_BY_ID: Record<string, Question> = Object.fromEntries(ALL_QUESTIONS.map((q) => [q.id, q]));

@@ -5,6 +5,7 @@ import { FightersK2 } from "../core2/ui/FightersK2";
 import { sfx } from "../sound";
 import { Q_BY_ID, TOPIC_LABEL, type Question } from "./questions";
 import { emitQuizAnswer, newQuizSession } from "../journey/events";
+import { FreeRecall } from "./FreeRecall";
 
 export interface QuizResult { id: string; ok: boolean }
 
@@ -37,15 +38,18 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
   const [picked, setPicked] = useState<number | null>(null);
   const [shake, setShake] = useState(0);
   const [late, setLate] = useState(false);
+  // Ein-Satz-Fragen (kind "erklaeren"): Ergebnis aus Coach- oder Selbstbewertung.
+  const [exOk, setExOk] = useState<boolean | null>(null);
   // Eine Runde = ein Quiz-Durchgang. Erste Antworten gehen an Wiederholung und Fehlerdeck (src/journey).
   const [session] = useState(newQuizSession);
   const total = initial.length;
   const item = queue[0];
-  const isAnswered = picked !== null || late;
+  const isExplain = item?.q.kind === "erklaeren";
+  const isAnswered = picked !== null || late || exOk !== null;
 
   // Zeitdruck: nach `timed` Sekunden ohne Antwort → „Zu spät“.
   useEffect(() => {
-    if (!timed || !item || isAnswered) return;
+    if (!timed || !item || isAnswered || isExplain) return; // Schreiben braucht Zeit: kein Zeitdruck
     const t = setTimeout(() => {
       setLate(true);
       sfx.lose();
@@ -63,7 +67,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
   if (!item) return null;
   const q = item.q;
   const answered = isAnswered;
-  const ok = !late && picked === q.answer;
+  const ok = isExplain ? exOk === true : !late && picked === q.answer;
   const doneCount = first.length;
 
   function pick(i: number) {
@@ -79,6 +83,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
     const nq = ok ? rest : [...rest, { q, retry: true, key: item.key + 1000 }];
     setPicked(null);
     setLate(false);
+    setExOk(null);
     if (nq.length === 0) { onDone(first); return; }
     setQueue(nq);
   }
@@ -102,7 +107,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
               <span className="pg-you small">Du bist <b style={{ color: "var(--gi-p)" }}>blau</b>{q.image.mark ? <> · <b style={{ color: "var(--points)" }}>gelb</b> = schau hier</> : null}</span>
             </div>
           )}
-          {timed && !answered && (
+          {timed && !answered && !isExplain && (
             <div className="pg-timer" role="timer" aria-label={`${timed} Sekunden`}>
               <motion.i key={item.key} initial={{ scaleX: 1 }} animate={{ scaleX: 0 }} transition={{ duration: timed, ease: "linear" }} />
             </div>
@@ -114,7 +119,15 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
             </div>
           )}
           <h3 className="pg-q">{q.q}</h3>
-          <motion.div className="pg-opts" key={shake} animate={shake && !ok && answered ? { x: [0, -8, 8, -5, 5, 0] } : undefined} transition={{ duration: 0.35 }}>
+          {isExplain && (
+            <FreeRecall key={item.key} q={q} onNext={next} onResult={(right) => {
+              if (exOk !== null) return;
+              setExOk(right);
+              if (right) sfx.points(); else sfx.lose();
+              if (!item.retry) { setFirst((f) => [...f, { id: q.id, ok: right }]); emitQuizAnswer({ id: q.id, ok: right, session }); }
+            }} />
+          )}
+          {!isExplain && <motion.div className="pg-opts" key={shake} animate={shake && !ok && answered ? { x: [0, -8, 8, -5, 5, 0] } : undefined} transition={{ duration: 0.35 }}>
             {order.map((i) => {
               const cls = !answered ? "" : i === q.answer ? "right" : i === picked ? "wrong" : "dim";
               return (
@@ -126,9 +139,9 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
                 </motion.button>
               );
             })}
-          </motion.div>
+          </motion.div>}
           <AnimatePresence>
-            {answered && (
+            {answered && !isExplain && (
               <motion.div className={`pg-why ${ok ? "ok" : "no"}`} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
                 <strong className="display">{ok ? "Richtig!" : late ? "Zu spät – so ist es:" : "Fast – so ist es:"}</strong>
                 <p>{q.why}</p>

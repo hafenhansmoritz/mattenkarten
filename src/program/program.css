@@ -221,3 +221,27 @@
 .pg-health { border-color: color-mix(in srgb, var(--points) 45%, transparent); }
 .pg-health-list { margin: 4px 0 6px; padding-left: 20px; display: grid; gap: 8px; }
 .pg-health-list li { line-height: 1.45; }
+
+/* ---------- Freie Wiedergabe („Erklär in einem Satz“) ---------- */
+.pg-fr { display: flex; flex-direction: column; gap: 10px; }
+.pg-fr-input {
+  width: 100%; box-sizing: border-box; min-height: 88px; padding: 12px 14px; resize: vertical;
+  font: inherit; font-size: 16px; line-height: 1.4; color: var(--text);
+  border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line-strong);
+}
+.pg-fr-input:focus { outline: 2px solid var(--points); outline-offset: 1px; }
+.pg-fr-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pg-fr-actions .btn.big { flex: 1 1 140px; }
+.pg-fr-hint { margin: 0; }
+.pg-fr-result { display: flex; flex-direction: column; gap: 10px; }
+.pg-fr-result > p { margin: 0; }
+.pg-fr-mine, .pg-fr-model { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: var(--radius); background: var(--bg-2); }
+.pg-fr-mine p, .pg-fr-model p { margin: 0; }
+.pg-fr-mine .label, .pg-fr-model .label { color: var(--text-3); }
+.pg-fr-model { border-left: 4px solid var(--gas); }
+.pg-fr-points { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.pg-fr-self { display: flex; flex-direction: column; gap: 8px; }
+.pg-fr-self-res { margin: 0; }
+.pg-fr-self-res strong { font-size: 19px; }
+.pg-fr-self-res.ok strong { color: var(--gas); }
+.pg-fr-ai { margin: 0; color: var(--text-2); }

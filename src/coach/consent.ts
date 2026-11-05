@@ -1,10 +1,10 @@
-// Einwilligung für den KI-Coach (Fragen gehen über /api/coach an Anthropic).
+// Einwilligung für den KI-Coach (Fragen und Ein-Satz-Antworten gehen über /api/coach an Anthropic).
 // Wird lokal gespeichert; ohne Einwilligung sendet die App nichts an den Coach.
 import { useCallback, useEffect, useState } from "react";
 
 export const COACH_CONSENT_KEY = "mk.coach.consent.v1";
 /** Version des Hinweistexts – bei inhaltlicher Änderung erhöhen, dann wird neu gefragt. */
-export const COACH_CONSENT_VERSION = 1;
+export const COACH_CONSENT_VERSION = 2; // 2: auch Ein-Satz-Antworten im Startprogramm werden zur Bewertung gesendet
 
 export function hasCoachConsent(): boolean {
   try {
