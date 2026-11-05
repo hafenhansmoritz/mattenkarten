@@ -148,7 +148,9 @@ function foeModel(s: State2, side: Side, rng: () => number): { card: Card2; w: n
   const foe = other(side);
   const ok = okCards(s, foe);
   const hab = foeZoneHabits(s, side);
-  const sc = ok.map((c) => scoreCard(s, foe, c, 2, rng) + hab[c.zone] * 0.4);
+  // Er sieht meine Bedrohungen (öffentlich) und rahmt dort eher – darauf antworte ich mit Finten.
+  const myThr = new Set(threats(s, foe).map((t) => t.zone));
+  const sc = ok.map((c) => scoreCard(s, foe, c, 2, rng) + hab[c.zone] * 0.4 + (c.kind === "rahmen" && myThr.has(c.zone) ? 2.5 : 0));
   const max = Math.max(...sc);
   const ws = sc.map((x) => Math.exp((x - max) / 1.5));
   const sum = ws.reduce((a, b) => a + b, 0);
