@@ -504,7 +504,7 @@ const halfBottom: Card2[] = [
     source: K2.gff,
   },
   {
-    id: "hb_back_take", plain: "Unter den Arm, an den Rücken", term: "Knee Shield Back Take",
+    id: "hb_back_take", plain: "Hinter ihn rutschen", term: "Knee Shield Back Take",
     plainDo: "Aus dem Knie-Schild schlüpfst du unter seinen Arm hinter ihn.",
     kind: "angriff", zone: "arme", slots: [HALF_B], requires: { arme: 1, beine: 0 },
     to: { pos: "back", role: "top", escape: "reversal" },

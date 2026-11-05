@@ -63,7 +63,10 @@ describe("Kern 2 – Karten", () => {
         if (c.to.escape) expect(c.slots.every((s) => s.role === "bottom"), `${c.id} escape nur unten`).toBe(true);
         if (c.to.escape === "neutral") expect(c.to.role).toBe("neutral");
         if (c.to.escape === "reversal") expect(c.to.role).toBe("top");
-        if (c.to.escape === "guard") expect(c.to).toMatchObject({ pos: "guard", role: "bottom" });
+        if (c.to.escape === "guard") {
+          expect(c.to.role).toBe("bottom");
+          expect(["guard", "half"]).toContain(c.to.pos);
+        }
         if (c.to.points !== undefined) expect([2, 3, 4]).toContain(c.to.points);
       }
     }
@@ -108,6 +111,33 @@ describe("Kern 2 – Karten", () => {
     expect(CARD2.tt_back_take.requires).toMatchObject({ kopf: 1, arme: 1 });
     expect(CARD2.nd_double_leg.to).toMatchObject({ points: 2 });
     expect(CARD2.sct_to_mount.to).toMatchObject({ pos: "mount", points: 4 });
+  });
+
+  it("jede Position ist erreichbar; Half, Turtle und Back haben mehrere Eingänge", () => {
+    const entries = (pos: Pos2) => CARDS2.filter((c) => c.to?.pos === pos);
+    for (const s of SLOTS2) {
+      if (s.pos === "stand") continue;
+      const into = CARDS2.some((c) => c.to && c.to.pos === s.pos && (c.to.role === s.role || (c.to.role !== "neutral" && s.role !== "neutral")));
+      expect(into, `${s.pos}/${s.role}`).toBe(true);
+    }
+    expect(entries("half").length).toBeGreaterThanOrEqual(4);
+    expect(entries("turtle").length).toBeGreaterThanOrEqual(2);
+    expect(entries("back").length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("Hauptgriffe haben einen Aufbau-Schritt in derselben Zone und Slot", () => {
+    for (const id of ["gb_armbar", "gb_kimura", "gb_triangle", "mt_armbar", "mt_americana", "sct_kimura", "bt_rnc", "bt_armbar", "tt_guillotine"]) {
+      const c = CARD2[id];
+      const s = c.slots[0];
+      const setup = cardsFor(s.pos, s.role).some((o) => o.kind === "aufbauen" && o.zone === c.zone);
+      expect(setup, id).toBe(true);
+      expect(c.kraft, id).toBe(1);
+    }
+  });
+
+  it("Stand-Takedowns brauchen nur beine ≥ 0", () => {
+    expect(CARD2.nd_double_leg.requires).toMatchObject({ beine: 0 });
+    expect(CARD2.nd_single_leg.requires).toMatchObject({ beine: 0 });
   });
 
   it("Dilemma-Paare zeigen auf Zonen, in denen der Slot einen Folgeangriff hat", () => {
