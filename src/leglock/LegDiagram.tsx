@@ -53,13 +53,13 @@ export function LegDiagram({ id, showMark = false, label }: { id: DiagramId; sho
   const grip: P = c.arm === "armpit" ? c.foot : c.arm === "achilles" ? add(c.foot, mul(d, -9)) : c.arm === "knee" ? c.knee : add(c.foot, mul(d, -22));
 
   return (
-    <svg viewBox="0 0 220 130" className="ll-diagram" role="img" aria-label={label ?? id}>
-      <rect x="0" y="0" width="220" height="130" rx="10" className="ll-mat" />
+    <svg viewBox="18 14 202 110" className="ll-diagram" role="img" aria-label={label ?? id}>
+      <rect x="18" y="14" width="202" height="110" rx="10" className="ll-mat" />
       <line x1="6" y1="118" x2="214" y2="118" className="ll-ground" />
       {c.hipLine && (
         <g>
           <line x1={HIP[0] + 14} y1="10" x2={HIP[0] + 14} y2="118" className="ll-hipline" />
-          <text x={HIP[0] + 18} y="16" className="ll-tag">seine Hüfte</text>
+          <text x={HIP[0] + 18} y="28" className="ll-tag">seine Hüfte</text>
         </g>
       )}
       {/* Partner (rot): Rumpf, Kopf, Beine */}

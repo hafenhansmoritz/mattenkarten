@@ -194,3 +194,35 @@ Von 115 Kern-2-Karten sind **8 Karten durch Gi-Griffe falsch beschrieben** (Krag
 ### Gaps
 - Für Body Lock Pass, Butterfly Sweep, Old School Sweep und Arm-Triangle habe ich keine einzelnen Technikquellen abgerufen. Laut Projektregel braucht jede neue Karte eine Quelle, bis dahin `check: true`.
 - Die Zielpositionen (`to:`) von `cl_snap_down` habe ich nicht vollständig geprüft.
+
+## 7. Regelprüfung Beinhebel (Schritt 43, 2026-11-05)
+
+### Takeaway
+Die IBJJF-Primärquellen waren diesmal abrufbar. Die Tabelle bestätigt: Für Weißgurte (Erwachsene) sind Heel Hook, Kneebar, Toe Hold, Calf Slicer, Kniedrehhebel und Knee Reaping verboten, der gerade Fußhebel ist erlaubt. Gi und No-Gi werden erst bei Braun-/Schwarzgurt getrennt. ADCC Opens erlauben erwachsenen Anfängern deutlich mehr.
+
+### Cited Findings (Primärquellen, abgerufen 2026-11-05)
+- **IBJJF „Technical Fouls & Illegal Moves“ (VRS 4.0, PDF erstellt 02.01.2024, Dateiname 20240101_GolpesProibidos_EN.pdf)**, auf [ibjjf.com/rules](https://ibjjf.com/rules) am 2026-11-05 weiterhin als aktuelle Liste verlinkt — [PDF](https://ibjjf.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBcE1WIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--e13c15f6e568323ecea8ef21a102b726067a4540/20240101_GolpesProibidos_EN.pdf). Tabelle „Illegal moves by age and category“, Spalten: 4–12 J. | 13–15 J. | „16 & 17 years old (all ranks) and white belts (Adult to Master 7)“ | Blau & Lila | Braun & Schwarz außer Adult No-Gi | Adult Braun & Schwarz No-Gi.
+  - Weißgurt-Spalte verboten: Nr. 9 Kompression in der Closed Guard, 10 Wrist Lock, 11 Single Leg mit Kopf außen (wird nicht bestraft, **), 12 Bicep Slicer, 13 Calf Slicer, 14 Knee Bar, 15 Toe Hold, 16 „In straight foot lock, turning in the direction of foot not under attack“, 17 Heel Hook, 18 „Locks twisting the knees“, 19 Knee Reaping, 20 Toe Hold mit Druck nach außen, 21 Slam, 22 Wirbelsäulenhebel ohne Würgen, 23 Scissor Takedown, 24 Fingerhebel, 25 Gürtel-Wurf auf den Kopf bei Single-Leg-Abwehr, 26 Suplex auf Kopf/Nacken.
+  - **Nr. 3 Straight foot lock** ist nur für 4–12 und 13–15 Jahre markiert → für Weißgurte (Erwachsene und 16/17) **erlaubt**.
+  - Nr. 12–16 auch für Blau/Lila verboten; Nr. 17–20 (Heel Hook, Kniedrehhebel, Reaping, Toe Hold nach außen) auch für Braun/Schwarz im Gi verboten, **in Adult No-Gi für Braun/Schwarz erlaubt**.
+  - Weißgurt-Spalte gilt ohne Gi/No-Gi-Unterscheidung → Verbote gelten für Weißgurte **auch in No-Gi**.
+  - Jumping Guard: „Serious foul: white belts, all age groups … forbidden … to jump into closed guard while their opponent is standing.“
+  - Knee Reaping, Definition: Oberschenkel hinter dem Bein des Gegners, Wade über dem Körper oberhalb des Knies, Fuß über die vertikale Mittellinie, Druck von außen nach innen, Fuß zwischen Hüfte und Achsel gefangen. Fuß muss nicht gehalten werden.
+- **IBJJF Rules Book Version 6.1 (2024JUN_IBJJF_Rules_EN.pdf, PDF vom 04.06.2024)**, auf ibjjf.com/rules verlinkt — [PDF](https://ibjjf.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBbTRaIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--c53798f1b94f5ebc202702cb44e9428a7606a19b/2024JUN_IBJJF_Rules_EN.pdf)
+  - 2.1 Submission: 2.1.1 zweimal deutlich mit der Hand klopfen; 2.1.2 „taps the ground twice with his/her foot, when arms are trapped“; 2.1.3 „verbally withdraws, requesting the match be stopped“; 2.1.4 Schreien/Schmerzlaut im Griff.
+  - 6.2.2 W: Jumping Guard verboten unter 15 Jahren (alle Gurte) und in allen Weißgurt-Altersklassen, inkl. Flying Triangle/Armbar; Neustart im Stand, bei Takedown-/Sweep-Abwehr 2 Punkte für den Gegner.
+  - 6.2.3 M: Ein für die Division verbotener Griff ist ein „Severe Foul“; die Tabelle ist identisch mit dem Golpes-Proibidos-PDF.
+- **IBJJF Rules Update Guide 2024** (gültig ab 01.01.2024) — [PDF](https://ibjjf.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBbzBWIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--79ec22be2b25311df906fecdf6170f477693a391/RULES%20UPDATE%20GUIDE%20-%202024%20-%20Google%20Docs.pdf): keine Änderung an Beinhebel-Regeln (Themen: Schiedsrichter, 50/50-Stalling, Disqualifikation, Hygiene, Registrierung).
+- **ADCC Opens Legal Techniques by Division, „Updated 7/20/2026“** — [PDF](https://cdn.shopify.com/s/files/1/0679/7950/9959/files/2026_Grid_ADCC_Legal_Techs_720_26.pdf), verlinkt auf [adcc-official.com/…/Legal Techniques for ADCC Opens](https://adcc-official.com/images/open/Legal%20Techniques%20for%20ADCC%20Opens.pdf). Erwachsene Beg/Int: Straight Ankle Lock, Heel Hooks (inside/outside), Locked Reaping, Knee Bar, Toe Hold, Slicers, Wrist Locks erlaubt; Scissor Takedown verboten. Masters Beg/Int: Heel Hooks verboten. Teens 15–17 Beg/Int: Straight Ankle Lock und Heel Hooks verboten.
+- **Lachlan Giles, FloGrappling, 28.03.2018** (Abruf 2026-11-05, Wortlaut bestätigt): „an injury results from you moving the heel about 2cm in space“; Armbar „around 30cm through space, giving ample time to tap“; „once the heel is collected you will probably suffer damage even if you decide to tap“ — [FloGrappling](https://flograppling.com/articles/6158055-lachlan-giles-explains-the-true-danger-of-heel-hooks) [Erfahrungswert, keine Studie]
+
+### Inferences
+- Für die App gilt weiter: IBJJF Weißgurt = Standard. Aussage „nur der gerade Fußhebel ist für Weißgurte erlaubt“ ist jetzt primär belegt; für unter 16-Jährige ist auch er verboten.
+- ADCC-Opens-Anfängerklassen sind deutlich freizügiger. Deshalb steht in der App ein Hinweis auf das jeweilige Turnier.
+
+### Gaps / weiter [ungeprüft]
+- Die IBJJF-Liste ist auf 2024 datiert. Eine neuere Version (2025/2026) fand ich auf ibjjf.com/rules am 2026-11-05 nicht. Vor jedem Release erneut prüfen.
+- ADCC-Hauptregelwerk 2026 (ADCC_Rules_2026_10-19.pdf) nicht gelesen, nur das Opens-Raster.
+- Deutsche Verbände/Turniere (z. B. nationale BJJ-Verbände, lokale Ligen) und EBI/NAGA/Grappling Industries: keine Primärquelle abgerufen → in der App mit „Regel deines Turniers/Gyms prüfen.“ markiert.
+- Knie-Linie, Zehen anziehen, Beine nicht kreuzen lassen, Ferse aus der Achsel: nur Sekundärquelle (BJJ Atlas) → in der App mit „Technik-Detail: Dein Trainer zeigt dir, wie es richtig geht.“ markiert.
+- Umsetzung: `src/leglock/` (Woche 2: Beinhebel sicher).

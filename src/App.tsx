@@ -17,11 +17,13 @@ import { StartHero } from "./program/StartHero";
 import { JourneyScreen, ReviewCard, type JourneyStart } from "./journey/JourneyScreen";
 import { CoachChat } from "./coach";
 import { LegalScreen } from "./legal/LegalScreen";
+import { LeglockScreen } from "./leglock/LeglockScreen";
+import { leglockMenu } from "./leglock/store";
 import { useInstallPrompt } from "./pwa";
 import { unlockAudio } from "./sound";
 
 type Tab = "kampagne" | "raetsel" | "deck" | "mehr";
-type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training";
+type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock";
 const TAB_LABEL: Record<Tab, string> = { kampagne: "Kampagne", raetsel: "Rätsel", deck: "Deck", mehr: "Mehr" };
 
 export function App() {
@@ -65,7 +67,8 @@ export function App() {
   if (screen === "trainer") return <TrainerCheck onBack={back} />;
   if (screen === "k2") return <KoerperkarteHub onBack={back} />;
   if (screen === "impressum" || screen === "datenschutz") return <div className="app"><main className="main"><LegalScreen page={screen} onBack={back} /></main></div>;
-  if (screen === "start") return <div className="pg-wrap"><ProgramScreen onBack={back} onJourney={openJourney} /></div>;
+  if (screen === "start") return <div className="pg-wrap"><ProgramScreen onBack={back} onJourney={openJourney} onLeglock={() => setScreen("leglock")} /></div>;
+  if (screen === "leglock") return <div className="pg-wrap"><LeglockScreen onBack={back} /></div>;
   if (screen === "journey" || screen === "training") return <div className="pg-wrap"><JourneyScreen start={screen === "training" ? "training" : journeyStart} onBack={back} /></div>;
 
   return (
@@ -110,6 +113,7 @@ function MoreMenu({ open }: { open: (s: Screen) => void }) {
   const { canInstall, iosHint, promptInstall } = useInstallPrompt();
   const items: { s: Screen; title: string; text: string }[] = [
     { s: "start", title: "7-Tage-Start", text: "Neu hier? In 7 Tagen à 15 Minuten sicher und mit Plan ins erste Training." },
+    { s: "leglock", ...leglockMenu() },
     { s: "training", title: "Nach dem Training", text: "Training eintragen, passende Lektion holen, Frage für den Trainer. Dazu Wiederholen und Tagebuch." },
     { s: "k2", title: "Neu: Körperkarte (Prototyp)", text: "Der neue Spielkern: Zonen gewinnen, befreien, passieren, Aufgabe in drei Schritten." },
     { s: "bibliothek", title: "Bibliothek", text: "Alle Karten, „So geht's“-Animationen, Training und dein Fehler-Deck." },

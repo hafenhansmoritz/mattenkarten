@@ -51,10 +51,10 @@
 .ll-pic.wrong { border-color: var(--text-3); }
 .ll-pic.dim { opacity: .55; }
 .ll-diagram { width: 100%; height: auto; display: block; }
-.ll-mat { fill: var(--mat-a); }
+.ll-mat { fill: color-mix(in srgb, var(--mat-a) 35%, var(--bg-2)); }
 .ll-ground { stroke: var(--mat-line); stroke-width: 2; }
 .ll-hipline { stroke: var(--text-3); stroke-width: 1.5; stroke-dasharray: 4 4; }
-.ll-tag { font: 700 9px var(--font-body); fill: var(--text-2); }
+.ll-tag { font: 700 11px var(--font-body); fill: var(--text-2); }
 .ll-tag-p { fill: var(--text); }
 .ll-o polyline, .ll-o line { stroke: var(--gi-o); stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 .ll-p polyline, .ll-p line { stroke: var(--gi-p); stroke-width: 13; stroke-linecap: round; stroke-linejoin: round; fill: none; }

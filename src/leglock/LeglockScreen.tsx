@@ -282,7 +282,7 @@ function SpotStep({ step, onNext }: { step: Extract<Step, { kind: "spot" }>; onN
       </div>
       {answered && (
         <motion.div className={`pg-why ${right ? "ok" : "no"}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-          <strong className="display">{right ? "Richtig erkannt!" : `Gefährlich ist Bild ${step.danger === 0 ? "A" : "B"}:`}</strong>
+          <strong className="display">{right ? "Richtig erkannt!" : `Richtig ist Bild ${step.danger === 0 ? "A" : "B"}:`}</strong>
           <p>{step.why}</p>
           {step.trainer && <p className="ll-trainer small">{TRAINER_CHECK}</p>}
           <Sources ids={step.src} />

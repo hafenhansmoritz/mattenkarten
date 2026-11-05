@@ -618,7 +618,7 @@ Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`
 - Entscheidung Nutzer: Mattenkarten fokussiert No-Gi (Grappling ohne Anzug, MMA-nah). Standard-Regelwerk im Spiel: IBJJF Weißgurt (strengste Regel).
 - Reihenfolge bleibt (Danaher „Go Further Faster“: Body Movements + Pin-Escapes zuerst, Rücken/Turtle am Ende). Neu für No-Gi: Tag „Rücken & Front Headlock“ (Seatbelt, RNC- und Guillotine-Abwehr).
 - Griffe statt Kragen/Ärmel: Handgelenk, 2-gegen-1, Underhook, Overhook/Whizzer, Collar Tie, Bodylock, Seatbelt. Butterfly gilt als „better in no-gi“ (Gymdesk); Spider/Lasso/Worm/DLR = Gi-Guards.
-- Beinhebel: Heel Hook, Kneebar, Toe Hold, Calf Slicer, Reaping für Weißgurte verboten; Heel Hook/Reaping in No-Gi erst ab Braungurt (seit 1.1.2021) – Sekundärquellen, IBJJF-PDF nicht abrufbar [ungeprüft]. Gerader Fußhebel = einziger Anfänger-Beinhebel, nur mit Trainer.
+- Beinhebel: Heel Hook, Kneebar, Toe Hold, Calf Slicer, Kniedrehhebel, Reaping für Weißgurte verboten (Gi und No-Gi); Heel Hook/Reaping in No-Gi erst ab Braungurt. **Primär belegt am 2026-11-05** (IBJJF-Tabelle, siehe 8.12.2). „Seit 1.1.2021“ nur Sekundärquelle (Grapplearts). Gerader Fußhebel = einziger Weißgurt-Beinhebel, nur mit Trainer.
 - Warum Vorsicht: ca. 2 cm Fersenbewegung reichen für Verletzung, Armbar ca. 30 cm (Lachlan Giles); Heel Hooks 11 % der Submission-Verletzungen, Knie 27,1 % aller Verletzungen (Hinz 2021); Knie 24,5 % (Bell et al. 2026, 341 Grappler).
 - Abklopfen: früh, bei Leg Locks nicht herausdrehen; verbal tappen, wenn Hände gefangen.
 - Karten-Audit: hb_scissor raus; 6 Karten mit Gi-Griffen umschreiben; fehlend u. a. Arm-Triangle (Side/Mount), Butterfly + Sweep, Body Lock Pass, Guillotine aus Guard, Hand Fighting, Overhook/Whizzer, Pummeling, Wrestle-up.
@@ -633,14 +633,28 @@ Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`
 - **Bewusst nicht:** keine Beinhebel-Karte (Heel Hook, Kneebar, Toe Hold, Calf Slicer verboten; Straight Ankle Lock erst nach Woche 1 mit Trainer). Test „No-Gi: keine Kragen-, Ärmel-, Hosen- oder Gürtelgriffe“ in `cards.test.ts`.
 - **Programm:** Tag 4 „Guard in No-Gi“, Tag 5 „Stand & Hand Fighting“, Tag 6 „Rücken & Front Headlock“ (neue Lektion „Rücken schützen“ + „Erst Griff, dann beenden“). Neue Fragen zu No-Gi-Griffen, Guillotine-Abwehr, Rücken/Turtle und Beinhebeln („Heel Hook für Weißgurte verboten; bei Beinhebel früh abklopfen, nie rausdrehen“). Checkliste und „Nicht allein üben“ um Beinhebel-Sicherheit ergänzt. Alte Kampagne: Bibliothek markiert Gi-Karten (`GI_ONLY`: Cross Collar, Kragengriffe abwehren, Scissor Sweep) und blendet sie mit „Nur No-Gi“ aus.
 
+#### 8.12.2 Regelprüfung und Woche 2 „Beinhebel sicher“ (Schritte 43–48, 2026-11-05)
+**Verifiziert (Primärquelle, abgerufen 2026-11-05)**
+- IBJJF „Technical Fouls & Illegal Moves“ VRS 4.0 (01.01.2024), auf [ibjjf.com/rules](https://ibjjf.com/rules) verlinkt: [PDF](https://ibjjf.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBcE1WIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--e13c15f6e568323ecea8ef21a102b726067a4540/20240101_GolpesProibidos_EN.pdf). Spalte „16 & 17 years old (all ranks) and white belts (Adult to Master 7)“: verboten u. a. Calf Slicer, Knee Bar, Toe Hold, Drehen zur Seite des freien Fußes beim Straight Foot Lock, Heel Hook, „Locks twisting the knees“, Knee Reaping, Wrist Lock, Slam, Scissor Takedown. **Straight Foot Lock** nur bis 15 Jahre verboten → für Weißgurte erlaubt. Gi/No-Gi-Trennung erst bei Braun/Schwarz (Heel Hook, Kniedrehhebel, Reaping, Toe Hold nach außen dort in No-Gi erlaubt). Jumping Guard für Weißgurte verboten.
+- IBJJF Rules Book Version 6.1 (Juni 2024): [PDF](https://ibjjf.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBbTRaIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--c53798f1b94f5ebc202702cb44e9428a7606a19b/2024JUN_IBJJF_Rules_EN.pdf). 2.1.2 Fußklopfen zweimal, wenn die Arme gefangen sind; 2.1.3 verbale Aufgabe; 6.2.3 M verbotener Griff = Severe Foul.
+- ADCC Opens Legal Techniques by Division, Stand 20.07.2026: [PDF](https://cdn.shopify.com/s/files/1/0679/7950/9959/files/2026_Grid_ADCC_Legal_Techs_720_26.pdf). Erwachsene Beg/Int dürfen Heel Hooks, Knee Bar, Toe Hold, Locked Reaping, Straight Ankle Lock; Masters Beg/Int keine Heel Hooks.
+- Lachlan Giles (FloGrappling, 28.03.2018): ca. 2 cm Fersenbewegung vs. ca. 30 cm Armbar – Wortlaut bestätigt, Erfahrungswert.
+
+**Weiter [ungeprüft]**
+- Neuere IBJJF-Liste als 2024 nicht gefunden (Seite verlinkt am 2026-11-05 die 2024er Dateien). Vor Release erneut prüfen.
+- Deutsche Turniere/Verbände, EBI, NAGA, Grappling Industries: keine Primärquelle → in der App „Regel deines Turniers/Gyms prüfen.“
+- Verteidigungsdetails (Knie-Linie, Zehen anziehen, Beine nicht kreuzen lassen, Ferse aus der Achsel): nur BJJ Atlas (sekundär) → App-Hinweis „Technik-Detail: Dein Trainer zeigt dir, wie es richtig geht.“
+
+**Umsetzung** `src/leglock/` – „Woche 2: Beinhebel sicher“, frei nach Tag 7 des 7-Tage-Starts (liest `mk.program.v1` nur lesend), eigener Speicher `mk.leglock.v1`. Keine spielbaren Beinhebel-Angriffskarten. 4 Lektionen: (43) Regelkunde mit Sortierspiel „Erlaubt oder verboten?“, (45) Erst Verteidigung mit 4× „Was ist hier gefährlich?“ an eigenen SVG-Skizzen, (46) Gerader Fußhebel nur erkennen + „nur mit Trainer, langsam ansetzen“, (47/48) Sicherheitskarte „Früh abklopfen – nie rausdrehen“ (Flip-Karte, Abklopfen-Übung, 2 cm vs. 30 cm, Fuß-/Wort-Aufgabe). Abschluss-Check 20 Fragen, je Bereich ≥ 80 %, Abzeichen „Beinhebel-Sicherheit: Wissen geprüft“ mit Hinweis „Üb Beinhebel nur mit Trainer“. Tests: `src/leglock/leglock.test.ts` (Regelaussagen belegt oder markiert, ≤ 20 Wörter pro Satz, Freischaltung, 80-%-Regel).
+
 ## 9. Offene Prüfpunkte
 
 Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätigen, bevor es ohne `check`-Feld in Karten erscheint.
 
 **Regeln und Punkte**
-1. Offizielle IBJJF-Liste verbotener Techniken („Golpes Proibidos“), inklusive Single-Leg-Einschränkung und „jumping guard“-Formulierung.
+1. ~~Offizielle IBJJF-Liste verbotener Techniken~~ erledigt 2026-11-05 (8.12.2): Single Leg mit Kopf außen ist für Weißgurte verboten, wird aber nicht bestraft; Jumping Guard für alle Weißgurte verboten. Offen: Gibt es eine neuere Liste als VRS 4.0 (2024)?
 2. IBJJF-Punkte, 3-Sekunden-Regel und Kettenregel am aktuellen Regelwerk; „Sweep direkt in Mount = 6“; Änderungen 2025/26.
-3. Straight Ankle Lock für alle Gurte erlaubt (nur Sekundärquelle).
+3. ~~Straight Ankle Lock für alle Gurte erlaubt~~ belegt 2026-11-05 für Erwachsene und 16/17-Jährige; bis 15 Jahre verboten (8.12.2).
 4. Kinderregeln (Guillotine/Würgen) und Wrestling-/Judo-Wettkampfregeln (Slams, Beingreifen) nicht recherchiert.
 
 **Danaher und Prinzipien**
