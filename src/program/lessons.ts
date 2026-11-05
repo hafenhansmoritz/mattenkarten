@@ -11,6 +11,8 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
     // Kopf im Minus (sein Crossface). Arme und Hüfte +1: Ellbogen innen, Knie an der Hüfte –
     // so bleibt die Lektion bei wechselnder Engine-Balance lösbar (Test: ≥ 90 % über 30 Seeds).
     start: { pos: "side", top: "o", board: { kopf: -1, arme: 1, huefte: 1 } },
+    // Lektion 2 des Programms: jede Runde „Was passiert jetzt?“ (KB 8.5). Alle Zonen aktiv.
+    predictAll: true,
     goal: [
       { pos: "guard", role: "bottom" },
       { pos: "half", role: "bottom" },
@@ -73,7 +75,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
         text: "Merke: Oben heißt es „Haltung“. Unten heißt es „Haltung brechen“. Wer gewinnt, bestimmt das Spiel.",
       },
       {
-        round: 2, when: "pick", highlightZone: "beine",
+        round: 2, when: "pick", highlightZone: "beine", predict: true,
         text: "Jetzt seine Beine aufmachen (Guard öffnen). Ohne offene Beine kommst du nicht vorbei.",
       },
       {
@@ -112,7 +114,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
         text: "Jetzt sind seine Beine näher. Ein Schuss auf beide Beine (Double Leg) wird stärker.",
       },
       {
-        round: 2, when: "pick", highlightZone: "beine",
+        round: 2, when: "pick", highlightZone: "beine", predict: true,
         text: "Greift er deine Beine an? Dann Beine nach hinten, Hüfte drauf (Sprawl). Sonst: schieß selbst.",
       },
       {
