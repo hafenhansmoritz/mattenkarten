@@ -1,0 +1,101 @@
+/* Woche 2: Beinhebel sicher – nutzt die pg-*-Bausteine aus program.css. */
+.ll-h { font-size: 26px; margin: 0; }
+.ll-step p { margin: 0; }
+.ll-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.ll-row > * { flex: 1 1 140px; }
+.ll-locked { align-items: flex-start; }
+.ll-locked p { margin: 0; }
+.ll-lock { font-size: 28px; }
+
+/* Lektionsliste */
+.ll-lessons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ll-lesson {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; text-align: left; font: inherit; color: var(--text);
+  border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); cursor: pointer;
+}
+.ll-lesson.now { border-color: color-mix(in srgb, var(--points) 45%, transparent); box-shadow: var(--shadow-2); }
+.ll-lesson.done { border-color: color-mix(in srgb, var(--gas) 45%, transparent); }
+.ll-lesson.locked { opacity: .6; cursor: default; }
+.ll-lesson-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ll-lesson-txt strong { font-size: 20px; }
+.ll-num { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%; font-weight: 900; background: var(--surface-3); }
+.ll-lesson.done .ll-num { background: var(--gas); color: var(--text-ink); }
+.ll-lesson.now .ll-num { background: var(--points); color: var(--text-ink); }
+
+/* Regeln und Quellen */
+.ll-rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ll-rule { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: var(--radius); background: var(--bg-2); border-left: 4px solid var(--gas); }
+.ll-rule.check { border-left-color: var(--points); }
+.ll-rule-tag { color: var(--text-3); }
+.ll-src { margin: 0; color: var(--text-3); overflow-wrap: anywhere; }
+.ll-src a { color: var(--text-2); }
+.ll-trainer { margin: 0; padding: 8px 10px; border-radius: var(--radius); background: color-mix(in srgb, var(--gi-p) 14%, var(--bg-2)); }
+
+/* Sortieren */
+.ll-tech { display: grid; place-items: center; min-height: 96px; border-radius: var(--radius-lg); background: linear-gradient(160deg, var(--surface-3), var(--surface-2)); border: 1px solid var(--line-strong); }
+.ll-tech span { font-size: 28px; }
+.ll-choice { justify-content: center; text-align: center; }
+.ll-sorted { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.ll-sorted li { display: flex; justify-content: space-between; padding: 6px 10px; border-radius: var(--radius); background: var(--bg-2); }
+.ll-sorted li.ok b { color: var(--gas); }
+.ll-sorted li.no b { color: var(--danger); }
+
+/* Bilder */
+.ll-pics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ll-pic {
+  display: flex; flex-direction: column; gap: 4px; padding: 6px; font: inherit; color: var(--text); text-align: left; cursor: pointer;
+  border-radius: var(--radius); background: var(--surface-2); border: 2px solid var(--line-strong);
+}
+.ll-pic:disabled { cursor: default; }
+.ll-pic.right { border-color: var(--danger); }
+.ll-pic.wrong { border-color: var(--text-3); }
+.ll-pic.dim { opacity: .55; }
+.ll-diagram { width: 100%; height: auto; display: block; }
+.ll-mat { fill: var(--mat-a); }
+.ll-ground { stroke: var(--mat-line); stroke-width: 2; }
+.ll-hipline { stroke: var(--text-3); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.ll-tag { font: 700 9px var(--font-body); fill: var(--text-2); }
+.ll-tag-p { fill: var(--text); }
+.ll-o polyline, .ll-o line { stroke: var(--gi-o); stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.ll-p polyline, .ll-p line { stroke: var(--gi-p); stroke-width: 13; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.ll-o .ll-torso, .ll-p .ll-torso { stroke-width: 20; }
+.ll-p .ll-foot { stroke-width: 9; }
+.ll-head { fill: var(--gi-o); }
+.ll-joint { fill: var(--text); opacity: .8; }
+.ll-arm polyline, .ll-arm line { stroke-width: 7; opacity: .95; }
+.ll-wrap { fill: none; stroke: var(--gi-o); stroke-width: 5; }
+.ll-mark { fill: none; stroke: var(--points); stroke-width: 3; stroke-dasharray: 5 3; }
+
+/* Sicherheitskarte */
+.ll-card-wrap { perspective: 900px; background: none; border: 0; padding: 0; cursor: pointer; align-self: center; width: min(260px, 100%); }
+.ll-card { position: relative; width: 100%; aspect-ratio: 5 / 7; transform-style: preserve-3d; }
+.ll-card-face {
+  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 18px;
+  border-radius: var(--radius-lg); backface-visibility: hidden; -webkit-backface-visibility: hidden; text-align: left;
+  border: 2px solid color-mix(in srgb, var(--points) 60%, transparent); color: var(--text);
+}
+.ll-card-face.front { background: linear-gradient(160deg, color-mix(in srgb, var(--points) 26%, var(--surface)), var(--surface-2)); }
+.ll-card-face.front strong { font-size: 30px; line-height: 1.1; }
+.ll-card-face.back { transform: rotateY(180deg); background: var(--surface-2); }
+.ll-card-face p { margin: 0; }
+.ll-card-ico { font-size: 28px; }
+
+/* Abklopfen üben */
+.ll-tapcard {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 28px 16px; font: inherit; color: var(--text); cursor: pointer;
+  border-radius: var(--radius-lg); background: var(--surface-2); border: 2px dashed var(--line-strong);
+}
+.ll-tapcard span.display { font-size: 26px; }
+.ll-tapcard.ok { border: 2px solid var(--gas); background: color-mix(in srgb, var(--gas) 14%, var(--surface-2)); }
+.ll-dots { display: flex; gap: 8px; }
+.ll-dots i { width: 14px; height: 14px; border-radius: 50%; background: var(--surface-3); }
+.ll-dots i.on { background: var(--gas); }
+
+/* Ergebnis */
+.ll-areas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ll-areas li { position: relative; overflow: hidden; display: flex; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: var(--radius); background: var(--bg-2); }
+.ll-areas li > span { position: relative; z-index: 1; }
+.ll-areas li i { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--gas) 22%, transparent); }
+.ll-areas li.no i { background: color-mix(in srgb, var(--points) 22%, transparent); }
+.ll-home-card .ll-h { font-size: 26px; }
+.ll-home-card p { margin: 0; }
