@@ -63,7 +63,7 @@ export function Board({ board, focus = null, lastDeltas = null, threats = [], pe
         const isFocus = focus === z;
         const threat = threatZones.has(z);
         // +2 → Puck ganz links (bei dir), −2 → ganz rechts (bei ihm).
-        const left = 50 - v * 22.5;
+        const left = 50 - v * 20;
         const tone = v > 0 ? "p" : v < 0 ? "o" : "n";
         return (
           <div key={z}
@@ -78,7 +78,7 @@ export function Board({ board, focus = null, lastDeltas = null, threats = [], pe
             <div className="k2-track">
               <div className="k2-track-fill" />
               {[-2, -1, 0, 1, 2].map((t) => (
-                <span key={t} className={`k2-tick${t === 0 ? " mid" : ""}`} style={{ left: `${50 - t * 22.5}%` }} />
+                <span key={t} className={`k2-tick${t === 0 ? " mid" : ""}`} style={{ left: `${50 - t * 20}%` }} />
               ))}
               <motion.span className={`k2-puck tone-${tone}`}
                 initial={false}
