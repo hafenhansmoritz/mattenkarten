@@ -2,7 +2,8 @@ import type { CardDef, PositionId, Role } from "../engine/types";
 import { BASIC_CARDS } from "./basics";
 import { DECK_CARDS } from "./deckCards";
 
-export const CARDS: CardDef[] = [...BASIC_CARDS, ...DECK_CARDS];
+import { EXPANSION_CARDS } from "./expansion";
+export const CARDS: CardDef[] = [...BASIC_CARDS, ...DECK_CARDS, ...EXPANSION_CARDS];
 
 export const CARD: Record<string, CardDef> = Object.fromEntries(CARDS.map((c) => [c.id, c]));
 

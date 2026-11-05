@@ -1,5 +1,6 @@
 // Gürtel-Kampagne: Gürtel, Gegner-Archetypen, Starterdeck. Belohnungen sind deterministisch und bilden einen Lehrpfad.
 import type { Archetype, BeltId } from "../engine/types";
+import { EXPANSION_REWARDS } from "./expansion";
 
 export interface Belt { id: BeltId; name: string; color: string; accent: string }
 
@@ -190,7 +191,7 @@ const DRAFTS: ArchDraft[] = [
   },
 ];
 
-export const ARCHETYPES: Archetype[] = DRAFTS.map((d, i) => ({ ...d, ...curve(i, DRAFTS.length) }));
+export const ARCHETYPES: Archetype[] = DRAFTS.map((d, i) => ({ ...d, ...curve(i, DRAFTS.length), reward: [...d.reward, ...(EXPANSION_REWARDS[d.id] ?? [])] }));
 
 export const ARCHETYPE: Record<string, Archetype> = Object.fromEntries(ARCHETYPES.map((a) => [a.id, a]));
 
