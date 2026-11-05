@@ -24,12 +24,12 @@ export function emptyBoard(): Board {
 
 export const ZONE_LABEL: Record<Zone, string> = { kopf: "Kopf", arme: "Arme", huefte: "Hüfte", beine: "Beine" };
 export const POS_LABEL: Record<Pos2, string> = {
-  stand: "Stand", clinch: "Clinch", guard: "Guard", half: "Half Guard", turtle: "Turtle",
+  stand: "Stand", clinch: "Clinch", headlock: "Front Headlock", guard: "Guard", half: "Half Guard", turtle: "Turtle",
   side: "Side Control", mount: "Mount", back: "Rücken",
 };
 
 /** Positionswert für Heuristik/Statistik (oben positiv, unten negativ). */
-const POS_VALUE: Record<Pos2, number> = { stand: 0, clinch: 0, guard: 1, half: 2, turtle: 4, side: 4, mount: 6, back: 7 };
+const POS_VALUE: Record<Pos2, number> = { stand: 0, clinch: 0, headlock: 2, guard: 1, half: 2, turtle: 4, side: 4, mount: 6, back: 7 };
 export function posValue(pos: Pos2, role: Role2): number {
   if (role === "neutral") return 0;
   return role === "top" ? POS_VALUE[pos] : -POS_VALUE[pos];

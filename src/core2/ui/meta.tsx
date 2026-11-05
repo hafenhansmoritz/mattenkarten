@@ -17,7 +17,7 @@ export const KIND_COLOR: Record<Kind2, string> = {
 };
 
 export const POS_LABEL: Record<Pos2, string> = {
-  stand: "Stand", clinch: "Clinch", guard: "Guard", half: "Halbe Guard", turtle: "Turtle",
+  stand: "Stand", clinch: "Clinch", headlock: "Kopfklammer (Front Headlock)", guard: "Guard", half: "Halbe Guard", turtle: "Turtle",
   side: "Seitenkontrolle", mount: "Mount", back: "Rücken",
 };
 export const ROLE_LABEL: Record<Role2, string> = { neutral: "neutral", top: "du oben", bottom: "du unten" };

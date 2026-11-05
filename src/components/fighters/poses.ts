@@ -299,8 +299,8 @@ const SCENES: Record<SceneId, () => ScenePair> = { dist, clinch, fhl, guard, sid
 const CACHE = new Map<SceneId, ScenePair>();
 
 /** Kern-2-Positionen → Szene ("stand" nutzt die Distanz-Szene). */
-export function sceneOfPos2(pos: "stand" | "clinch" | "guard" | "half" | "turtle" | "side" | "mount" | "back"): SceneId {
-  return pos === "stand" ? "dist" : pos;
+export function sceneOfPos2(pos: "stand" | "clinch" | "headlock" | "guard" | "half" | "turtle" | "side" | "mount" | "back"): SceneId {
+  return pos === "stand" ? "dist" : pos === "headlock" ? "fhl" : pos;
 }
 
 /** Rohe Szene: a = top/links, b = bottom/rechts. */

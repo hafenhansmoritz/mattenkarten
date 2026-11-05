@@ -13,7 +13,7 @@ import { EXPLAIN_QUESTIONS, Q_BY_ID, TOPIC_LABEL } from "../program/questions";
 
 // Bewusst lokal statt aus core2/ui/meta.tsx (das ist eine React-Datei mit Icons).
 const POS_DE: Record<Pos2, string> = {
-  stand: "Stand", clinch: "Clinch", guard: "Guard", half: "Halbe Guard (Half Guard)", turtle: "Turtle",
+  stand: "Stand", clinch: "Clinch", headlock: "Kopfklammer (Front Headlock)", guard: "Guard", half: "Halbe Guard (Half Guard)", turtle: "Turtle",
   side: "Seitenkontrolle (Side Control)", mount: "Mount", back: "Rücken (Back)",
 };
 const ROLE_DE: Record<Role2, string> = { neutral: "", top: " oben", bottom: " unten" };

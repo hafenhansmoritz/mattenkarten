@@ -5,11 +5,11 @@ import type { Pos2 } from "../core2/types";
 
 export type StuckRole = "top" | "bottom";
 
-export const POSITIONS: Pos2[] = ["stand", "clinch", "guard", "half", "turtle", "side", "mount", "back"];
+export const POSITIONS: Pos2[] = ["stand", "clinch", "headlock", "guard", "half", "turtle", "side", "mount", "back"];
 export const ROLES: StuckRole[] = ["top", "bottom"];
 
 export const POS_LABEL: Record<Pos2, string> = {
-  stand: "Stand", clinch: "Clinch", guard: "Guard", half: "Halbe Guard",
+  stand: "Stand", clinch: "Clinch", headlock: "Kopfklammer", guard: "Guard", half: "Halbe Guard",
   turtle: "Turtle", side: "Side Control", mount: "Mount", back: "Rücken",
 };
 
@@ -40,6 +40,10 @@ export const RECOMMEND: Record<Pos2, Record<StuckRole, Recommendation>> = {
   clinch: {
     top: { lessonId: "p-shot-sprawl", day: 5, topics: ["stand", "positionen"], why: "Haltung und Hüfte entscheiden auch im Clinch." },
     bottom: { lessonId: "p-shot-sprawl", day: 5, topics: ["stand", "positionen"], why: "Hüfte weg, Haltung halten: so fällst du nicht." },
+  },
+  headlock: {
+    top: { lessonId: "p-shot-sprawl", day: 6, topics: ["stand", "ruecken"], why: "Kinn fassen, Hüfte schwer, dann hinter ihn oder Würger." },
+    bottom: { lessonId: "p-shot-sprawl", day: 6, topics: ["stand", "ruecken"], why: "Kopf hoch, Handgelenk kontrollieren, dann raus und aufstehen." },
   },
   guard: {
     top: { lessonId: "p-guard-posture", day: 4, topics: ["guard", "keile"], why: "Erst Haltung, dann Keile bauen und vorbeigehen." },
@@ -107,6 +111,16 @@ export const COACH_QUESTIONS: Record<Pos2, Record<StuckRole, string[]>> = {
     bottom: [
       "Wie löse ich seinen Griff am Nacken, ohne mich zu verkrampfen?",
       "Was mache ich, wenn er meinen Rücken im Clinch umklammert?",
+    ],
+  },
+  headlock: {
+    top: [
+      "Wo liegt meine Brust, damit er seinen Kopf nicht rauszieht?",
+      "Wie komme ich hinter ihn, ohne den Kopf loszulassen?",
+    ],
+    bottom: [
+      "Wie bekomme ich meinen Kopf raus, ohne in die Guillotine zu laufen?",
+      "Wann stehe ich auf, und wohin zeigt dabei mein Kopf?",
     ],
   },
   guard: {
