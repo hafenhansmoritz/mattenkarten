@@ -96,7 +96,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     steps: [
       {
         round: 1, when: "start", highlightZone: "arme",
-        text: "Du sitzt oben (Mount). Eine Aufgabe hat drei Schritte: Arm fangen, kontrollieren, beenden. Jeder Treffer bringt einen Schritt.",
+        text: "Du sitzt oben (Mount). Eine Aufgabe hat drei Schritte: Arm fangen, kontrollieren, beenden. Rahmt er nicht, bringt ein Treffer zwei Schritte.",
       },
       {
         round: 1, when: "pick", requireCard: "mt_americana", highlightZone: "arme",

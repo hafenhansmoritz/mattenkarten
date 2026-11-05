@@ -657,7 +657,7 @@ const sideBottom: Card2[] = [
   {
     id: "scb_knee_in", plain: "Knie rein, halbe Guard", term: "Recover Half Guard",
     plainDo: "Ellbogen und Knie schieben, ein Bein klemmt seins ein.",
-    kind: "angriff", zone: "beine", slots: [SIDE_B], requires: { huefte: -1, arme: 0 },
+    kind: "angriff", zone: "beine", slots: [SIDE_B], requires: { huefte: 0, arme: 0 },
     to: { pos: "half", role: "bottom", escape: "guard" },
     why: "Aus der Seitkontrolle in die Half Guard ist schon ein Erfolg (Recover Half Guard).",
     keys: ["Ellbogen innen, Knie hinterher", "Sein Bein zwischen deinen klemmen"],

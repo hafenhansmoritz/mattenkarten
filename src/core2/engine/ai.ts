@@ -54,6 +54,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     if (c.submission) {
       const t = mySubs.find((x) => x.id === c.submission!.id);
       v += 2 + (t ? t.step * 2.5 : 0);
+      // Offene Zone: er hat dort gerade keinen Rahmen (gesperrt oder keiner im Slot).
+      if (!okCards(s, other(side)).some((x) => x.kind === "rahmen" && x.zone === c.zone)) v += 3;
       if (t && t.step === 2) v += 6; // Abschluss
     }
     if (c.to) {
@@ -64,12 +66,16 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     }
     // Läuft der Gegner bei mir in dieselbe Zone mit Rahmen? Stufe 2: pauschales Risiko.
     v -= 0.8;
+    // Gerangel droht: er kann in derselben Zone angreifen und keiner liegt vorne.
+    if (thrZones.has(c.zone) && b[c.zone] === 0) v -= 2;
   } else if (c.kind === "aufbauen") {
     const n = need[c.zone] ?? 0;
     v += 1.5 + n * 1.5;
     if (b[c.zone] >= 2) v -= 3; // bereits voll
     if (c.alsoGain) for (const z of ZONES) if (c.alsoGain[z] && b[z] < 2) v += 0.6 + (need[z] ?? 0) * 0.8;
     if (thrZones.has(c.zone)) v -= 1.5; // dort droht ein Angriff (Angriff > Aufbauen)
+    // Zone vor dem Gerangel gewinnen: beide können hier angreifen, Gleichstand.
+    if (thrZones.has(c.zone) && b[c.zone] === 0 && cardsOfSlot(s, side).some((x) => x.kind === "angriff" && x.zone === c.zone)) v += 2;
     // Finte: läuft meine Aufgabe in dieser Zone, erwartet er dort einen Rahmen.
     const run = mySubs.find((x) => x.zone === c.zone && x.step >= 1);
     if (run) v += 1.5 + run.step;
@@ -124,14 +130,16 @@ export function evaluate(s: State2, side: Side): number {
   const foe = other(side);
   if (s.result) {
     const w = s.result.winner;
-    return w === side ? 1000 : w === foe ? -1000 : 0;
+    // Ein Tap ist der klarste Sieg: lieber beenden als auf Punkte warten.
+    const k = s.result.type === "tap" ? 1200 : 1000;
+    return w === side ? k : w === foe ? -k : 0;
   }
   const b = boardFor(s, side);
   let v = (s[side].pts - s[foe].pts) * 4 + posValue(s.pos, roleOf(s, side)) * 2.5;
   for (const z of ZONES) v += b[z] * 1.2;
   for (const t of s.subs) {
     const own = t.owner === side ? 1 : -1;
-    v += own * t.step * t.step * 3;
+    v += own * t.step * t.step * 4;
     // Offene Leiste: der Verteidiger hat nächste Runde keinen Rahmen in dieser Zone (gesperrt).
     const def = t.owner === side ? foe : side;
     if (!okCards(s, def).some((c) => c.kind === "rahmen" && c.zone === t.zone)) v += own * t.step * 4;

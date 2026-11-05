@@ -7,25 +7,19 @@ import { cardById } from "./registry";
 
 export const KRAFT_MAX = 5;
 
-/** Balance-Schalter (Spec „Balance-Änderungen“). */
+/** Balance-Schalter (Spec „Balance-Änderungen“). Jeder Schalter ist eine Regel, die ein Anfänger in einem Satz versteht. */
 export const BALANCE = {
-  /** Dilemma: der Rahmen stoppt den Angriff, gewinnt aber selbst keine Zone. */
+  /** B1 Dilemma: der Rahmen stoppt den Angriff, gewinnt aber selbst keine Zone. */
   dilemmaNoFrameGain: true,
-  /** Aufgabe-Angriff gegen Aufbauen in derselben Zone: Leiste +2 statt +1. */
-  caughtBuildingSteps: 2,
-  /** Ab dieser Stufe setzt ein Rahmen die Leiste nicht mehr zurück, sondern hält sie nur (Druck). 4 = aus. */
-  pressureStep: 2,
-  /** Ein gestoppter Angriff wird nicht gesperrt (sofort neu versuchen). */
-  stoppedAttackStaysFree: false,
-  /** Aufgabe-Angriff, während er in einer anderen Zone rahmt (falsche Zone): Leiste +2. */
-  wrongFrameSteps: 2,
-  /** Aufbauen gegen Aufbauen in derselben Zone: der Obere setzt sich durch (+1), im Stand hebt es sich auf. */
+  /** B2 Ungerahmter Griff: ein Aufgabe-Angriff, der nicht in seiner Zone gerahmt wird, rückt 2 Schritte vor. */
+  unframedSubSteps: 2,
+  /** B3 Gewicht: Aufbauen gegen Aufbauen in derselben Zone – der Obere setzt sich durch (+1); im Stand hebt es sich auf. */
   topWinsBuildTie: true,
-  /** Ein Aufgabegriff, der in derselben Runde sitzt, stoppt die Flucht (Positionswechsel) des Gegners. */
+  /** B4 Griff hält fest: sitzt ein Aufgabegriff gegen den Unteren (auch in derselben Runde), scheitert seine Flucht. */
   gripStopsEscape: true,
-  /** Rahmen gewinnt beim erfolgreichen Konter Zone(n). */
-  frameGain: true,
-  /** Gerangel (Angriff gegen Angriff ohne Vorsprung in der Zone): Vorteil auf der Körperkarte, dann mehr Kraft gewinnt. */
+  /** B5 Schwung: nach einem Positionswechsel steht die Zone, die ihn trug, auf +1 für den Gewinner. */
+  momentum: true,
+  /** B6 Gerangel: Angriff gegen Angriff ohne Vorsprung in der Zone – Vorteil auf der Körperkarte, dann mehr Kraft gewinnt. */
   kraftWinsScramble: true,
 };
 
@@ -54,7 +48,6 @@ interface Ctx {
   notes: Note[];
   acted: Set<Side>;    // Seiten, deren Karte etwas bewirkt hat
   pendingMoves: { side: Side; card: Card2 }[];
-  stopped: Set<Side>;  // Seiten, deren Angriff gestoppt wurde (Balance: nicht gesperrt)
 }
 
 const q = (c: Card2) => `„${c.plain}“`;
@@ -87,16 +80,6 @@ function frameSubs(ctx: Ctx, side: Side, c: Card2, ac: Card2): boolean {
   let hit = false;
   for (const t of ctx.s.subs) {
     if (t.owner === foe && t.id === ac.submission.id && t.step > 0) {
-      if (t.step >= BALANCE.pressureStep) {
-        hit = true;
-        ctx.notes.push({
-          prio: 50, side,
-          headline: you(side) ? `Dein ${q(c)} hält seinen Griff nur auf.` : `Sein ${q(c)} hält deinen Griff nur auf.`,
-          why: "Druck: Steht die Aufgabe auf Schritt 2, stoppt ein Rahmen sie nur noch.",
-          zone: c.zone,
-        });
-        continue;
-      }
       t.step = (t.step - 1) as SubTrack["step"];
       ctx.events.push({ t: "sub", owner: foe, id: t.id, step: t.step });
       hit = true;
@@ -150,7 +133,8 @@ function applyMove(ctx: Ctx, side: Side, c: Card2): void {
   s.top = topFor(side, to.role);
   // Zone, die den Wechsel trug, auf ±1 kappen.
   const before = s.board[c.zone];
-  s.board[c.zone] = Math.max(-1, Math.min(1, before));
+  // Balance „Schwung“: der Gewinner kommt mit +1 in dieser Zone an (statt nur kappen).
+  s.board[c.zone] = BALANCE.momentum ? sign(side) : Math.max(-1, Math.min(1, before));
   if (s.board[c.zone] !== before) ctx.events.push({ t: "zone", zone: c.zone, delta: s.board[c.zone] - before, by: side });
   // Positionswechsel löscht alle Aufgabe-Leisten.
   for (const t of s.subs) if (t.step > 0) ctx.events.push({ t: "sub", owner: t.owner, id: t.id, step: 0 });
@@ -173,7 +157,6 @@ function resolveMoves(ctx: Ctx): void {
     const m = mv[0];
     // Balance „Griff hält fest“: setzt der Gegner in derselben Runde erfolgreich einen Aufgabegriff an, scheitert die Flucht.
     if (BALANCE.gripStopsEscape && heldInSub(ctx.s, m.side)) {
-      ctx.stopped.add(m.side);
       ctx.notes.push({
         prio: 65, side: other(m.side),
         headline: you(m.side) ? `Sein Griff hält dich: ${q(m.card)} scheitert.` : `Dein Griff hält ihn: ${q(m.card)} scheitert.`,
@@ -243,7 +226,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
   }
 
   const s = cloneState(s0);
-  const ctx: Ctx = { s, start: s0, events: [], notes: [], acted: new Set(), pendingMoves: [], stopped: new Set() };
+  const ctx: Ctx = { s, start: s0, events: [], notes: [], acted: new Set(), pendingMoves: [] };
 
   // Kraft bezahlen.
   for (const side of ["p", "o"] as Side[]) { const c = cards[side]; if (c?.kraft) changeKraft(ctx, side, -c.kraft); }
@@ -288,7 +271,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       rule = "angriff>aufbauen";
       const a = byKind("angriff");
       // Erwischt beim Aufbauen statt Verteidigen: ein Aufgabegriff rutscht gleich weiter.
-      triWinner = attackSucceeds(ctx, a, cards[a]!, cards[a]!.submission ? BALANCE.caughtBuildingSteps : 1) ? a : "none";
+      triWinner = attackSucceeds(ctx, a, cards[a]!, BALANCE.unframedSubSteps) ? a : "none";
     } else if (kinds.includes("aufbauen") && kinds.includes("rahmen")) {
       rule = "aufbauen>rahmen";
       const b = byKind("aufbauen"), c = cards[b]!;
@@ -305,8 +288,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       rule = "rahmen>angriff";
       const r = byKind("rahmen"), a = other(r);
       const rc = cards[r]!, ac = cards[a]!;
-      ctx.stopped.add(a);
-      if (BALANCE.frameGain && !(ac.dilemmaOpens && BALANCE.dilemmaNoFrameGain)) gainWith(ctx, r, rc);
+      if (!(ac.dilemmaOpens && BALANCE.dilemmaNoFrameGain)) gainWith(ctx, r, rc);
       frameSubs(ctx, r, rc, ac);
       ctx.acted.add(r);
       triWinner = r;
@@ -338,9 +320,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
           why: c.why, zone: c.zone,
         });
       } else if (c.kind === "angriff") {
-        const foeCard = cards[other(side)];
-        const wrong = !!c.submission && foeCard?.kind === "rahmen";
-        attackSucceeds(ctx, side, c, wrong ? BALANCE.wrongFrameSteps : 1);
+        attackSucceeds(ctx, side, c, BALANCE.unframedSubSteps);
       } else {
         {
           leer = true;
@@ -368,10 +348,8 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
   if (!s.result) resolveMoves(ctx);
 
   // Rundenende: Sperren, Kraft, Rundenzähler, Ziel/Punkte.
-  const lockOf = (side: Side, c: Card2 | null): string[] =>
-    !c || (BALANCE.stoppedAttackStaysFree && c.kind === "angriff" && ctx.stopped.has(side)) ? [] : [c.id];
-  s.p.locked = lockOf("p", P);
-  s.o.locked = lockOf("o", O);
+  s.p.locked = P ? [P.id] : [];
+  s.o.locked = O ? [O.id] : [];
   if (!s.result && s.goal && s.goal.some((g) => g.pos === s.pos && g.role === roleOf(s, "p"))) {
     s.result = { type: "goal", winner: "p" };
   }

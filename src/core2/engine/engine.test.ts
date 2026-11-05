@@ -71,13 +71,13 @@ describe("Dreieck (gleiche Zone)", () => {
     expect(round.winner).toBe("p");
     expect(state.board.beine).toBe(2);
   });
-  it("Rahmen > Angriff: Angriff scheitert, Reagierender gewinnt Zone; Dilemma öffnet Zone", () => {
+  it("Rahmen > Angriff mit Dilemma: Angriff scheitert, Rahmen gewinnt nichts, Dilemma öffnet Zone (B1)", () => {
     const s = stand({ beine: 1 });
     const { state, round } = playRound(s, "s_double", "s_frame_beine");
     expect(round.rule).toBe("rahmen>angriff");
     expect(round.winner).toBe("o");
     expect(state.pos).toBe("stand");
-    expect(state.board.beine).toBe(0); // o +1
+    expect(state.board.beine).toBe(1); // Balance B1: beim Dilemma gewinnt der Rahmen keine Zone
     expect(state.board.kopf).toBe(1);  // Dilemma-Bonus für p
     expect(round.events).toContainEqual({ t: "dilemma", side: "p", zone: "kopf" });
     expect(round.why).toMatch(/Dilemma/);
@@ -105,10 +105,25 @@ describe("Dreieck (gleiche Zone)", () => {
     expect(round.events.filter((e) => e.t === "kraft").length).toBe(2);
     expect(round.headline).toMatch(/Gerangel/);
   });
-  it("Aufbauen = Aufbauen hebt sich auf", () => {
+  it("Aufbauen = Aufbauen hebt sich im Stand auf", () => {
     const { state, round } = playRound(stand(), "s_build_beine", "s_build_beine");
     expect(round.rule).toBe("aufbauen=aufbauen");
     expect(state.board.beine).toBe(0);
+  });
+  it("Aufbauen = Aufbauen am Boden: der Obere setzt sich durch (B3)", () => {
+    const { state, round } = playRound(sideTop({}, "o"), "scb_build_kopf", "sc_cross");
+    expect(round.rule).toBe("aufbauen=aufbauen");
+    expect(round.winner).toBe("o");
+    expect(state.board.kopf).toBe(-1);
+  });
+  it("Gerangel (B6): ohne Vorsprung in der Zone entscheidet erst der Vorteil, dann die Kraft", () => {
+    const a = playRound(stand({ kopf: 1 }), "s_clinch", "s_clinch");
+    expect(a.round.winner).toBe("p");
+    expect(a.state.pos).toBe("clinch");
+    let s = stand();
+    s = { ...s, o: { ...s.o, kraft: 4 } };
+    const b = playRound(s, "s_clinch", "s_clinch");
+    expect(b.round.winner).toBe("o");
   });
   it("Rahmen = Rahmen: nichts", () => {
     const { state, round } = playRound(stand(), "s_frame_beine", "s_frame_beine");
@@ -153,7 +168,7 @@ describe("requires, Kraft, Sperre", () => {
 });
 
 describe("Positionswechsel & Aufgaben", () => {
-  it("Wechsel kappt die tragende Zone auf ±1 und löscht Leisten", () => {
+  it("Wechsel setzt die tragende Zone auf +1 (Schwung) und löscht Leisten", () => {
     let s = sideTop({ huefte: 2 });
     s = playRound(s, "sc_kimura", "scb_build_kopf").state;
     expect(s.subs).toHaveLength(1);
@@ -165,6 +180,11 @@ describe("Positionswechsel & Aufgaben", () => {
     expect(state.p.pts).toBe(4);
     expect(round.events).toContainEqual({ t: "move", pos: "mount", top: "p", escape: undefined });
   });
+  it("Schwung (B5): auch aus dem Minus kommt der Gewinner mit +1 an", () => {
+    const { state } = playRound(stand({ arme: -1 }), "s_clinch", "s_build_beine");
+    expect(state.pos).toBe("clinch");
+    expect(state.board.arme).toBe(1);
+  });
   it("Befreiung von o: Rolle aus Sicht des Handelnden, Escape-Typ im Event", () => {
     const s = sideTop({}, "p"); // p oben, o unten
     const { state, round } = playRound(s, "sc_cross", "scb_escape");
@@ -173,13 +193,15 @@ describe("Positionswechsel & Aufgaben", () => {
     expect(roleOf(state, "o")).toBe("bottom");
     expect(round.events.find((e) => e.t === "move")).toMatchObject({ escape: "guard" });
   });
-  it("Aufgabe-Leiste: 3 Schritte → Tap", () => {
+  it("Aufgabe-Leiste: 3 Schritte → Tap (ungerahmt +2, gerahmt −1)", () => {
     let s = sideTop();
     s = { ...s, p: { ...s.p, kraft: 5 } };
     let r = playRound(s, "sc_kimura", "scb_build_kopf");
-    expect(r.state.subs[0]).toMatchObject({ id: "kimura", owner: "p", step: 1, zone: "arme" });
-    r = playRound(r.state, "sc_kimura_fin", "scb_frame_huefte");
-    expect(r.state.subs[0].step).toBe(2);
+    // Balance B2: er rahmt nicht an den Armen → zwei Schritte
+    expect(r.state.subs[0]).toMatchObject({ id: "kimura", owner: "p", step: 2, zone: "arme" });
+    r = playRound(r.state, "sc_kimura_fin", "scb_frame_arme");
+    expect(r.round.rule).toBe("rahmen>angriff");
+    expect(r.state.subs[0].step).toBe(1);
     r = playRound(r.state, "sc_kimura", "scb_build_kopf");
     expect(r.state.result).toEqual({ type: "tap", winner: "p", sub: "Kimura" });
     expect(r.round.headline).toMatch(/Tap/);
@@ -188,19 +210,20 @@ describe("Positionswechsel & Aufgaben", () => {
   it("Rahmen ohne Aufgabe-Angriff in derselben Runde lässt die Leiste stehen", () => {
     let s = sideTop();
     s = playRound(s, "sc_kimura", "scb_build_kopf").state;
-    expect(s.subs[0].step).toBe(1);
+    expect(s.subs[0].step).toBe(2);
     const { state, round } = playRound(s, "sc_hip", "scb_frame_arme");
     expect(round.rule).toBe("rahmen-ins-leere");
-    expect(state.subs[0].step).toBe(1);
+    expect(state.subs[0].step).toBe(2);
   });
   it("Aufgabe-Karte ist nicht gesperrt, solange ihre Leiste läuft", () => {
     let s = sideTop();
     s = playRound(s, "sc_kimura", "scb_build_kopf").state;
     expect(legalCards(s, "p").find((c) => c.id === "sc_kimura")!.ok).toBe(true);
-    s = playRound(s, "sc_kimura", "scb_frame_huefte").state;
-    expect(s.subs[0].step).toBe(2);
+    s = playRound(s, "sc_kimura", "scb_frame_arme").state; // gerahmt: 2 → 1, Leiste läuft weiter
+    expect(s.subs[0].step).toBe(1);
+    expect(legalCards(s, "p").find((c) => c.id === "sc_kimura")!.ok).toBe(true);
     // Andere Karten bleiben gesperrt
-    expect(legalCards(s, "o").find((c) => c.id === "scb_frame_huefte")!.ok).toBe(false);
+    expect(legalCards(s, "o").find((c) => c.id === "scb_frame_arme")!.ok).toBe(false);
     // Nach Positionswechsel (Leiste weg) greift die Sperre wieder
     let t = sideTop({ huefte: 1 });
     t = playRound(t, "sc_kimura", "scb_build_kopf").state;
@@ -220,7 +243,19 @@ describe("Positionswechsel & Aufgaben", () => {
     const s2 = { ...s, p: { ...s.p, kraft: 5 } };
     const { state, round } = playRound(s2, "sc_kimura_fin", "scb_frame_arme");
     expect(round.rule).toBe("rahmen>angriff");
-    expect(state.subs).toHaveLength(0);
+    expect(state.subs).toHaveLength(1);
+    expect(state.subs[0].step).toBe(1);
+  });
+  it("Griff hält fest (B4): Flucht gesperrt, solange eine Leiste gegen den Unteren läuft – auch in derselben Runde", () => {
+    // Gleiche Runde: Kimura sitzt, seine Befreiung scheitert.
+    const r = playRound(sideTop(), "sc_kimura", "scb_escape");
+    expect(r.state.pos).toBe("side");
+    expect(r.state.subs[0].step).toBe(2);
+    expect(r.round.headline).toMatch(/Griff/);
+    // Danach ist die Befreiung nicht spielbar, bis er den Griff löst.
+    const l = legalCards(r.state, "o").find((c) => c.id === "scb_escape")!;
+    expect(l.ok).toBe(false);
+    expect(l.reason).toMatch(/Griff lösen/);
   });
 });
 

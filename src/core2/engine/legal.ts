@@ -29,16 +29,17 @@ export function continuesHold(s: State2, side: Side, c: Card2): boolean {
   return !!c.submission && s.subs.some((t) => t.owner === side && t.id === c.submission!.id && t.step > 0);
 }
 
-/** Balance „Erst den Griff lösen“: läuft eine Aufgabe-Leiste gegen `side`, sind seine Positionswechsel gesperrt. */
+/** Balance „Erst den Griff lösen“: läuft eine Aufgabe-Leiste gegen den Unteren, sind seine Fluchten gesperrt. */
 export function heldInSub(s: State2, side: Side): boolean {
+  if (roleOf(s, side) !== "bottom") return false; // gilt für den Unteren (Flucht), nicht für Pässe von oben
   return s.subs.some((t) => t.owner !== side && t.step >= HOLD_STEP);
 }
 /** Ab dieser Stufe der gegnerischen Leiste ist Wegrutschen gesperrt. */
 export const HOLD_STEP = 1;
 
 export function checkCard(s: State2, side: Side, c: Card2): Legal {
-  if (s[side].locked.includes(c.id) && !continuesHold(s, side, c)) return { id: c.id, ok: false, reason: "Gesperrt (gerade gespielt)" };
   if (c.to && heldInSub(s, side)) return { id: c.id, ok: false, reason: "Erst den Griff lösen (Rahmen in seiner Zone)" };
+  if (s[side].locked.includes(c.id) && !continuesHold(s, side, c)) return { id: c.id, ok: false, reason: "Gesperrt (gerade gespielt)" };
   const unmet = unmetRequires(s, side, c);
   if (unmet.length) return { id: c.id, ok: false, reason: `Braucht ${unmet.join(", ")}` };
   const k = c.kraft ?? 0;

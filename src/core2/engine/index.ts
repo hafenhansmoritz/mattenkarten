@@ -31,7 +31,7 @@ export function newMatch(opts: NewMatchOpts): State2 {
     top: opts.start ? opts.start.top : null,
     board,
     round: 1,
-    maxRounds: opts.maxRounds ?? 8,
+    maxRounds: opts.maxRounds ?? 9,
     p: { pts: 0, kraft: KRAFT_START, locked: [] },
     o: { pts: 0, kraft: KRAFT_START, locked: [] },
     subs: [],
