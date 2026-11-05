@@ -119,7 +119,7 @@ describe("Kern 2 – Karten", () => {
     expect(CARD2.gt_knee_slice.requires).toMatchObject({ beine: 1, huefte: 0 });
     expect(CARD2.gt_toreando.requires).toMatchObject({ beine: 1, huefte: 0 });
     expect(CARD2.sct_to_mount.requires).toEqual({ huefte: 1 }); // B14
-    expect(CARD2.tt_back_take.requires).toEqual({ kopf: 0, arme: 1 }); // B20: Kopf nicht verloren reicht
+    expect(CARD2.tt_back_take.requires).toEqual({ kopf: 0, arme: 1, huefte: 1 }); // B20 + B27: erst Gewicht drauf
     expect(CARD2.nd_double_leg.to).toMatchObject({ points: 2 });
     expect(CARD2.sct_to_mount.to).toMatchObject({ pos: "mount", points: 4 });
   });
@@ -153,7 +153,7 @@ describe("Kern 2 – Karten", () => {
     expect(CARD2.nd_single_leg.requires).toEqual({ beine: 0, kopf: 0 });
     expect(CARD2.cl_body_lock.requires).toEqual({ arme: 1 });
     expect(CARD2.nd_sprawl.onStop).toEqual({ pos: "headlock", role: "top" });
-    expect(CARD2.nd_sprawl.onStopRequires).toEqual({ kopf: 0 });
+    expect(CARD2.nd_sprawl.onStopRequires).toEqual({ kopf: 1 });
     expect(CARD2.nd_level_change).toMatchObject({ kind: "aufbauen", zone: "beine" });
     expect(CARD2.nd_outside_foot.keys.join(" ")).toMatch(/Orthodox.*Southpaw/);
     expect(CARD2.nd_outside_foot.keys.join(" ")).toMatch(/Gegengleich/);

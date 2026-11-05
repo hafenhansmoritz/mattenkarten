@@ -660,6 +660,11 @@ Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`
 - **MMA-Hinweis je Karte** (`mma` ok/riskant/nein + Satz): Guard ziehen = nein, Armbar aus dem Mount, Butterfly-Sweep, volle Guard/Half Guard unten, Turtle-Panzer, Toreando, Guard öffnen, Durchschießen = riskant; Einstufung didaktisch nach KB 8.12 [Trainer prüfen].
 - **Glossar:** deutsch auf der Karte, No-Gi-Begriff als Fachwort, eine Schreibweise (Spec B19, `TERMS2`).
 
+#### 8.12.3 Punkte für die dominante Turtle, Sprawl und Back Take (Kern 2, B21–B27, 2026-11-05)
+- **Takedown in die Turtle:** Die vordere Turtle (Front Headlock) ist neutral – keiner ist oben, keine Punkte; ein Snap Down dorthin bringt höchstens einen Vorteil. Punkte gibt es erst, wenn eine untere Position gehalten wird (3 Sekunden): Rücken, Seite, Sitzen oder **dominante Turtle** (du bist hinter ihm, hinter seinen Armen, mindestens ein Knie von ihm am Boden) ([BJJ Ref Spot – Scoring Primer: Takedowns](https://bjjrefspot.blogspot.com/2012/09/scoring-primer-takedowns.html), Sekundärquelle eines Kampfrichters; IBJJF-Regelbuch selbst nicht geöffnet [prüfen]). Spiel: Arm Drag und Go-Behind → Turtle oben = 2 Punkte; Snap Down und Sprawl → Front Headlock ohne Punkte.
+- **Sprawl → Front Headlock:** Nach dem Sprawl ist der Front Headlock die naheliegende Fortsetzung (Kinngriff, Gewicht hinter seinen Nacken, andere Hand zieht den Ellbogen weg) ([Evolve MMA – 5 Ways To Counter Takedowns](https://evolve-mma.com/blog/5-ways-to-counter-takedowns-in-no-gi-bjj/)). Dass das nur mit vorheriger Kopf-Führung (Kopf +1) klappt, ist Spielregel [Trainer prüfen].
+- **Back Take aus der Turtle mit Hüfte +1:** didaktische Ableitung (erst Gewicht/Kontrolle, dann Haken; Gewicht auf dem Rücken sperrt das Raussitzen). Die Evolve-MMA-Turtle-Übersicht betont oben Oberkörperkontrolle mit beiden Händen und Geduld, nennt aber keinen Hüftdruck vor den Haken [Trainer prüfen].
+
 ## 9. Offene Prüfpunkte
 
 Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätigen, bevor es ohne `check`-Feld in Karten erscheint.

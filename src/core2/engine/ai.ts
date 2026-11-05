@@ -94,7 +94,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     const g = c.gain ?? 1;
     const denied = foeOk.filter((x) => x.kind === "angriff" && x.to && (Object.keys(x.requires ?? {}) as Zone[])
       .some((z) => -b[z] - (z === c.zone ? g : c.alsoGain?.[z] ?? 0) < x.requires![z]!));
-    if (progress && denied.length) v += WEDGE_BONUS;
+    // B24: Keile nur am Boden – im Stand wirft er dich um, während du nur aufbaust.
+    if (progress && denied.length && role !== "neutral") v += WEDGE_BONUS;
     // Zone vor dem Gerangel gewinnen: beide können hier angreifen, Gleichstand.
     if (thrZones.has(c.zone) && b[c.zone] === 0 && cardsOfSlot(s, side).some((x) => x.kind === "angriff" && x.zone === c.zone)) v += 2;
     // Finte: läuft meine Aufgabe in dieser Zone, erwartet er dort einen Rahmen.
@@ -173,8 +174,29 @@ export function evaluate(s: State2, side: Side): number {
   // Offensive Optionen (eigene ok-Angriffe) zählen, gegnerische Bedrohungen kosten.
   v += okCards(s, side).filter((c) => c.kind === "angriff").length * 0.8;
   v -= okCards(s, foe).filter((c) => c.kind === "angriff").length * 0.8;
+  // B26 Offene Tür (Stufe 3): ein Positionsangriff, gegen den er in dieser Zone gerade keinen Rahmen hat (gesperrt), droht wirklich.
+  v += OPEN_DOOR_EVAL * (openDoor(s, side) - openDoor(s, foe));
   return v;
 }
+
+/** Größter Positionsgewinn (Positionswert + halbe Punkte, gekappt) meiner spielbaren Positionsangriffe,
+ *  gegen die er in ihrer Zone gerade keinen spielbaren Rahmen hat. */
+function openDoor(s: State2, side: Side): number {
+  const foeFrames = new Set(okCards(s, other(side)).filter((c) => c.kind === "rahmen").map((c) => c.zone));
+  let best = 0;
+  for (const c of okCards(s, side)) {
+    if (c.kind !== "angriff" || !c.to || foeFrames.has(c.zone)) continue;
+    const g = posValue(c.to.pos, c.to.role) - posValue(s.pos, roleOf(s, side)) + (c.to.points ?? 0) * 0.5;
+    if (g > best) best = g;
+  }
+  return Math.min(best, OPEN_DOOR_CAP);
+}
+
+/** B25: Anteil, den Stufe 3 im Gegnermodell gleichmäßig auf alle spielbaren Karten verteilt (Überraschung). */
+const FOE_SURPRISE = 0.3;
+/** B26: Gewicht und Kappung der „offenen Tür“ in der Stufe-3-Bewertung. */
+const OPEN_DOOR_EVAL = 4;
+const OPEN_DOOR_CAP = 3;
 
 /** Gegnermodell für Stufe 3: Heuristik-Werte des Gegners, verschoben durch seine Zonen-Gewohnheiten. */
 function foeModel(s: State2, side: Side, rng: () => number): { card: Card2; w: number }[] {
@@ -187,7 +209,8 @@ function foeModel(s: State2, side: Side, rng: () => number): { card: Card2; w: n
   const max = Math.max(...sc);
   const ws = sc.map((x) => Math.exp((x - max) / 1.5));
   const sum = ws.reduce((a, b) => a + b, 0);
-  return ok.map((card, i) => ({ card, w: ws[i] / sum }));
+  // B25: Er kann auch etwas Unerwartetes spielen – ein Teil der Wahrscheinlichkeit verteilt sich gleichmäßig.
+  return ok.map((card, i) => ({ card, w: (1 - FOE_SURPRISE) * ws[i] / sum + FOE_SURPRISE / ok.length }));
 }
 
 /** Stufe 3 mischt zwischen Karten, die höchstens MIX_WINDOW schlechter sind als die beste. */

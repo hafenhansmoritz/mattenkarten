@@ -49,6 +49,7 @@ const K2 = {
   goBehind: s("FanaticWrestling – Snap and Go Behind Drills (Dan Vallimont)", "https://fanaticwrestling.com/blogs/news/master-snap-and-go-behind-drills-with-dan-vallimont"),
   southpaw: s("Evolve MMA – A Guide To The Southpaw Stance In MMA", "https://evolve-mma.com/blog/a-guide-to-the-southpaw-stance-in-mma/"),
   penStep: s("Evolve MMA – Mastering The Penetration Step", "https://evolve-mma.com/blog/mastering-the-penetration-step-for-better-takedowns-in-mma-and-bjj/"),
+  turtleScore: s("BJJ Ref Spot – Scoring Primer: Takedowns (Front vs. Dominant Turtle)", "https://bjjrefspot.blogspot.com/2012/09/scoring-primer-takedowns.html"),
   counters: s("Evolve MMA – 5 Ways To Counter Takedowns In No-Gi BJJ", "https://evolve-mma.com/blog/5-ways-to-counter-takedowns-in-no-gi-bjj/"),
   wrMoves: s("FanaticWrestling – Wrestling Moves", "https://fanaticwrestling.com/blogs/news/wrestling-moves"),
   standGuill: s("Grapplearts – Standing Guillotine Choke Escapes", "https://www.grapplearts.com/standing-guillotine-choke-escapes/"),
@@ -141,13 +142,14 @@ const stand: Card2[] = [
   {
     // B16: stoppt der Sprawl einen Shot, hältst du seinen Kopf – Wechsel in den Front Headlock (oben).
     id: "nd_sprawl", plain: "Beine weg, Hüfte drauf", term: "Sprawl",
-    plainDo: "Beine zurück, Hüfte drauf – danach hältst du seinen Kopf.",
-    kind: "rahmen", zone: "beine", slots: [STAND], onStop: { pos: "headlock", role: "top" }, onStopRequires: { kopf: 0 },
-    why: "Beine zurück, Hüfte schwer auf seinen Kopf (Sprawl): der Shot verpufft, du hältst seinen Kopf vorn.",
+    plainDo: "Beine zurück, Hüfte drauf – führst du am Kopf, hältst du ihn.",
+    // B21: in den Front Headlock nur mit Kopf +1 (Kinngriff gewonnen); sonst stoppt der Sprawl nur. Spielregel → Trainer prüfen.
+    kind: "rahmen", zone: "beine", slots: [STAND], onStop: { pos: "headlock", role: "top" }, onStopRequires: { kopf: 1 },
+    why: "Beine zurück, Hüfte schwer auf seinen Kopf (Sprawl): der Shot verpufft. Führst du am Kopf, hältst du ihn vorn.",
     keys: ["Früh reagieren", "Hüfte schwer auf Kopf und Schultern", "Kein Ruheplatz: sofort Kopf fassen (Front Headlock)"],
     mistakes: ["Zu spät", "Hochspringen statt zurück", "Liegen bleiben statt Kopf zu fassen"],
     safety: "Auf den Zehen landen, nicht auf den Knien.",
-    source: K2.counters,
+    source: K2.counters, check: true,
   },
   {
     // B17: Hand Fighting und Kopfposition sind eine Karte (Stand und Clinch) – der Rahmen gegen den Snap Down.
@@ -199,9 +201,10 @@ const clinch: Card2[] = [
     id: "nd_arm_drag", plain: "Arm ziehen, dahinter", term: "2-on-1 & Arm Drag",
     plainDo: "Beide Hände an seinem Arm, quer vorbeiziehen, dahinter.",
     kind: "angriff", zone: "arme", slots: [CLINCH], requires: { arme: 1 }, kraft: 1,
-    // Spiel-Vereinfachung (B17): der Arm Drag bringt dich hinter ihn, er geht auf die Knie (Turtle oben, ohne Punkte).
+    // Spiel-Vereinfachung (B17): der Arm Drag bringt dich hinter ihn, er geht auf die Knie (Turtle oben).
+    // B23: hinter ihm, hinter den Armen = „dominante Turtle“, gehalten → Takedown, 2 Punkte (K2.turtleScore).
     // Den Rücken mit Haken nimmst du danach (Back Take, 4 Punkte).
-    to: { pos: "turtle", role: "top" },
+    to: { pos: "turtle", role: "top", points: 2 },
     why: "Zwei Hände gegen einen Arm (2-on-1): am Trizeps quer vorbeiziehen öffnet seinen Rücken.",
     keys: ["Handgelenk, dann Trizeps greifen", "Quer über seinen Körper ziehen, nicht nach unten", "Tief nachsteigen, Arm um seine Hüfte"],
     mistakes: ["Nach unten statt quer ziehen", "Nur am Handgelenk ziehen"],
@@ -1053,12 +1056,13 @@ const turtleTop: Card2[] = [
   {
     id: "tt_back_take", plain: "Hinter ihn, Haken rein", term: "Back Take",
     plainDo: "Du gehst hinter ihn, Gurtgriff fest, beide Haken rein.",
-    kind: "angriff", zone: "beine", slots: [TURTLE_T], requires: { kopf: 0, arme: 1 },
+    // B27: zusätzlich Hüfte +1 – erst Gewicht auf seinen Rücken (hält ihn unten, kein Raussitzen), dann Haken. Spielregel → Trainer prüfen.
+    kind: "angriff", zone: "beine", slots: [TURTLE_T], requires: { kopf: 0, arme: 1, huefte: 1 },
     to: { pos: "back", role: "top", points: 4 }, dilemmaOpens: "kopf",
     why: "Schützt er den Hals, öffnet sich sein Rücken (Back Take) – Gurtgriff vor den Haken.",
     keys: ["Ellbogen wegziehen", "Seatbelt vor den Hooks", "Füße nicht kreuzen"],
-    mistakes: ["Kopf loslassen, bevor du hinten bist"],
-    source: SRC.fhl,
+    mistakes: ["Kopf loslassen, bevor du hinten bist", "Haken rein ohne Gewicht – er sitzt raus"],
+    source: SRC.fhl, check: true,
   },
   {
     // B16: Eingang aus der Turtle in den Front Headlock – dort wartet die Guillotine.
@@ -1188,7 +1192,8 @@ const headlockTop: Card2[] = [
     id: "hl_go_behind", plain: "Rumgehen, dahinter", term: "Go-Behind",
     plainDo: "Ellbogen weg, um ihn herum, Brust an seinen Rücken.",
     kind: "angriff", zone: "arme", slots: [HL_T], requires: { arme: 1 },
-    to: { pos: "turtle", role: "top" },
+    // B23: aus der vorderen Turtle (neutral) hinter ihn = dominante Turtle → 2 Punkte (K2.turtleScore).
+    to: { pos: "turtle", role: "top", points: 2 },
     why: "Ziehst du ihn vor und blockst seine Achsel, kommst du hinter ihn (Go-Behind) – er kann nicht mitdrehen.",
     keys: ["Erst ziehen, dann rumgehen", "Arm blockt seine Achsel", "Knie in die Lücke"],
     mistakes: ["Kopf zu früh loslassen", "Weit außen rumlaufen"],
@@ -1240,7 +1245,7 @@ const headlockBottom: Card2[] = [
   {
     id: "hlb_shot_through", plain: "Durchschießen an die Beine", term: "Shot Through (Re-Shot)",
     plainDo: "Kopf frei, du schießt unter ihm an seine Beine.",
-    kind: "angriff", zone: "beine", slots: [HL_B], requires: { beine: 0, kopf: 0 }, kraft: 1,
+    kind: "angriff", zone: "beine", slots: [HL_B], requires: { kopf: 0 }, kraft: 1, // B22: nur Kopf frei (vorher auch Beine 0)
     to: { pos: "half", role: "top", escape: "reversal" },
     why: "Hängt er schwer über dir, schieß durch an seine Beine (Re-Shot) – er fällt auf den Rücken.",
     keys: ["Erst Kopf frei, dann schießen", "Hüfte unter dich, dann vor"],

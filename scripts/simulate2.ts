@@ -129,12 +129,12 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
 }
 
 const pct = (n: number, d: number) => `${((100 * n) / Math.max(1, d)).toFixed(1)}%`;
-console.log(`\nPaarung   tap     punkte  remis   p-sieg  o-sieg  Ø Runden  PASS/Match  Vorteil  Dominanz@Runde`);
+console.log(`\nPaarung   tap     punkte  remis   p-sieg  o-sieg  Ø Runden  PASS/Match  Vorteil  Side    Mount   Dominanz@Runde`);
 const byPair = new Map<string, Agg>();
 for (const lp of [1, 2, 3] as Lv[]) for (const lo of [1, 2, 3] as Lv[]) {
   const agg = newAgg();
   for (let i = 0; i < N; i++) runMatch(lp, lo, lp * 100000 + lo * 10000 + i, [agg, total]);
-  console.log(`L${lp}-L${lo}     ${pct(agg.tap, N).padEnd(8)}${pct(agg.points, N).padEnd(8)}${pct(agg.draw, N).padEnd(8)}${pct(agg.pWins, N).padEnd(8)}${pct(agg.oWins, N).padEnd(8)}${(agg.rounds / N).toFixed(2).padEnd(10)}${(agg.pass / N).toFixed(2).padEnd(12)}${pct(agg.vorteil, N).padEnd(9)}${agg.domMatches ? (agg.domRoundSum / agg.domMatches).toFixed(2) : "–"} (${pct(agg.domMatches, N)})`);
+  console.log(`L${lp}-L${lo}     ${pct(agg.tap, N).padEnd(8)}${pct(agg.points, N).padEnd(8)}${pct(agg.draw, N).padEnd(8)}${pct(agg.pWins, N).padEnd(8)}${pct(agg.oWins, N).padEnd(8)}${(agg.rounds / N).toFixed(2).padEnd(10)}${(agg.pass / N).toFixed(2).padEnd(12)}${pct(agg.vorteil, N).padEnd(9)}${pct(agg.reach.get("side") ?? 0, N).padEnd(8)}${pct(agg.reach.get("mount") ?? 0, N).padEnd(8)}${agg.domMatches ? (agg.domRoundSum / agg.domMatches).toFixed(2) : "–"} (${pct(agg.domMatches, N)})`);
   byPair.set(`${lp}${lo}`, agg);
 }
 const M = 9 * N;
@@ -180,23 +180,31 @@ const topTap = top(total.taps, 1)[0];
 const domAvg = total.domMatches ? total.domRoundSum / total.domMatches : Infinity;
 const l33 = byPair.get("33")!;
 // L1 < L2 < L3: Siegquote der stärkeren Stufe über beide Seiten gemittelt (entschiedene Matches).
-const ladder = (() => {
-  const share = (hi: Lv, lo: Lv) => {
-    const a = byPair.get(`${hi}${lo}`)!, b = byPair.get(`${lo}${hi}`)!;
-    const w = a.pWins + b.oWins, l = a.oWins + b.pWins;
-    return w / Math.max(1, w + l);
-  };
-  const s21 = share(2, 1), s32 = share(3, 2), s31 = share(3, 1);
-  return { ok: s21 > 0.5 && s32 > 0.5 && s31 > 0.5, txt: `L2>L1 ${(100 * s21).toFixed(1)}%, L3>L2 ${(100 * s32).toFixed(1)}%, L3>L1 ${(100 * s31).toFixed(1)}%` };
-})();
+const share = (hi: Lv, lo: Lv) => {
+  const a = byPair.get(`${hi}${lo}`)!, b = byPair.get(`${lo}${hi}`)!;
+  const w = a.pWins + b.oWins, l = a.oWins + b.pWins;
+  return w / Math.max(1, w + l);
+};
+const s21 = share(2, 1), s32 = share(3, 2), s31 = share(3, 1);
+console.log(`\nStufen (Siegquote der stärkeren Stufe, beide Seiten, entschiedene Matches): L2>L1 ${pct(s21, 1)}, L3>L2 ${pct(s32, 1)}, L3>L1 ${pct(s31, 1)}`);
+const tapShares = [...subCards.keys()].map((id) => {
+  const name = CARDS.find((c) => c.submission?.id === id)!.submission!.name;
+  return { name, share: (total.taps.get(name) ?? 0) / Math.max(1, tapTot) };
+});
+const lowTaps = tapShares.filter((t) => t.share < 0.03);
+const reachShare = (p: Pos2) => (total.reach.get(p) ?? 0) / M;
 const checks: [string, boolean, string][] = [
   ["L3 vs L3 Remis < 15%", l33.draw / N < 0.15, pct(l33.draw, N)],
+  ["L3 vs L3 per Vorteil ≤ 30%", l33.vorteil / N <= 0.3, pct(l33.vorteil, N)],
   ["Taps gesamt 10–30%", total.tap / M >= 0.1 && total.tap / M <= 0.3, pct(total.tap, M)],
-  ["jede Position in ≥ 3% der Matches", POS.every((p) => (total.reach.get(p) ?? 0) / M >= 0.03), POS.filter((p) => (total.reach.get(p) ?? 0) / M < 0.03).join(",") || "alle"],
+  ["jede Position in ≥ 3% der Matches", POS.every((p) => reachShare(p) >= 0.03), POS.filter((p) => reachShare(p) < 0.03).join(",") || "alle"],
+  ["Mount in ≥ 20% der Matches", reachShare("mount") >= 0.2, pct(total.reach.get("mount") ?? 0, M)],
+  ["Side Control in ≥ 50% der Matches", reachShare("side") >= 0.5, pct(total.reach.get("side") ?? 0, M)],
   ["Dominanz Ø bis Runde ≤ 5", domAvg <= 5, `${domAvg.toFixed(2)} (in ${pct(total.domMatches, M)} der Matches)`],
-  ["kein Griff > 35% der Taps", !topTap || topTap[1] / Math.max(1, tapTot) <= 0.35, topTap ? `${topTap[0]} ${pct(topTap[1], tapTot)}` : "–"],
+  ["kein Griff > 25% der Taps", !topTap || topTap[1] / Math.max(1, tapTot) <= 0.25, topTap ? `${topTap[0]} ${pct(topTap[1], tapTot)}` : "–"],
+  ["jeder Griff ≥ 3% der Taps", lowTaps.length === 0, lowTaps.map((t) => `${t.name} ${pct(t.share, 1)}`).join(", ") || "alle"],
   ["jede Befreiung aus Side/Mount unten ≥ 2% der Slot-Entscheidungen", escLow.length === 0, escLow.join(", ") || "alle"],
-  ["Stufen gestaffelt: L2 schlägt L1, L3 schlägt L2 (je > 50% der entschiedenen Matches)", ladder.ok, ladder.txt],
+  ["Stufen gestaffelt: L2 > L1 ≥ 55%, L3 > L2 ≥ 65%, L3 > L1 ≥ 70% (entschiedene Matches)", s21 >= 0.55 && s32 >= 0.65 && s31 >= 0.7, `L2>L1 ${pct(s21, 1)}, L3>L2 ${pct(s32, 1)}, L3>L1 ${pct(s31, 1)}`],
 ];
 console.log("\nZiele:"); for (const [n, ok, v] of checks) console.log(`  [${ok ? "ok" : "--"}] ${n}: ${v}`);
 console.log("\nAuffälligkeiten:"); if (!anomalies.length) console.log("  keine"); for (const a of [...new Set(anomalies)].slice(0, 60)) console.log(`  - ${a}`);
