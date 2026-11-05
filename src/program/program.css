@@ -1,0 +1,194 @@
+/* 7-Tage-Startprogramm – mobile first (390 px). Tokens aus theme.css. */
+
+.pg-wrap { min-height: 100dvh; width: 100%; max-width: 640px; margin: 0 auto; padding: 14px 16px 48px; }
+.pg-screen { display: flex; flex-direction: column; gap: 16px; }
+.pg-rel { position: relative; overflow: hidden; }
+.pg-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; }
+.pg-kicker { color: var(--points); }
+.pg-title { font-size: 40px; margin: 4px 0 6px; }
+.pg-promise { margin: 0; }
+.pg-h { font-size: 26px; margin: 4px 0 8px; }
+.pg-lead { margin: 0 0 10px; color: var(--text-2); }
+.pg-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.pg-row > .btn { flex: 1 1 140px; }
+.pg-hint {
+  margin: 8px 0; padding: 10px 12px; border-radius: var(--radius);
+  background: color-mix(in srgb, var(--points) 12%, transparent); border: 1px solid color-mix(in srgb, var(--points) 35%, transparent);
+}
+
+/* ---------- Hero (Kampagne) ---------- */
+.pg-hero {
+  position: relative; overflow: hidden; width: 100%; display: grid; grid-template-columns: 96px 1fr 24px; align-items: center; gap: 12px;
+  margin: 0 0 18px; padding: 14px 14px 14px 10px; text-align: left; font: inherit; color: var(--text); cursor: pointer;
+  border-radius: var(--radius-lg); border: 1px solid color-mix(in srgb, var(--points) 45%, transparent);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(255, 209, 102, .22), transparent 55%),
+    linear-gradient(135deg, var(--surface-2), var(--surface));
+  box-shadow: var(--shadow-2), 0 0 0 1px rgba(255, 209, 102, .08) inset;
+}
+.pg-hero::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .09) 45%, transparent 60%);
+  transform: translateX(-100%); animation: pg-shine 3.6s ease-in-out 1s infinite;
+}
+@keyframes pg-shine { 0%, 60% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .pg-hero::after { animation: none; display: none; } }
+.pg-hero-fig { width: 96px; display: block; overflow: hidden; border-radius: var(--radius); background: linear-gradient(180deg, var(--mat-a), var(--mat-b)); }
+.pg-hero-fig svg, .pg-qscene svg, .pg-spot-fig svg { width: 100%; height: auto; display: block; }
+.pg-hero-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pg-hero-txt strong { font-size: 30px; }
+.pg-hero-go { font-size: 34px; color: var(--points); line-height: 1; }
+.pg-hero-knots { display: flex; gap: 5px; margin-top: 4px; }
+.pg-hero-knots i { width: 14px; height: 14px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--line-strong); }
+.pg-hero-knots i.on { background: var(--points); border-color: var(--points); }
+.pg-hero-knots i.now { border-color: var(--points); box-shadow: 0 0 0 3px rgba(255, 209, 102, .2); }
+.pg-hero.finished { border-color: color-mix(in srgb, var(--gas) 45%, transparent); }
+
+/* ---------- Gürtel ---------- */
+.pg-belt {
+  position: relative; display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 8px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line);
+}
+.pg-belt-band {
+  position: absolute; left: 24px; right: 24px; top: 50%; height: 14px; transform: translateY(-50%);
+  border-radius: 3px; background: linear-gradient(180deg, #f3eee2, #d9d2c0); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .15);
+  overflow: hidden;
+}
+.pg-belt-band i { position: absolute; left: 0; top: 0; bottom: 0; display: block; background: linear-gradient(90deg, #ffd166, #f2b33d); }
+.pg-knot {
+  position: relative; z-index: 1; width: 40px; height: 40px; border-radius: 50%; padding: 0; cursor: pointer;
+  display: grid; place-items: center; font: inherit; font-weight: 800; color: var(--text-3);
+  background: var(--surface-2); border: 2px solid var(--line-strong);
+}
+.pg-knot.done { background: radial-gradient(circle at 35% 30%, #fff1b8, #f2b33d 70%); border-color: #c8932e; color: #3b2a05; }
+.pg-knot.now { background: var(--surface-3); border-color: var(--points); color: var(--text); }
+.pg-knot.sel { outline: 3px solid var(--focus); outline-offset: 2px; }
+.pg-knot-glow { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--points); pointer-events: none; }
+.pg-knot-in { position: relative; font-size: 16px; }
+
+/* ---------- Tageskarte ---------- */
+.pg-day-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: var(--radius-lg);
+  background: var(--surface); border: 1px solid var(--line);
+}
+.pg-day-card.now { border-color: color-mix(in srgb, var(--points) 45%, transparent); box-shadow: var(--shadow-2); }
+.pg-day-card.locked { opacity: .8; }
+.pg-day-head h3 { font-size: 28px; margin: 4px 0 0; }
+.pg-goal { margin: 0; font-size: 17px; }
+.pg-whyday { margin: 0; color: var(--text-2); }
+.pg-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pg-parts li { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding: 8px 10px; border-radius: var(--radius); background: var(--bg-2); }
+.pg-parts .num { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--surface-3); font-size: 12px; font-weight: 800; flex: none; }
+
+/* ---------- Badges ---------- */
+.pg-badges { display: flex; flex-direction: column; gap: 10px; }
+.pg-badge { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-lg); background: var(--surface); border: 1px dashed var(--line-strong); }
+.pg-badge > div { display: flex; flex-direction: column; gap: 2px; }
+.pg-badge.on { border: 1px solid color-mix(in srgb, var(--gas) 55%, transparent); background: color-mix(in srgb, var(--gas) 10%, var(--surface)); }
+.pg-badge.mat { border-style: solid; border-color: color-mix(in srgb, var(--gi-p) 45%, transparent); }
+.pg-badge-ico { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 50%; font-size: 20px; font-weight: 900; background: var(--surface-3); }
+.pg-badge.on .pg-badge-ico { background: var(--gas); color: var(--text-ink); }
+.pg-badge.mat .pg-badge-ico { background: var(--gi-p); color: #fff; }
+
+/* ---------- Ablauf eines Tages ---------- */
+.pg-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
+.pg-steps li { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pg-steps li i { display: block; height: 6px; border-radius: 3px; background: var(--surface-3); }
+.pg-steps li.done i { background: var(--gas); }
+.pg-steps li.now i { background: var(--points); box-shadow: 0 0 10px rgba(255, 209, 102, .5); }
+.pg-steps li .label { font-size: 9.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg-steps li.now .label { color: var(--text); }
+
+.pg-panel { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }
+.pg-panel.center { align-items: center; text-align: center; }
+.pg-panel.center > .btn { align-self: stretch; }
+.pg-panel p { margin: 0; }
+.pg-idea { font-size: 18px; font-weight: 700; }
+.pg-howto { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; color: var(--text-2); }
+
+/* ---------- Quiz ---------- */
+.pg-quiz { display: flex; flex-direction: column; gap: 8px; }
+.pg-quiz-head { display: flex; justify-content: space-between; color: var(--text-2); }
+.pg-quiz-bar { height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+.pg-quiz-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gas), var(--points)); transition: width var(--t-mid) var(--ease-out); }
+.pg-qcard { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }
+.pg-topic { color: var(--text-3); }
+.pg-retry { color: var(--points); }
+.pg-qscene { position: relative; overflow: hidden; width: 100%; max-width: 280px; align-self: center; border-radius: var(--radius); background: linear-gradient(180deg, var(--mat-a), var(--mat-b)); padding: 4px 8px 0; }
+.pg-you { position: absolute; left: 8px; top: 6px; color: var(--text-2); }
+.pg-q { margin: 0; font-size: 19px; line-height: 1.3; }
+.pg-opts { display: flex; flex-direction: column; gap: 8px; }
+.pg-opt {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; min-height: 52px; padding: 12px 14px;
+  text-align: left; font: inherit; font-size: 16px; font-weight: 600; color: var(--text); cursor: pointer;
+  border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line-strong);
+  transition: background var(--t-fast), border-color var(--t-fast), opacity var(--t-fast);
+}
+.pg-opt:hover:not(:disabled) { background: var(--surface-3); }
+.pg-opt:disabled { cursor: default; }
+.pg-opt.right { background: color-mix(in srgb, var(--gas) 22%, var(--surface-2)); border-color: var(--gas); }
+.pg-opt.wrong { background: color-mix(in srgb, var(--danger) 22%, var(--surface-2)); border-color: var(--danger); }
+.pg-opt.dim { opacity: .5; }
+.pg-opt-mark { font-weight: 900; font-size: 18px; }
+.pg-why { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: var(--radius); border-left: 4px solid var(--gas); background: var(--bg-2); }
+.pg-why.no { border-left-color: var(--points); }
+.pg-why strong { font-size: 20px; }
+.pg-why p { margin: 0; }
+.pg-next { margin-top: 4px; }
+
+/* ---------- Positions-Landkarte ---------- */
+.pg-legend { display: flex; align-items: center; gap: 8px; color: var(--text-2); }
+.pg-legend .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.pg-legend .dot.p { background: var(--gi-p); }
+.pg-legend .dot.o { background: var(--gi-o); margin-left: 8px; }
+.pg-ladder { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pg-ladder li { display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 4px 10px; border-radius: var(--radius-sm); background: var(--bg-2); border: 1px dashed var(--line); }
+.pg-ladder li.on { border: 1px solid color-mix(in srgb, var(--gas) 45%, transparent); background: color-mix(in srgb, var(--gas) 8%, var(--bg-2)); }
+.pg-rank { width: 20px; font-weight: 800; color: var(--points); }
+.pg-spots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pg-spot {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px; font: inherit; color: var(--text); text-align: left; cursor: pointer;
+  border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line-strong);
+}
+.pg-spot.bad { border-color: var(--danger); }
+.pg-spot.used { cursor: default; }
+.pg-spot-fig { overflow: hidden; width: 100%; border-radius: var(--radius-sm); background: linear-gradient(180deg, var(--mat-a), var(--mat-b)); margin-bottom: 4px; }
+.pg-spot b { font-size: 15px; }
+.pg-tap {
+  width: 168px; height: 168px; border-radius: 50%; border: 0; cursor: pointer; font: inherit; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: radial-gradient(circle at 35% 30%, #ff8a73, var(--k-angriff)); box-shadow: 0 10px 30px rgba(240, 87, 63, .45);
+}
+.pg-tap .display { font-size: 34px; }
+.pg-tap.done { background: radial-gradient(circle at 35% 30%, #a8ffe0, var(--gas)); color: var(--text-ink); box-shadow: 0 10px 30px rgba(95, 227, 180, .4); }
+.pg-tap.done .display { font-size: 22px; }
+.pg-tap-dots { display: flex; gap: 6px; }
+.pg-tap-dots i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255, 255, 255, .35); }
+.pg-tap-dots i.on { background: #fff; }
+
+/* ---------- Drill ---------- */
+.pg-drill-steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 17px; }
+.pg-safety { padding: 10px 12px; border-radius: var(--radius); background: color-mix(in srgb, var(--danger) 12%, transparent); border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); }
+
+/* ---------- Tag geschafft / Prüfung ---------- */
+.pg-done { overflow: hidden; min-height: 320px; justify-content: center; }
+.pg-bigknot { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font-size: 46px; font-weight: 900; color: #3b2a05; background: radial-gradient(circle at 35% 30%, #fff1b8, #f2b33d 70%); box-shadow: 0 10px 30px rgba(242, 179, 61, .4); }
+.pg-areas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.pg-areas li { position: relative; overflow: hidden; display: flex; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: var(--radius); background: var(--bg-2); border: 1px solid var(--line); }
+.pg-areas li > * { position: relative; z-index: 1; }
+.pg-areas li i { position: absolute; z-index: 0; left: 0; top: 0; bottom: 0; width: var(--w); opacity: .22; background: var(--points); }
+.pg-areas li.ok i { background: var(--gas); }
+.pg-areas li.ok { border-color: color-mix(in srgb, var(--gas) 45%, transparent); }
+
+/* ---------- Abschluss ---------- */
+.pg-final { overflow: hidden; }
+.pg-final-hero { text-align: center; padding: 8px 0; }
+.pg-check { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pg-check button { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 10px; text-align: left; font: inherit; color: var(--text); cursor: pointer; border-radius: var(--radius); background: var(--bg-2); border: 1px solid var(--line); }
+.pg-check button.on { border-color: color-mix(in srgb, var(--gas) 45%, transparent); }
+.pg-check button.on > span:last-child { color: var(--text-2); }
+.pg-box { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 6px; border: 2px solid var(--line-strong); font-weight: 900; }
+.pg-check button.on .pg-box { background: var(--gas); border-color: var(--gas); color: var(--text-ink); }
+.pg-check-flag { color: var(--text-3); }
+.pg-notalone { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; }
+.pg-hero-fig svg { transform: scale(1.7); transform-origin: 50% 78%; }

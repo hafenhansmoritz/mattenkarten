@@ -8,8 +8,8 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
     id: "p-side-escape",
     title: "Rahmen, Hüfte, Guard zurück",
     idea: "Unten in Side Control: erst Unterarm als Stütze, dann wegrutschen.",
-    // Leicht gegen dich: Kopf im Minus.
-    start: { pos: "side", top: "o", board: { kopf: -1 } },
+    // Kopf im Minus (sein Crossface), Arme +1: deine Ellbogen sind schon innen – so bleibt die Lektion lösbar.
+    start: { pos: "side", top: "o", board: { kopf: -1, arme: 1 } },
     goal: [
       { pos: "guard", role: "bottom" },
       { pos: "half", role: "bottom" },
