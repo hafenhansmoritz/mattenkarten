@@ -1,0 +1,177 @@
+/* Fürs Gym – Positionsspiele, Partner-Modus, Trainer-Modus, Wochenthema. Tokens aus theme.css. */
+
+.gy-screen { gap: 14px; }
+.gy-kicker { color: var(--points); }
+.gy-h3 { margin: 6px 0 2px; font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.gy-go { font-size: 28px; color: var(--points); line-height: 1; }
+
+/* NUR MIT TRAINER */
+.gy-badge {
+  display: inline-flex; align-items: center; gap: 4px; align-self: flex-start;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  padding: 3px 8px; border-radius: var(--radius-pill);
+  color: var(--text-ink); background: var(--points); box-shadow: 0 0 0 2px color-mix(in srgb, var(--points) 30%, transparent);
+}
+.gy-badge::before { content: "●"; color: var(--danger); font-size: 9px; }
+.gy-badge.big { font-size: 14px; padding: 6px 12px; }
+.gy-trainer-note {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: var(--radius);
+  background: color-mix(in srgb, var(--points) 10%, var(--surface)); border: 1px dashed color-mix(in srgb, var(--points) 60%, transparent);
+}
+.gy-trainer-note p { margin: 0; }
+
+/* Übersicht */
+.gy-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gy-tile {
+  display: flex; flex-direction: column; gap: 6px; text-align: left; font: inherit; color: var(--text); cursor: pointer;
+  padding: 14px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); min-height: 140px;
+}
+.gy-tile strong { font-size: 22px; }
+.gy-tile:hover { background: var(--surface-2); }
+.gy-code-cta {
+  text-align: left; font: inherit; color: var(--text); cursor: pointer; padding: 12px 14px; border-radius: var(--radius);
+  background: var(--surface-2); border: 1px solid var(--line-strong);
+}
+
+/* Wochenthema-Karte */
+.gy-week-card {
+  display: grid; grid-template-columns: auto 1fr 24px; align-items: center; gap: 12px; width: 100%;
+  text-align: left; font: inherit; color: var(--text); cursor: pointer; padding: 12px 14px 12px 10px;
+  border-radius: var(--radius-lg); border: 1px solid color-mix(in srgb, var(--gas) 50%, transparent);
+  background: radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--gas) 20%, transparent), transparent 55%), linear-gradient(135deg, var(--surface-2), var(--surface));
+  box-shadow: var(--shadow-2);
+}
+.gy-week-card:not(:has(.gy-week-fig)) { grid-template-columns: 1fr 24px; }
+.gy-week-card .gy-kicker { color: var(--gas); }
+.gy-week-fig { width: 84px; display: block; overflow: hidden; border-radius: var(--radius); background: linear-gradient(180deg, var(--mat-a), var(--mat-b)); }
+.gy-week-fig svg, .gy-game-fig svg, .gy-game-scene svg, .gy-tr-scene svg { width: 100%; height: auto; display: block; }
+.gy-week-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.gy-week-txt strong { font-size: 26px; }
+.gy-week-scenes { display: flex; gap: 8px; }
+.gy-week-scenes .gy-week-fig { flex: 1 1 0; width: auto; max-width: 180px; }
+.gy-sec { display: flex; flex-direction: column; gap: 8px; }
+
+/* Filter-Chips */
+.gy-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.gy-chips button {
+  font: inherit; font-size: 14px; color: var(--text); cursor: pointer; min-height: 38px; padding: 6px 12px;
+  border-radius: var(--radius-pill); background: var(--surface-2); border: 1px solid var(--line);
+}
+.gy-chips button.on { background: color-mix(in srgb, var(--gas) 22%, var(--surface-2)); border-color: var(--gas); font-weight: 700; }
+
+/* Spiel-Liste */
+.gy-game-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.gy-game-row {
+  width: 100%; display: grid; grid-template-columns: 76px 1fr 20px; gap: 10px; align-items: center; text-align: left;
+  font: inherit; color: var(--text); cursor: pointer; padding: 8px 10px 8px 8px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line);
+}
+.gy-game-row:hover { background: var(--surface-2); }
+.gy-game-fig { display: block; overflow: hidden; border-radius: var(--radius-sm); background: linear-gradient(180deg, var(--mat-a), var(--mat-b)); }
+.gy-game-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gy-game-txt strong { font-size: 17px; }
+
+/* Spiel-Detail */
+.gy-game { display: flex; flex-direction: column; gap: 10px; }
+.gy-game-scene { position: relative; overflow: hidden; border-radius: var(--radius-lg); background: linear-gradient(180deg, var(--mat-a), var(--mat-b)); }
+.gy-game-scene .gy-badge { position: absolute; top: 10px; left: 10px; }
+.gy-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gy-role { padding: 10px 12px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--gi-p); }
+.gy-role.b { border-top-color: var(--gi-o); }
+.gy-role p { margin: 4px 0 0; }
+.gy-rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.gy-meta { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 0; }
+.gy-meta div { display: contents; }
+.gy-meta dt { font-family: var(--font-mono); font-size: 12px; color: var(--text-2); text-transform: uppercase; padding-top: 2px; }
+.gy-meta dd { margin: 0; font-weight: 700; }
+.gy-safety { margin: 0; }
+.gy-sources summary { cursor: pointer; font-weight: 700; }
+.gy-sources ul { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.gy-sources a { color: var(--text); }
+.gy-mark { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-radius: var(--radius-xs); background: var(--surface-3); }
+.gy-mark.m-belegt { background: color-mix(in srgb, var(--gas) 25%, transparent); }
+.gy-mark.m-Marketing, .gy-mark.m-ungeprüft { background: color-mix(in srgb, var(--danger) 22%, transparent); }
+
+/* Auswahl-Listen */
+.gy-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.gy-pick-btn {
+  font: inherit; color: var(--text); cursor: pointer; min-height: 44px; padding: 8px 14px; text-align: left;
+  border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line-strong);
+}
+.gy-pick-btn:hover { background: var(--surface-2); }
+
+/* Wochenthema erstellen / eingeben */
+.gy-check-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.gy-check-list button {
+  width: 100%; display: flex; gap: 10px; align-items: center; text-align: left; font: inherit; color: var(--text);
+  cursor: pointer; min-height: 44px; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--line);
+}
+.gy-check-list button.on { border-color: var(--gas); background: color-mix(in srgb, var(--gas) 14%, var(--surface-2)); }
+.gy-check-list button.on .pg-box { background: var(--gas); border-color: var(--gas); color: var(--text-ink); }
+.gy-share { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }
+.gy-share strong { font-size: 26px; }
+.gy-code-in {
+  width: 100%; font: inherit; font-family: var(--font-mono); font-size: 16px; color: var(--text); padding: 12px;
+  border-radius: var(--radius-sm); background: var(--bg); border: 1px solid var(--line-strong);
+}
+.gy-err { color: var(--danger); margin: 0; }
+.gy-import h2 { font-size: 34px; }
+
+/* ---------- Partner-Modus (Vorleser) ---------- */
+.gy-reader-head { display: flex; flex-direction: column; gap: 4px; }
+.gy-reader-title { font-size: 30px; margin: 0; }
+.gy-progress { display: flex; gap: 3px; }
+.gy-progress i { flex: 1; height: 5px; border-radius: 3px; background: var(--surface-3); }
+.gy-progress i.done { background: var(--gas); }
+.gy-progress i.now { background: var(--points); }
+.gy-read-card {
+  min-height: 300px; display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  padding: 22px 18px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line);
+}
+.gy-read-card.who-a { border-left: 6px solid var(--gi-p); }
+.gy-read-card.who-b { border-left: 6px solid var(--gi-o); }
+.gy-read-card.timer { justify-content: flex-start; padding: 14px; }
+.gy-read-card.swap, .gy-read-card.done { align-items: center; text-align: center; }
+.gy-read-text { margin: 0; font-size: clamp(26px, 7.4vw, 40px); line-height: 1.22; font-weight: 700; }
+.gy-swap-ico { font-size: 64px; color: var(--points); line-height: 1; }
+.gy-cues ul { margin: 4px 0 0; padding-left: 20px; font-size: 22px; font-weight: 700; }
+.gy-reader-nav { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+
+/* ---------- Trainer-Modus (Beamer, quer) ---------- */
+.gy-trainer {
+  position: fixed; inset: 0; z-index: 50; display: grid; grid-template-rows: auto 1fr auto; gap: 1.5vh;
+  padding: 2vh 3vw; background: var(--bg); color: var(--text); overflow: hidden;
+}
+.gy-tr-bar { display: flex; align-items: center; gap: 12px; }
+.gy-tr-keys { margin-left: auto; }
+.gy-tr-slide { display: grid; grid-template-columns: 1.1fr 1fr; gap: 3vw; align-items: center; min-height: 0; }
+.gy-tr-scene { position: relative; overflow: hidden; border-radius: var(--radius-lg); background: linear-gradient(180deg, var(--mat-a), var(--mat-b)); max-height: 76vh; }
+.gy-tr-scene .gy-badge { position: absolute; top: 2vh; left: 2vh; font-size: clamp(14px, 1.6vw, 24px); }
+.gy-tr-text { display: flex; flex-direction: column; gap: 2vh; min-width: 0; }
+.gy-tr-kicker { font-size: clamp(14px, 1.5vw, 22px); color: var(--points); }
+.gy-tr-title { font-size: clamp(36px, 5.2vw, 88px); margin: 0; }
+.gy-tr-p { margin: 0; font-size: clamp(22px, 2.7vw, 46px); line-height: 1.25; font-weight: 700; }
+.gy-tr-list { margin: 0; padding-left: 1.2em; font-size: clamp(20px, 2.3vw, 40px); line-height: 1.3; display: flex; flex-direction: column; gap: 1vh; }
+.gy-tr-safety {
+  margin: 0; font-size: clamp(16px, 1.7vw, 28px); padding: 1.2vh 1.4vw; border-radius: var(--radius);
+  background: color-mix(in srgb, var(--danger) 16%, transparent); border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+}
+.gy-tr-nav { display: flex; align-items: center; gap: 16px; justify-content: center; }
+.gy-tr-nav .btn { min-width: 88px; font-size: 28px; }
+.gy-tr-dots { display: flex; gap: 6px; }
+.gy-tr-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-3); }
+.gy-tr-dots i.on { background: var(--points); }
+.gy-tr-rotate { display: none; text-align: center; margin: 0; color: var(--text-2); }
+.gy-trainer.blank { background: #000; }
+.gy-trainer.blank .gy-tr-bar, .gy-trainer.blank .gy-tr-nav { opacity: .15; }
+.gy-tr-blankbtn { border: 0; background: #000; cursor: pointer; }
+
+@media (orientation: portrait) {
+  .gy-tr-slide { grid-template-columns: 1fr; align-content: start; }
+  .gy-tr-scene { max-height: 34vh; }
+  .gy-tr-keys { display: none; }
+  .gy-tr-rotate { display: block; }
+  .gy-tr-title { font-size: clamp(30px, 9vw, 56px); }
+  .gy-tr-p { font-size: clamp(20px, 5.4vw, 34px); }
+  .gy-tr-list { font-size: clamp(18px, 5vw, 30px); }
+}
+@media (max-width: 380px) { .gy-tiles, .gy-roles { grid-template-columns: 1fr; } }

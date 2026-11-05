@@ -24,9 +24,10 @@ import { useInstallPrompt } from "./pwa";
 import { unlockAudio } from "./sound";
 import { Sammlung } from "./core2/collection/Sammlung";
 import { DailyScreen } from "./core2/daily/DailyScreen";
+import { GymScreen, type GymStart } from "./gym/GymScreen";
 
 type Tab = "kampagne" | "raetsel" | "deck" | "mehr";
-type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "daily" | "warmup";
+type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "daily" | "warmup" | "gym";
 const TAB_LABEL: Record<Tab, string> = { kampagne: "Kampagne", raetsel: "Rätsel", deck: "Deck", mehr: "Mehr" };
 
 export function App() {
@@ -37,10 +38,13 @@ export function App() {
   const [unlocked, setUnlocked] = useState<string[] | null>(null);
   const [lesson, setLesson] = useState<string[] | null>(null);
   const [journeyStart, setJourneyStart] = useState<JourneyStart>("home");
+  const [gymStart, setGymStart] = useState<GymStart>("home");
   const belt = BELTS[currentBeltIndex(g.beaten)];
 
   // Geteiltes Deck per Link (#deck=…) öffnet direkt den Teilen-Bildschirm
   useEffect(() => { if (readDeckFromHash()) setScreen("share"); }, []);
+  // Wochenthema per Link (#gym=…) öffnet „Fürs Gym“ mit Übernehmen-Dialog
+  useEffect(() => { if (/(?:^#|&)gym=/.test(location.hash)) setScreen("gym"); }, []);
   // iOS: Audio beim ersten Tippen entsperren
   useEffect(() => {
     const once = () => { unlockAudio(); window.removeEventListener("pointerdown", once); };
@@ -72,8 +76,9 @@ export function App() {
   if (screen === "daily") return <DailyScreen onBack={back} />;
   if (screen === "sammlung") return <div className="app"><main className="main"><Sammlung onBack={back} /></main></div>;
   if (screen === "impressum" || screen === "datenschutz") return <div className="app"><main className="main"><LegalScreen page={screen} onBack={back} /></main></div>;
+  if (screen === "gym") return <GymScreen start={gymStart} onBack={() => { setGymStart("home"); back(); }} />;
   if (screen === "warmup") return <div className="pg-wrap"><WarmupScreen onBack={back} /></div>;
-  if (screen === "start") return <div className="pg-wrap"><ProgramScreen onBack={back} onJourney={openJourney} onLeglock={() => setScreen("leglock")} /></div>;
+  if (screen === "start") return <div className="pg-wrap"><ProgramScreen onBack={back} onJourney={openJourney} onLeglock={() => setScreen("leglock")} onGym={() => { setGymStart("week"); setScreen("gym"); }} /></div>;
   if (screen === "leglock") return <div className="pg-wrap"><LeglockScreen onBack={back} /></div>;
   if (screen === "journey" || screen === "training") return <div className="pg-wrap"><JourneyScreen start={screen === "training" ? "training" : journeyStart} onBack={back} /></div>;
 
@@ -126,6 +131,7 @@ function MoreMenu({ open }: { open: (s: Screen) => void }) {
     { s: "warmup", title: "Aufwärmen", text: "5 Minuten No-Gi mit Timer: Brücke, Shrimp, Sprawl, Technical Stand-up, Fallen aus dem Sitz." },
     { s: "hotseat", title: "Duell zu zweit", text: "Am selben Handy gegeneinander – verdeckt wählen, gleichzeitig aufdecken." },
     { s: "coach", title: "KI-Coach", text: "Frag nach Positionen, Techniken und Regeln – in einfachen Worten." },
+    { s: "gym", title: "Fürs Gym", text: "Positionsspiele für den Trainer, Partner-Modus zum Vorlesen, Beamer-Ansicht und Wochenthema per Code." },
     { s: "share", title: "Deck teilen", text: "Dein Deck als Code oder Link verschicken – oder eins übernehmen." },
     { s: "trainer", title: "Für Trainer", text: "Prüfliste aller Inhalte, die eine Trainer-Bestätigung brauchen." },
     { s: "daily", title: "Tages-Challenge", text: "Jeden Tag eine neue Lage aus der Körperkarte. Ein Versuch zählt, üben darfst du immer." },

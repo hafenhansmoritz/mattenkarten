@@ -20,6 +20,7 @@ import {
 } from "./store";
 import { ReviewCard, type JourneyStart } from "../journey/JourneyScreen";
 import { LeglockCard } from "../leglock/LeglockScreen";
+import { GymWeekCard } from "../gym/GymScreen";
 import "./program.css";
 
 const ALL_LESSONS: TutorialK2Def[] = [...TUTORIALS_K2, ...LESSONS_PROGRAM];
@@ -39,7 +40,7 @@ function lessonTitle(l: LessonRef): string {
 
 type View = { kind: "home" } | { kind: "day"; n: number } | { kind: "final" } | { kind: "warmup" };
 
-export function ProgramScreen({ onBack, onJourney, onLeglock }: { onBack: () => void; onJourney?: (v: JourneyStart) => void; onLeglock?: () => void }) {
+export function ProgramScreen({ onBack, onJourney, onLeglock, onGym }: { onBack: () => void; onJourney?: (v: JourneyStart) => void; onLeglock?: () => void; onGym?: () => void }) {
   const [p, update] = useProgram();
   const [view, setView] = useState<View>({ kind: "home" });
   const [sel, setSel] = useState(() => Math.min(currentDay(p), 7));
@@ -76,6 +77,8 @@ export function ProgramScreen({ onBack, onJourney, onLeglock }: { onBack: () => 
           Kein Profi nach 7 Tagen – aber du gehst <b>sicher und mit Plan</b> in dein erstes Training. Pro Tag etwa 15 Minuten.
         </p>
       </motion.header>
+
+      {onGym && <GymWeekCard onOpen={onGym} />}
 
       <Belt p={p} sel={sel} onSelect={setSel} />
 

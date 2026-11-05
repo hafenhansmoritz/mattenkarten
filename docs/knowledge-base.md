@@ -665,9 +665,37 @@ Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`
 - **Sprawl → Front Headlock:** Nach dem Sprawl ist der Front Headlock die naheliegende Fortsetzung (Kinngriff, Gewicht hinter seinen Nacken, andere Hand zieht den Ellbogen weg) ([Evolve MMA – 5 Ways To Counter Takedowns](https://evolve-mma.com/blog/5-ways-to-counter-takedowns-in-no-gi-bjj/)). Dass das nur mit vorheriger Kopf-Führung (Kopf +1) klappt, ist Spielregel [Trainer prüfen].
 - **Back Take aus der Turtle mit Hüfte +1:** didaktische Ableitung (erst Gewicht/Kontrolle, dann Haken; Gewicht auf dem Rücken sperrt das Raussitzen). Die Evolve-MMA-Turtle-Übersicht betont oben Oberkörperkontrolle mit beiden Händen und Geduld, nennt aber keinen Hüftdruck vor den Haken [Trainer prüfen].
 
+### 8.13 Positionsspiele für das Training (Recherche 2026-11-06)
+
+Umgesetzt in `src/gym/` (Schritte 53, 58, 59, 60): 12 Positionsspiele, Partner-Modus „Vorleser“, Trainer-Modus (Beamer) und Gym-Code fürs Wochenthema.
+
+**Was die Quellen sagen**
+- **Situational Sparring:** Start in einer festen Lage, klar definierte Endpunkte, dann Reset. Beispiel Turtle: oben mit Seatbelt-Griff, oben gewinnt mit Back Take und Würger, unten, wenn die Brust vom Rücken weg ist. Ergänzt freies Sparring, ersetzt es nicht. — [Grapplearts](https://www.grapplearts.com/situational-sparring-and-positional-drilling/) · belegt
+- **Specific Training (Gracie Barra):** Lage aus dem Thema der Stunde, Ziel je Rolle (unten: Guard halten, sweepen, beenden; oben: passieren), Reset nach Erfolg, Wechsel nach 3-Minuten-Runden. „best way for new students to get a taste of live rolling“ (sinngemäß als Einstieg für Neue). — [Gracie Barra](https://graciebarra.com/2015/09/training-method) · [Marketing: Verbands-Blog]
+- **Aufbau eines CLA-Spiels:** Rollen mit Haupt- und Nebenaufgabe, Einschränkungen (z. B. oben „Knie nicht auf die Matte“, unten nur Rahmen), Zeitrunden, dann stufenweise steigern; nicht überregeln, sondern beobachten. — [A Coat of Red Paint (Substack)](https://acoatofredpaintinhell.substack.com/p/how-to-design-an-ecological-dynamics) · [Sekundär]
+- **Greg Souders (Constraints-Led Approach):** Steriles Drillen nehme Timing, Druck und Widerstand weg; Spiele „contextualize and scale live resistance“; Trainer wird Gestalter der Übung. Konkrete Spiele nennt der Bericht nicht. — [BJJ Doc](https://bjjdoc.com/?p=20524) · [Sekundär]
+- **Gegenstimme / Mittelweg:** Nicky Ryan nutzt Positionsrunden mit Einschränkungen, gibt gezieltes Feedback und lässt die Mechanik trotzdem „a little bit“ drillen. — [BJJEE](https://www.bjjee.com/bjj-news/nicky-ryan-talks-eco-approach-to-bjj-i-like-what-gregs-doing-but-id-do-it-differently/) · [Sekundär]
+- **Spiele für Neue (Forum):** Mount halten mit Händen auf der Matte, Side Control ohne Griffe (Hände nur zum Balancieren), „einfach aufstehen“, Fuß-Tippen im Stand, Half Guard mit Underhook, Closed Guard: Haltung/aufstehen. — [r/bjj](https://www.reddit.com/r/bjj/comments/1in41nq/which_positional_round_is_simple_and_fun_for_new/) · [ungeprüft: Forum]
+- **Studio-Beispiel:** Ablauf mit Zielen je Partner und Neustart nach Erfolg. — [TNBJJ](https://tnbjj.com/linkedpages/gameplan.html) · [Marketing]
+- **Sicherheit beim Sparring:** Sparring ist Training, kein Wettkampf; früh abklopfen; Abstand zu anderen Paaren und Wänden; sag, dass du neu bist. — [Evolve MMA](https://evolve-mma.com/blog/11-things-you-should-know-before-you-start-sparring-bjj/) · [Marketing]. BJJ beginnt mit „controlled positional drilling“; Trainer schaut zu, paart sinnvoll und stoppt zu harte Runden. Für frühes Striking-Sparring nennt die Seite 25–50 % Kraft. — [KD MMA](https://www.kdmma.com/blog/do-beginners-spar) · [Marketing]
+- **Kurs/Podcasts ohne prüfbaren Inhalt:** Kabir Bath (1-800-BJJ-HELP #73, Spiele-Design, CLA) — [Buzzsprout](https://1800bjjhelp.buzzsprout.com/2073008/episodes/14550941-73-kabir-bath-how-to-design-games-to-improve-faster-constraint-led-approach-and-joysticking); Rob Gray („How We Learn to Move“) — nur Buchrezension gefunden: [Coaching VB](https://coachingvb.com/book-review-how-we-learn-to-move-by-rob-gray/). Beides [ungeprüft], keine Aussage im Spiel stützt sich darauf.
+- **Studienlage:** Erste BJJ-Studie zur CLA misst nur Physis und Belastung, nicht Technik-Lernen (siehe Tabelle in Abschnitt 6, Giardullo et al. 2026). Wirksamkeit für Anfänger ist damit **nicht belegt**.
+
+**Widerspruch Intensität:** Cursa nennt für Anfänger im freien Rollen 60–70 % ([Cursa](https://cursa.app/en/page/bjj-starter-guide-safety-tapping-and-positional-priorities)). Gracie Barra beschreibt Specific Training mit vollem Widerstand. Mattenkarten setzt für die Spiele bewusst **30–50 %** an [Design]: Die Spiele sind für die ersten Monate, die Lage ist neu, und es gibt keine Aufgabegriffe. Der Trainer entscheidet.
+
+**Regeln in der App [Design]**
+- Jedes Spiel trägt „NUR MIT TRAINER“ und den Satz „Zeig das deinem Trainer. Frag, ob ihr das zusammen spielen könnt.“ (Test in `src/gym/gym.test.ts`).
+- Keine Aufgabegriffe, keine Würger, keine Würfe, keine Slams, keine Hand am Hals; je Spiel eine Sicherheitszeile.
+- Startlage, Ziel für beide Rollen, 2–4 Regeln, Intensität 30–50 %, Dauer (2 Runden je Rolle, dann tauschen).
+- Kein Spiel für den Front Headlock (Nackenrisiko für Anfänger).
+- Alle Spielformen sind eigene Auswahl aus den Quellen → `check: true`, Trainer prüfen (Abschnitt 9).
+
 ## 9. Offene Prüfpunkte
 
 Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätigen, bevor es ohne `check`-Feld in Karten erscheint.
+
+**Positionsspiele (8.13)**
+- Alle 12 Spiele in `src/gym/games.ts` (Spielform, Regeln, Intensität 30–50 %, Dauer) sind eigene Auswahl → Trainer prüfen, bevor sie empfohlen werden.
 
 **Regeln und Punkte**
 1. ~~Offizielle IBJJF-Liste verbotener Techniken~~ erledigt 2026-11-05 (8.12.2): Single Leg mit Kopf außen ist für Weißgurte verboten, wird aber nicht bestraft; Jumping Guard für alle Weißgurte verboten. Offen: Gibt es eine neuere Liste als VRS 4.0 (2024)?
@@ -878,6 +906,16 @@ Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätig
 - https://iris.univr.it/handle/11562/1195070
 - https://doaj.org/article/29969cbccca646d3a8e8bb9fac71494a
 - https://acoatofredpaintinhell.substack.com/p/how-to-design-an-ecological-dynamics
+- https://www.grapplearts.com/situational-sparring-and-positional-drilling/
+- https://graciebarra.com/2015/09/training-method
+- https://bjjdoc.com/?p=20524
+- https://www.bjjee.com/bjj-news/nicky-ryan-talks-eco-approach-to-bjj-i-like-what-gregs-doing-but-id-do-it-differently/
+- https://www.reddit.com/r/bjj/comments/1in41nq/which_positional_round_is_simple_and_fun_for_new/
+- https://tnbjj.com/linkedpages/gameplan.html
+- https://evolve-mma.com/blog/11-things-you-should-know-before-you-start-sparring-bjj/
+- https://www.kdmma.com/blog/do-beginners-spar
+- https://1800bjjhelp.buzzsprout.com/2073008/episodes/14550941-73-kabir-bath-how-to-design-games-to-improve-faster-constraint-led-approach-and-joysticking
+- https://coachingvb.com/book-review-how-we-learn-to-move-by-rob-gray/
 - https://www.sonnybrown.net/5y8l
 - https://letsroll.co/seminars/ecological-dynamics-constraints-led-approach-to-bjj-defens-2026-10
 - https://www.judoscotland.com/event/ecological-dynamics-and-the-constraints-led-approach-for-judo-coaches/
