@@ -45,7 +45,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
   const sel = selected ? cards.find((c) => c.id === selected) ?? null : null;
 
   return (
-    <div className={["k2-hand", className].filter(Boolean).join(" ")}>
+    <div lang="de" className={["k2-hand", className].filter(Boolean).join(" ")}>
       <div className="k2-hand-cols">
         {ZONES.map((z) => {
           const col = cards.filter((c) => c.zone === z && visibleSet.has(c.id));

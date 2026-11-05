@@ -5,6 +5,7 @@ import { ZONES } from "../types";
 import { boardFor, other, posValue, roleOf } from "./board";
 import { cardsOfSlot, checkCard, okCards, PASS, threats } from "./legal";
 import { cardById } from "./registry";
+import { resolveRound } from "./resolve";
 
 function pick<T>(arr: T[], rng: () => number): T {
   return arr[Math.floor(rng() * arr.length) % arr.length];
@@ -74,7 +75,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     const t = thr.find((x) => x.zone === c.zone);
     const sub = foeSubs.find((x) => x.zone === c.zone);
     if (sub) v += 3 + sub.step * 3;
-    if (t) v += 2.5 + (rng() < 0.5 ? 2 : 0) + (b[c.zone] < 0 ? 1 : 0);
+    // Mit Wahrscheinlichkeit verteidigen (sonst spiegeln sich zwei KIs in Rahmen=Rahmen-Patts).
+    if (t) v += 1 + (rng() < 0.4 ? 3 : 0) + (b[c.zone] < 0 ? 1 : 0) + (t.cardIds.some((id) => cardById(id)?.to?.points) ? 0.5 : 0);
     if (!t && !sub) v -= 4; // Rahmen ins Leere
     v += (c.gain ?? 1) * 0.3;
   }
@@ -106,10 +108,58 @@ export function aiChoose(s: State2, side: Side, level: 1 | 2 | 3, rng: () => num
     const sensible = ok.filter((c) => c.kind !== "rahmen" || thrZones.has(c.zone) || subZones.has(c.zone));
     return pick(sensible.length ? sensible : ok, rng).id;
   }
+  if (level === 3) return lookahead(s, side, ok, rng);
   let best = ok[0], bestV = -Infinity;
   for (const c of ok) {
     const v = scoreCard(s, side, c, level, rng);
     if (v > bestV) { bestV = v; best = c; }
+  }
+  return best.id;
+}
+
+/** Bewertung eines Zustands aus Sicht von side. */
+export function evaluate(s: State2, side: Side): number {
+  const foe = other(side);
+  if (s.result) {
+    const w = s.result.winner;
+    return w === side ? 1000 : w === foe ? -1000 : 0;
+  }
+  const b = boardFor(s, side);
+  let v = (s[side].pts - s[foe].pts) * 4 + posValue(s.pos, roleOf(s, side)) * 2.5;
+  for (const z of ZONES) v += b[z] * 1.2;
+  for (const t of s.subs) v += (t.owner === side ? 1 : -1) * t.step * t.step * 3;
+  v += (s[side].kraft - s[foe].kraft) * 0.3;
+  // Offensive Optionen (eigene ok-Angriffe) zählen, gegnerische Bedrohungen kosten.
+  v += okCards(s, side).filter((c) => c.kind === "angriff").length * 0.8;
+  v -= okCards(s, foe).filter((c) => c.kind === "angriff").length * 0.8;
+  return v;
+}
+
+/** Gegnermodell für Stufe 3: Heuristik-Werte des Gegners, verschoben durch seine Zonen-Gewohnheiten. */
+function foeModel(s: State2, side: Side, rng: () => number): { card: Card2; w: number }[] {
+  const foe = other(side);
+  const ok = okCards(s, foe);
+  const hab = foeZoneHabits(s, side);
+  const sc = ok.map((c) => scoreCard(s, foe, c, 2, rng) + hab[c.zone] * 0.4);
+  const max = Math.max(...sc);
+  const ws = sc.map((x) => Math.exp((x - max) / 1.5));
+  const sum = ws.reduce((a, b) => a + b, 0);
+  return ok.map((card, i) => ({ card, w: ws[i] / sum }));
+}
+
+/** Stufe 3: eine Runde vorausrechnen gegen das Gegnermodell (liest Historie, Sperren und threats). */
+function lookahead(s: State2, side: Side, ok: Card2[], rng: () => number): string {
+  const model = foeModel(s, side, rng);
+  let best = ok[0], bestV = -Infinity;
+  for (const c of ok) {
+    let ev = 0;
+    if (model.length === 0) ev = evaluate(resolveRound(s, side === "p" ? c.id : PASS, side === "p" ? PASS : c.id).state, side);
+    for (const { card, w } of model) {
+      const [pc, oc] = side === "p" ? [c.id, card.id] : [card.id, c.id];
+      ev += w * evaluate(resolveRound(s, pc, oc).state, side);
+    }
+    ev += rng() * 0.3;
+    if (ev > bestV) { bestV = ev; best = c; }
   }
   return best.id;
 }
