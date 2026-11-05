@@ -1,6 +1,6 @@
 // Tag 7: Prüfung – 12 gemischte Fragen, je Bereich 3. Bestehen: ≥ 80 % je Bereich (Schwelle = Hypothese, Recherche 2).
 import { mulberry32, shuffle } from "../engine/rng";
-import { AREA_LABEL, QUESTIONS, TOPIC_AREA, type Area, type Question } from "./questions";
+import { ALL_QUESTIONS as QUESTIONS, AREA_LABEL, TOPIC_AREA, type Area, type Question } from "./questions";
 
 export const AREAS = Object.keys(AREA_LABEL) as Area[];
 export const EXAM_PER_AREA = 3;

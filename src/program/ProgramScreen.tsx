@@ -96,7 +96,7 @@ export function ProgramScreen({ onBack }: { onBack: () => void }) {
                 <span className="muted small">
                   {i === 0 ? (day.warmup.length ? ` · ${day.warmup.length} Fragen zu früheren Tagen` : " · heute noch nicht")
                     : i === 1 ? ` · ${day.lessons.map(lessonTitle).join(" + ")}`
-                    : i === 2 ? ` · ${day.puzzle.length} Situationen`
+                    : i === 2 ? ` · ${day.puzzle.length + (day.pics?.length ?? 0)} Situationen${day.pics?.length ? ", davon " + day.pics.length + " Bilder" : ""}`
                     : ` · ${day.drill.title}`}
                 </span>
               </li>
@@ -204,6 +204,11 @@ function DayRun({ day, p, update, onExit }: {
   const [examRes, setExamRes] = useState<QuizResult[] | null>(null);
   const [examSeed, setExamSeed] = useState(() => Date.now() % 100000);
   const [boss, setBoss] = useState(false);
+  const [timed, setTimed] = useState(() => { try { return localStorage.getItem("mk-timed") === "1"; } catch { return false; } });
+  const toggleTimed = () => setTimed((v) => {
+    try { localStorage.setItem("mk-timed", v ? "0" : "1"); } catch { /* egal */ }
+    return !v;
+  });
   const exam = useMemo(() => (isExam ? buildExam(examSeed) : []), [isExam, examSeed]);
 
   // Kern-2-Lektion als Vollbild
@@ -278,7 +283,13 @@ function DayRun({ day, p, update, onExit }: {
           {step === "puzzle" && (
             <>
               <p className="pg-lead">Rätsel: Welche Antwort passt in dieser Lage?</p>
-              <Quiz ids={day.puzzle} kicker="Rätsel" onDone={go} />
+              {day.n >= 4 && (
+                <button type="button" className={`pg-timed-toggle${timed ? " on" : ""}`} aria-pressed={timed} onClick={toggleTimed}>
+                  <span><b>Zeitdruck</b> <span className="small muted">· 8 Sekunden pro Frage. Zu spät? Die Frage kommt noch einmal.</span></span>
+                  <span className="pg-switch" aria-hidden="true" />
+                </button>
+              )}
+              <Quiz ids={[...day.puzzle, ...(day.pics ?? [])]} kicker="Rätsel" onDone={go} timed={day.n >= 4 && timed ? 8 : undefined} />
             </>
           )}
 
@@ -347,6 +358,9 @@ function LessonIntro({ t, idx, count, lost, onStart, onSkip }: {
 }
 
 function DrillCard({ day, onChoose }: { day: ProgramDay; onChoose: (d: "done" | "later") => void }) {
+  const [ticked, setTicked] = useState<number[]>([]);
+  const { checks, mistakes } = day.drill;
+  const allTicked = checks.length > 0 && ticked.length === checks.length;
   return (
     <div className="pg-panel pg-drill">
       <span className="label">Matten-Drill · ca. 2–4 Minuten</span>
@@ -357,6 +371,29 @@ function DrillCard({ day, onChoose }: { day: ProgramDay; onChoose: (d: "done" | 
         ))}
       </ol>
       <p className="pg-safety small"><b>Sicherheit:</b> {day.drill.safety}</p>
+      <section className="pg-selfcheck" aria-label="Selbst-Check">
+        <h4>Selbst-Check <span className="muted small">· nach dem Drill abhaken ({ticked.length}/{checks.length})</span></h4>
+        <ul>
+          {checks.map((c, i) => {
+            const on = ticked.includes(i);
+            return (
+              <li key={i}>
+                <button type="button" className={on ? "on" : ""} aria-pressed={on}
+                  onClick={() => { sfx.select(); setTicked((t) => (on ? t.filter((x) => x !== i) : [...t, i])); }}>
+                  <span className="pg-box">{on ? "✓" : ""}</span>
+                  <span>{c.text}{c.check && <span className="pg-check-flag small"> (Trainer fragen)</span>}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="small"><b>Typische Fehler:</b></p>
+        <ul className="pg-mistakes small">
+          {mistakes.map((m, i) => <li key={i}>{m.text}{m.check && <span className="pg-check-flag"> (Trainer fragen)</span>}</li>)}
+        </ul>
+        <p className="pg-film small"><b>Tipp:</b> Film dich mit dem Handy und vergleiche mit den Punkten oben.</p>
+        {allTicked && <p className="pg-hint small">Alles abgehakt – sauber gearbeitet!</p>}
+      </section>
       <div className="pg-row">
         <button className="btn primary big" onClick={() => onChoose("done")}>Gemacht</button>
         <button className="btn big" onClick={() => onChoose("later")}>Später</button>

@@ -6,11 +6,18 @@ export type LessonRef =
   | { kind: "k2"; id: string }      // Kern-2-Lektion (TUTORIALS_K2 oder LESSONS_PROGRAM)
   | { kind: "exam" };               // Tag 7: Prüfung
 
+/** Ein Punkt für den Selbst-Check. check: true = keine direkte Quelle → Trainer prüfen. */
+export interface DrillPoint { text: string; check?: boolean }
+
 export interface Drill {
   title: string;
   /** Schritte, je ≤ 20 Wörter. */
   steps: string[];
   safety: string;
+  /** Selbst-Check nach dem Drill: 2–3 Punkte zum Abhaken. */
+  checks: DrillPoint[];
+  /** Typische Fehler: 1–2. */
+  mistakes: DrillPoint[];
 }
 
 export interface ProgramDay {
@@ -25,9 +32,14 @@ export interface ProgramDay {
   warmup: string[];
   /** Rätsel: 2–3 Fragen zum Thema des Tages. */
   puzzle: string[];
+  /** Bilderrätsel (Tag 1–4): „Wo bist du?“ / „Was ist hier falsch?“ – kommen nach den Rätseln. */
+  pics?: string[];
   drill: Drill;
 }
 
+// Selbst-Check und typische Fehler der Drills: research_notes/7 Tage Startprogramm/notes.md, Abschnitt 3
+// (Grapplearts Solo Drills, JitsuIQ Technical Stand-up, Evolve MMA Breakfalls, BJJ More: ausatmen) und KB 4.5
+// (Frame → Bridge → Shrimp). check: true = nur eigene Ableitung → Trainer prüfen.
 export const DAYS: ProgramDay[] = [
   {
     n: 1, title: "Positionen & Abklopfen",
@@ -36,6 +48,7 @@ export const DAYS: ProgramDay[] = [
     lessons: [{ kind: "map" }],
     warmup: [],
     puzzle: ["q-pos-goal-bottom", "q-tap-when", "q-tap-release"],
+    pics: ["qi-where-side", "qi-where-back"],
     drill: {
       title: "Brücke",
       steps: [
@@ -44,6 +57,14 @@ export const DAYS: ProgramDay[] = [
         "3 Runden à 1 Minute, dazwischen 1 Minute Pause.",
       ],
       safety: "Gewicht auf Schultern und Füßen, nie auf dem Nacken. Und: Tap heißt sofort loslassen.",
+      checks: [
+        { text: "Du drückst über Schultern und Füße, nicht über den Kopf.", check: true },
+        { text: "Hüfte ruhig hoch und langsam ab – nicht reißen." },
+        { text: "Beim Hochgehen ausatmen." },
+      ],
+      mistakes: [
+        { text: "Gewicht rutscht auf den Nacken.", check: true },
+      ],
     },
   },
   {
@@ -53,6 +74,7 @@ export const DAYS: ProgramDay[] = [
     lessons: [{ kind: "k2", id: "k2-raus-von-unten" }],
     warmup: ["q-pos-best", "q-pos-guard-name", "q-tap-how"],
     puzzle: ["q-mount-first", "q-mount-upa-trap", "q-mount-switch"],
+    pics: ["qi-mount-elbows", "qi-mount-turn"],
     drill: {
       title: "Shrimp am Platz",
       steps: [
@@ -61,6 +83,15 @@ export const DAYS: ProgramDay[] = [
         "Zurück in die Mitte, dann die andere Seite. 3 Runden à 1 Minute.",
       ],
       safety: "Langsam und ruhig. Beim Bewegen ausatmen.",
+      checks: [
+        { text: "Der Fuß drückt ab, die Hüfte rutscht zur Seite." },
+        { text: "Beide Seiten gleich oft." },
+        { text: "Beim Bewegen ausatmen." },
+      ],
+      mistakes: [
+        { text: "Nur die Schultern bewegen sich, die Hüfte bleibt liegen.", check: true },
+        { text: "Immer nur die Lieblingsseite üben." },
+      ],
     },
   },
   {
@@ -70,6 +101,7 @@ export const DAYS: ProgramDay[] = [
     lessons: [{ kind: "k2", id: "p-side-escape" }],
     warmup: ["q-mount-no-back", "q-mount-breathe", "q-pos-mount-name", "q-tap-dizzy"],
     puzzle: ["q-side-order", "q-side-goal", "q-side-underhook"],
+    pics: ["qi-side-flat", "qi-where-half"],
     drill: {
       title: "Shrimp über die Matte + Brücke-Shrimp",
       steps: [
@@ -78,6 +110,13 @@ export const DAYS: ProgramDay[] = [
         "2 Runden à 1 Minute pro Übung.",
       ],
       safety: "Mit Partner nur kooperativ: Er gibt nach, ihr bleibt langsam.",
+      checks: [
+        { text: "Erst brücken, dann shrimpen – nicht beides gleichzeitig." },
+        { text: "Bei jedem Shrimp landet die Hüfte ein Stück weiter weg." },
+      ],
+      mistakes: [
+        { text: "Shrimpen, ohne vorher mit der Brücke Platz zu schaffen." },
+      ],
     },
   },
   {
@@ -87,6 +126,7 @@ export const DAYS: ProgramDay[] = [
     lessons: [{ kind: "k2", id: "p-guard-posture" }],
     warmup: ["q-side-frame", "q-mount-progress", "q-side-shrimp"],
     puzzle: ["q-guard-top-posture", "q-guard-bottom-break", "q-guard-hipbump"],
+    pics: ["qi-guard-posture", "qi-guard-flat"],
     drill: {
       title: "Guard-Haltung + Technical Stand-up",
       steps: [
@@ -95,6 +135,15 @@ export const DAYS: ProgramDay[] = [
         "Je Seite 5 Mal, langsam.",
       ],
       safety: "Rücken gerade. Mit Partner nie am Nacken reißen.",
+      checks: [
+        { text: "Haltung: Knie breit, Rücken gerade, Blick nach vorn." },
+        { text: "Stand-up: Hand hinten stützt, das Bein zieht weit nach hinten durch." },
+        { text: "Beide Seiten geübt, langsam und kontrolliert." },
+      ],
+      mistakes: [
+        { text: "Rund im Rücken, zusammengesunken." },
+        { text: "Hastig aufstehen ohne feste Basis." },
+      ],
     },
   },
   {
@@ -111,6 +160,15 @@ export const DAYS: ProgramDay[] = [
         "Im Sitz: Kinn zur Brust, nach hinten abrollen, Arme schlagen auf. 10 Mal.",
       ],
       safety: "Keine Würfe oder Takedowns mit Partner ohne Trainer. Kinn zur Brust.",
+      checks: [
+        { text: "Beim Fallen bleibt das Kinn auf der Brust." },
+        { text: "Die Arme schlagen auf, wenn der Rücken die Matte berührt." },
+        { text: "Sprawl: Hüfte zur Matte, Beine weit nach hinten." },
+      ],
+      mistakes: [
+        { text: "Der Kopf schlägt nach hinten auf die Matte." },
+        { text: "Luft anhalten statt ausatmen." },
+      ],
     },
   },
   {
@@ -127,6 +185,14 @@ export const DAYS: ProgramDay[] = [
         "Wieder hinsetzen und von vorn. 3 Runden à 1 Minute.",
       ],
       safety: "Aufgaben nie bis zum Druck üben – das gehört in die Halle.",
+      checks: [
+        { text: "Beide Seiten gleich oft." },
+        { text: "Beim Aufstehen ist eine Hand vorn als Schutz." },
+        { text: "Sauber statt schnell." },
+      ],
+      mistakes: [
+        { text: "Schwache Basis beim Aufstehen – du kippst leicht um." },
+      ],
     },
   },
   {
@@ -143,6 +209,14 @@ export const DAYS: ProgramDay[] = [
         "Ruhig atmen, sauber statt schnell.",
       ],
       safety: "Weiche Unterlage. Bei Schmerz sofort stoppen.",
+      checks: [
+        { text: "Brücke ohne Gewicht auf dem Nacken.", check: true },
+        { text: "Beim Fallen Kinn zur Brust." },
+        { text: "Ruhig geatmet, jede Übung beidseitig." },
+      ],
+      mistakes: [
+        { text: "Tempo vor Sauberkeit." },
+      ],
     },
   },
 ];

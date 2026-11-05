@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { mulberry32, shuffle } from "../engine/rng";
 import { FightersK2 } from "../core2/ui/FightersK2";
@@ -19,11 +19,13 @@ function hash(s: string): number {
  * Multiple-Choice mit sofortigem Warum-Feedback.
  * Falsche Antworten kommen am Ende sofort noch einmal (ohne Strafe). Ergebnis = erster Versuch je Frage.
  */
-export function Quiz({ ids, questions, kicker, onDone }: {
+export function Quiz({ ids, questions, kicker, onDone, timed }: {
   ids?: string[];
   questions?: Question[];
   kicker: string;
   onDone: (first: QuizResult[]) => void;
+  /** Zeitdruck: Sekunden pro Frage (z. B. 8). Zu spät = wie falsch: Frage kommt noch einmal, sonst keine Strafe. */
+  timed?: number;
 }) {
   const initial = useMemo<Item[]>(
     () => (questions ?? (ids ?? []).map((id) => Q_BY_ID[id]).filter(Boolean)).map((q, i) => ({ q, retry: false, key: i })),
@@ -33,8 +35,21 @@ export function Quiz({ ids, questions, kicker, onDone }: {
   const [first, setFirst] = useState<QuizResult[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
   const [shake, setShake] = useState(0);
+  const [late, setLate] = useState(false);
   const total = initial.length;
   const item = queue[0];
+  const isAnswered = picked !== null || late;
+
+  // Zeitdruck: nach `timed` Sekunden ohne Antwort → „Zu spät“.
+  useEffect(() => {
+    if (!timed || !item || isAnswered) return;
+    const t = setTimeout(() => {
+      setLate(true);
+      sfx.lose();
+      if (!item.retry) setFirst((f) => [...f, { id: item.q.id, ok: false }]);
+    }, timed * 1000);
+    return () => clearTimeout(t);
+  }, [item?.key, timed, isAnswered]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const order = useMemo(() => {
     if (!item) return [];
@@ -44,8 +59,8 @@ export function Quiz({ ids, questions, kicker, onDone }: {
 
   if (!item) return null;
   const q = item.q;
-  const answered = picked !== null;
-  const ok = picked === q.answer;
+  const answered = isAnswered;
+  const ok = !late && picked === q.answer;
   const doneCount = first.length;
 
   function pick(i: number) {
@@ -60,6 +75,7 @@ export function Quiz({ ids, questions, kicker, onDone }: {
     const rest = queue.slice(1);
     const nq = ok ? rest : [...rest, { q, retry: true, key: item.key + 1000 }];
     setPicked(null);
+    setLate(false);
     if (nq.length === 0) { onDone(first); return; }
     setQueue(nq);
   }
@@ -77,7 +93,18 @@ export function Quiz({ ids, questions, kicker, onDone }: {
           transition={{ duration: 0.22, ease: [0.2, 0.7, 0.2, 1] }}>
           {item.retry && <span className="pg-retry label">Noch einmal – ohne Strafe</span>}
           <span className="pg-topic label">{TOPIC_LABEL[q.topic]}</span>
-          {q.scene && (
+          {q.kind === "image" && q.image && (
+            <div className="pg-qscene pg-qimage" aria-hidden="true">
+              <FightersK2 pos={q.image.pos} top={q.image.top} part={q.image.mark ?? null} />
+              <span className="pg-you small">Du bist <b style={{ color: "var(--gi-p)" }}>blau</b>{q.image.mark ? <> · <b style={{ color: "var(--points)" }}>gelb</b> = schau hier</> : null}</span>
+            </div>
+          )}
+          {timed && !answered && (
+            <div className="pg-timer" role="timer" aria-label={`${timed} Sekunden`}>
+              <motion.i key={item.key} initial={{ scaleX: 1 }} animate={{ scaleX: 0 }} transition={{ duration: timed, ease: "linear" }} />
+            </div>
+          )}
+          {q.kind !== "image" && q.scene && (
             <div className="pg-qscene" aria-hidden="true">
               <FightersK2 pos={q.scene.pos} top={q.scene.top} />
               <span className="pg-you small">Du bist <b style={{ color: "var(--gi-p)" }}>blau</b></span>
@@ -100,7 +127,7 @@ export function Quiz({ ids, questions, kicker, onDone }: {
           <AnimatePresence>
             {answered && (
               <motion.div className={`pg-why ${ok ? "ok" : "no"}`} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
-                <strong className="display">{ok ? "Richtig!" : "Fast – so ist es:"}</strong>
+                <strong className="display">{ok ? "Richtig!" : late ? "Zu spät – so ist es:" : "Fast – so ist es:"}</strong>
                 <p>{q.why}</p>
                 {!ok && <p className="muted small">Die Frage kommt gleich noch einmal.</p>}
                 <button type="button" className="btn primary big pg-next" onClick={next}>Weiter</button>

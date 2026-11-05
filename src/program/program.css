@@ -192,3 +192,27 @@
 .pg-check-flag { color: var(--text-3); }
 .pg-notalone { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; }
 .pg-hero-fig svg { transform: scale(1.7); transform-origin: 50% 78%; }
+
+/* Bilderrätsel: größere Szene */
+.pg-qimage { max-width: 340px; }
+.pg-qimage .pg-you b + b { margin-left: 2px; }
+
+/* Zeitdruck: schrumpfender Balken */
+.pg-timer { height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+.pg-timer i { display: block; height: 100%; transform-origin: left center; background: linear-gradient(90deg, var(--danger), var(--points)); }
+.pg-timed-toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--line); font: inherit; color: var(--text); cursor: pointer; width: 100%; text-align: left; min-height: 44px; margin-bottom: 10px; }
+.pg-timed-toggle .pg-switch { flex: none; width: 40px; height: 22px; border-radius: 11px; background: var(--surface-3); position: relative; transition: background var(--t-fast); }
+.pg-timed-toggle .pg-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--text-2); transition: transform var(--t-fast); }
+.pg-timed-toggle.on .pg-switch { background: var(--danger); }
+.pg-timed-toggle.on .pg-switch::after { transform: translateX(18px); background: #fff; }
+
+/* Drill: Selbst-Check */
+.pg-selfcheck { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.pg-selfcheck h4 { margin: 0; font-size: 14px; }
+.pg-selfcheck ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pg-selfcheck button { display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left; font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 10px; min-height: 44px; cursor: pointer; }
+.pg-selfcheck button.on { border-color: var(--gas); background: color-mix(in srgb, var(--gas) 14%, var(--surface-2)); }
+.pg-selfcheck .pg-box { flex: none; }
+.pg-mistakes { margin: 0; padding-left: 18px; }
+.pg-film { margin: 0; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px dashed var(--line-strong); }
+.pg-selfcheck ul.pg-mistakes { list-style: disc; padding-left: 18px; gap: 2px; }

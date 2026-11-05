@@ -2,6 +2,7 @@
 // Inhalte nach docs/knowledge-base.md (KB) und research_notes/7 Tage Startprogramm/notes.md.
 // check: true = keine direkte Quelle in KB/Recherche → Trainer prüfen.
 import type { Pos2, Side } from "../core2/types";
+import type { BodyPart } from "../components/fighters";
 
 export type Topic =
   | "positionen" | "abklopfen" | "mount" | "side" | "guard" | "stand" | "keile" | "aufgabe";
@@ -41,6 +42,12 @@ export interface Question {
   why: string;
   /** Optionales Bild: Lage aus deiner Sicht (du = blau = "p"). */
   scene?: { pos: Pos2; top: Side | null };
+  /**
+   * Bilderrätsel: große Silhouetten-Szene, optional ein Körperteil hervorgehoben.
+   * Frage „Wo bist du?“ oder „Was ist hier falsch?“. Optionen ohne Kartennamen.
+   */
+  kind?: "image";
+  image?: { pos: Pos2; top: Side | null; mark?: { side: Side; part: BodyPart } };
   /** Quelle in der KB (Abschnitt) – Nachweis für Trainer. */
   src?: string;
   check?: boolean;
@@ -377,4 +384,76 @@ export const QUESTIONS: Question[] = [
   },
 ];
 
-export const Q_BY_ID: Record<string, Question> = Object.fromEntries(QUESTIONS.map((q) => [q.id, q]));
+
+// ---------- Bilderrätsel (Tag 1–4): „Wo bist du?“ / „Was ist hier falsch?“ ----------
+// Die Silhouette zeigt die Lage, Gelb zeigt die Stelle. Details stehen im Fragetext.
+export const IMAGE_QUESTIONS: Question[] = [
+  {
+    id: "qi-where-side", day: 1, topic: "positionen", kind: "image",
+    image: { pos: "side", top: "o" },
+    q: "Wo bist du?",
+    options: ["Unten, er liegt quer auf dir", "Oben, du sitzt auf ihm", "Unten, deine Beine sind um ihn"],
+    answer: 0, src: "KB 3.2",
+    why: "Er liegt quer über deiner Brust: Side Control, du unten. Dein Ziel: schützen und raus.",
+  },
+  {
+    id: "qi-where-back", day: 1, topic: "positionen", kind: "image",
+    image: { pos: "back", top: "p", mark: { side: "p", part: "arms" } },
+    q: "Wo bist du – und wie gut ist das?",
+    options: ["An seinem Rücken – die beste Lage", "Unten in der Guard – eher schlecht", "Im Stand – noch offen"],
+    answer: 0, src: "KB 3.2",
+    why: "Du bist hinter ihm, deine Arme umfassen ihn. Vom Rücken aus kontrollierst du am meisten.",
+  },
+  {
+    id: "qi-mount-elbows", day: 2, topic: "mount", kind: "image",
+    image: { pos: "mount", top: "o", mark: { side: "p", part: "arms" } },
+    q: "Er sitzt auf dir. Deine Ellbogen (gelb) sind weit weg von den Knien. Was ist hier falsch?",
+    options: ["Ellbogen gehören eng an die Knie", "Nichts, weite Arme halten ihn weg", "Du solltest still liegen"],
+    answer: 0, src: "KB 4.5; Karten mb_knee_inside, mb_elbows_tight",
+    why: "Ellbogen an den Knien bilden deinen Rahmen. Gestreckte Arme laden zum Armhebel ein.",
+  },
+  {
+    id: "qi-mount-turn", day: 2, topic: "mount", kind: "image",
+    image: { pos: "mount", top: "o", mark: { side: "p", part: "torso" } },
+    q: "Unten im Mount drehst du dich auf den Bauch, weg von ihm. Was ist hier falsch?",
+    options: ["Du zeigst ihm deinen Rücken", "Du drehst dich zu langsam", "Nichts, so kommst du raus"],
+    answer: 0, src: "KB 3.2",
+    why: "Wer sich wegdreht, gibt den Rücken frei. Das ist für ihn die stärkste Lage.",
+  },
+  {
+    id: "qi-side-flat", day: 3, topic: "side", kind: "image",
+    image: { pos: "side", top: "o", mark: { side: "p", part: "arms" } },
+    q: "Er liegt quer auf dir. Deine Arme (gelb) liegen flach neben dir. Was ist hier falsch?",
+    options: ["Unterarme gehören als Stütze an Hals und Hüfte", "Nichts, flach liegen spart Kraft", "Du solltest ihn sofort würgen"],
+    answer: 0, src: "KB 4.5 (BJJ Atlas: Frame first)",
+    why: "Erst Rahmen, dann Brücke, dann wegrutschen. Ohne Stütze drückt er dich flach.",
+  },
+  {
+    id: "qi-where-half", day: 3, topic: "side", kind: "image",
+    image: { pos: "half", top: "o", mark: { side: "p", part: "legs" } },
+    q: "Deine Beine (gelb) halten eins seiner Beine fest. Wo bist du?",
+    options: ["Unten in der halben Guard", "Oben im Mount", "Unten in Side Control"],
+    answer: 0, src: "KB 3.2",
+    why: "Ein Bein von ihm ist gefangen: halbe Guard. Besser als Side Control unten, schlechter als volle Guard.",
+  },
+  {
+    id: "qi-guard-posture", day: 4, topic: "guard", kind: "image",
+    image: { pos: "guard", top: "p", mark: { side: "p", part: "torso" } },
+    q: "Du kniest in seiner Guard. Dein Rücken (gelb) ist rund, dein Kopf ganz unten. Was ist hier falsch?",
+    options: ["Du brauchst Haltung: aufrecht, Rücken gerade", "Nichts, tief bist du sicher", "Du solltest dich auf ihn legen"],
+    answer: 0, src: "KB 4.5; Karte gt_posture",
+    why: "Wer nach vorn kippt, läuft in Würger und Hebel. Aufrecht schützt du Hals und Arme.",
+  },
+  {
+    id: "qi-guard-flat", day: 4, topic: "guard", kind: "image",
+    image: { pos: "guard", top: "o", mark: { side: "o", part: "torso" } },
+    q: "Er sitzt aufrecht in deiner Guard (gelb). Du liegst flach und wartest. Was ist hier falsch?",
+    options: ["Du musst ihn zu dir runterziehen", "Nichts, warten ist sicher", "Du solltest deine Beine öffnen"],
+    answer: 0, src: "Karte gb_break_posture; Tag 4 (Unten: Haltung brechen)",
+    why: "Aufrecht kann er vorbeigehen. Zieh ihn mit den Knien und Händen runter, dann greifst du an.",
+  },
+];
+
+/** Alle Fragen (Text + Bild) – Nachschlagen und Prüfung. */
+export const ALL_QUESTIONS: Question[] = [...QUESTIONS, ...IMAGE_QUESTIONS];
+export const Q_BY_ID: Record<string, Question> = Object.fromEntries(ALL_QUESTIONS.map((q) => [q.id, q]));

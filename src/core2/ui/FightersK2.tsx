@@ -23,13 +23,16 @@ export interface FightersK2Props {
   className?: string;
   /** Optionale Highlight-Farbe (Standard Gold). */
   zoneColor?: string;
+  /** Direktes Körperteil-Highlight (z. B. Bilderrätsel: Ellbogen weg vom Knie). Hat Vorrang vor zone. */
+  part?: { side: Side; part: BodyPart } | null;
 }
 
 /** Kampf-Silhouetten für Kern 2: nutzt den Fighters-Renderer, kennt zusätzlich "half" und "turtle". */
-export function FightersK2({ pos, top, zone = null, zoneColor, ...rest }: FightersK2Props) {
+export function FightersK2({ pos, top, zone = null, zoneColor, part = null, ...rest }: FightersK2Props) {
   const highlight = useMemo<FighterHighlight | null>(
-    () => (zone ? { side: zone.side, part: ZONE_PART[zone.zone], color: zoneColor } : null),
-    [zone?.side, zone?.zone, zoneColor], // eslint-disable-line react-hooks/exhaustive-deps
+    () => (part ? { side: part.side, part: part.part, color: zoneColor }
+      : zone ? { side: zone.side, part: ZONE_PART[zone.zone], color: zoneColor } : null),
+    [zone?.side, zone?.zone, part?.side, part?.part, zoneColor], // eslint-disable-line react-hooks/exhaustive-deps
   );
   return <FightersScene pos={sceneOfPos2(pos)} top={pos === "stand" || pos === "clinch" ? null : top} highlight={highlight} {...rest} />;
 }

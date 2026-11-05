@@ -4,7 +4,7 @@ import { DAYS, READY_CHECKLIST, RETRIEVAL_PLAN } from "./days";
 import { AREAS, buildExam, scoreExam } from "./exam";
 import { LESSONS_PROGRAM } from "./lessons";
 import { GOALS, LADDER } from "./PositionMap";
-import { Q_BY_ID, QUESTIONS, TOPIC_AREA } from "./questions";
+import { ALL_QUESTIONS, IMAGE_QUESTIONS, Q_BY_ID, QUESTIONS, TOPIC_AREA } from "./questions";
 import { EMPTY, completeDay, currentDay, knotState, sameDayHint } from "./store";
 
 const words = (s: string) => s.trim().split(/\s+/).filter((w) => w !== "–" && w !== "-").length;
@@ -126,5 +126,68 @@ describe("Startprogramm – Fortschritt", () => {
     p = completeDay(p, 1, "later", "2026-11-07");
     expect(p.drills[1]).toBe("done");
     expect(p.doneOn[1]).toBe("2026-11-05");
+  });
+});
+
+describe("Startprogramm – Bilderrätsel", () => {
+  const POS = new Set(["stand", "clinch", "guard", "half", "turtle", "side", "mount", "back"]);
+  const PARTS = new Set(["legs", "hips", "arms", "neck", "head", "torso"]);
+
+  it("8 Bildfragen an Tag 1–4, gültige Lagen und Körperteile, Fragetyp „Wo bist du?“ / „Was ist hier falsch?“", async () => {
+    const { allCards } = await import("../core2/engine");
+    const cardNames = allCards().flatMap((c) => [c.plain, c.term]).map((n) => n.toLowerCase());
+    expect(IMAGE_QUESTIONS).toHaveLength(8);
+    for (const q of IMAGE_QUESTIONS) {
+      expect(q.kind, q.id).toBe("image");
+      expect(q.image, q.id).toBeDefined();
+      expect(POS.has(q.image!.pos), `${q.id}: ${q.image!.pos}`).toBe(true);
+      // oben/unten passt zur Lage: Stand/Clinch neutral, sonst jemand oben
+      if (q.image!.pos === "stand" || q.image!.pos === "clinch") expect(q.image!.top).toBeNull();
+      else expect(["p", "o"]).toContain(q.image!.top);
+      if (q.image!.mark) {
+        expect(PARTS.has(q.image!.mark.part), q.id).toBe(true);
+        expect(["p", "o"]).toContain(q.image!.mark.side);
+      }
+      expect(q.q, q.id).toMatch(/Wo bist du|Was ist hier falsch\?/);
+      expect(q.day).toBeGreaterThanOrEqual(1);
+      expect(q.day).toBeLessThanOrEqual(4);
+      expect(q.src, q.id).toBeTruthy();
+      for (const o of q.options) for (const n of cardNames) expect(o.toLowerCase().includes(n), `${q.id}: „${o}“ enthält Kartennamen „${n}“`).toBe(false);
+    }
+    for (const day of [1, 2, 3, 4]) expect(IMAGE_QUESTIONS.filter((q) => q.day === day).length, `Tag ${day}`).toBe(2);
+  });
+
+  it("Bildfragen erfüllen dieselben Textregeln und hängen am richtigen Tag", () => {
+    for (const q of IMAGE_QUESTIONS) {
+      expect(q.options.length).toBeGreaterThanOrEqual(2);
+      expect(q.options.length).toBeLessThanOrEqual(4);
+      expect(q.answer).toBeLessThan(q.options.length);
+      expect(words(q.why), q.id).toBeLessThanOrEqual(25);
+      for (const s of sentences(q.why)) expect(words(s), `${q.id}: ${s}`).toBeLessThanOrEqual(20);
+      for (const s of sentences(q.q)) expect(words(s), `${q.id}: ${s}`).toBeLessThanOrEqual(20);
+    }
+    const ids = new Set(ALL_QUESTIONS.map((q) => q.id));
+    expect(ids.size).toBe(ALL_QUESTIONS.length);
+    for (const d of DAYS) for (const id of d.pics ?? []) {
+      expect(Q_BY_ID[id]?.kind, id).toBe("image");
+      expect(Q_BY_ID[id].day, id).toBe(d.n);
+    }
+    expect(DAYS.slice(0, 4).every((d) => (d.pics ?? []).length === 2)).toBe(true);
+  });
+});
+
+describe("Startprogramm – Drill-Selbst-Check", () => {
+  it("jeder Drill: 2–3 Checks, 1–2 Fehler, kurze Sätze", () => {
+    for (const d of DAYS) {
+      const { checks, mistakes } = d.drill;
+      expect(checks.length, `Tag ${d.n}`).toBeGreaterThanOrEqual(2);
+      expect(checks.length, `Tag ${d.n}`).toBeLessThanOrEqual(3);
+      expect(mistakes.length, `Tag ${d.n}`).toBeGreaterThanOrEqual(1);
+      expect(mistakes.length, `Tag ${d.n}`).toBeLessThanOrEqual(2);
+      for (const p of [...checks, ...mistakes]) {
+        for (const s of sentences(p.text)) expect(words(s), p.text).toBeLessThanOrEqual(20);
+        expect(p.text).not.toMatch(/\bSie\b|\bIhr(e|en)?\b/);
+      }
+    }
   });
 });
