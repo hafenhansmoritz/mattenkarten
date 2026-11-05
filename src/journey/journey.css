@@ -1,0 +1,119 @@
+/* Reise nach der Startwoche – mobile first (390 px). Tokens aus theme.css. */
+
+.jr-screen { gap: 14px; }
+.jr-view, .jr-home, .jr-log, .jr-result { display: flex; flex-direction: column; gap: 14px; }
+.jr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.jr-pill { padding: 4px 10px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--gas) 16%, transparent); color: var(--gas); font-weight: 700; white-space: nowrap; }
+
+/* ---------- Kompakte Karte ---------- */
+.jr-card {
+  width: 100%; margin: 0 0 18px; border-radius: var(--radius-lg); overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--gas) 35%, transparent);
+  background: radial-gradient(120% 140% at 100% 0%, rgba(95, 227, 180, .14), transparent 55%), linear-gradient(135deg, var(--surface-2), var(--surface));
+  box-shadow: var(--shadow-1);
+}
+.jr-card.compact { margin: 0; }
+.jr-card-main {
+  width: 100%; display: grid; grid-template-columns: 56px 1fr 20px; align-items: center; gap: 12px;
+  padding: 14px; background: none; border: 0; color: var(--text); font: inherit; text-align: left; cursor: pointer;
+}
+.jr-card-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.jr-card-txt strong { font-size: 24px; }
+.jr-kicker { color: var(--gas); }
+.jr-go { font-size: 30px; color: var(--gas); line-height: 1; }
+.jr-card-sub {
+  width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 48px;
+  padding: 10px 14px; border: 0; border-top: 1px solid var(--line); background: rgba(255, 255, 255, .02);
+  color: var(--text); font: inherit; text-align: left; cursor: pointer;
+}
+.jr-card-sub:hover, .jr-card-main:hover { background: rgba(255, 255, 255, .04); }
+
+.jr-ring {
+  position: relative; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--surface-3); border: 2px solid var(--line-strong); font-size: 22px; color: var(--text-2);
+}
+.jr-ring.on { background: color-mix(in srgb, var(--gas) 20%, var(--surface)); border-color: var(--gas); color: var(--text); }
+.jr-ring i { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--gas); pointer-events: none; }
+.jr-ring b { position: relative; }
+.jr-ring.big { width: 64px; height: 64px; font-size: 26px; flex: none; }
+
+/* ---------- Abstände ---------- */
+.jr-intervals { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+.jr-intervals > span:not(.jr-int-lab) { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.jr-intervals i {
+  display: block; width: 22px; height: calc(30px * var(--s)); border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(180deg, var(--gas), color-mix(in srgb, var(--gas) 40%, var(--surface-3)));
+  opacity: .75;
+}
+.jr-int-lab { margin-left: 4px; align-self: center; }
+
+/* ---------- Fehlerdeck ---------- */
+.jr-err-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.jr-err-list li {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line);
+}
+.jr-err-q { min-width: 0; }
+.jr-dots { display: flex; gap: 4px; flex: none; }
+.jr-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--line-strong); }
+.jr-dots i.on { background: var(--gas); border-color: var(--gas); }
+
+/* ---------- Fragen für die nächste Stunde ---------- */
+.jr-asks { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.jr-ask {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius); background: color-mix(in srgb, var(--points) 9%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--points) 28%, transparent);
+}
+.jr-ask.done { opacity: .6; }
+.jr-ask .btn { flex: none; }
+.jr-askbox textarea, .jr-note input {
+  width: 100%; font: inherit; color: var(--text); background: var(--bg-2); border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm); padding: 10px 12px; resize: vertical;
+}
+.jr-askbox textarea:focus, .jr-note input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.jr-note { display: flex; flex-direction: column; gap: 4px; }
+
+/* ---------- 3 Schritte ---------- */
+.jr-progress { display: flex; gap: 6px; }
+.jr-progress i { flex: 1; height: 5px; border-radius: 3px; background: var(--surface-3); transition: background var(--t-mid) var(--ease-out); }
+.jr-progress i.on { background: var(--gas); }
+.jr-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.jr-chip {
+  min-height: 44px; padding: 8px 14px; border-radius: var(--radius-pill); font: inherit; font-weight: 700; cursor: pointer;
+  color: var(--text); background: var(--surface-2); border: 1px solid var(--line-strong);
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.jr-chip.hot { border-color: color-mix(in srgb, var(--gas) 45%, transparent); }
+.jr-chip.on { background: var(--gas); border-color: var(--gas); color: var(--text-ink); }
+.jr-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow: hidden; }
+.jr-feels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.jr-feel-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 2px; min-height: 64px;
+  border-radius: var(--radius); border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--text);
+  font: inherit; cursor: pointer;
+}
+.jr-feel-btn b { font-size: 22px; }
+.jr-feel-btn.f1 { border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+.jr-feel-btn.f2 { border-color: color-mix(in srgb, var(--k-setup) 40%, transparent); }
+.jr-feel-btn.f4, .jr-feel-btn.f5 { border-color: color-mix(in srgb, var(--gas) 45%, transparent); }
+
+/* ---------- Ergebnis ---------- */
+.jr-check {
+  width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 30px; font-weight: 900;
+  background: var(--gas); color: var(--text-ink); box-shadow: 0 0 0 8px rgba(95, 227, 180, .14);
+}
+.jr-rec { border-color: color-mix(in srgb, var(--gi-p) 45%, transparent); }
+
+/* ---------- Tagebuch ---------- */
+.jr-diary-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.jr-diary-list li { display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line); }
+.jr-diary-list p { margin: 0; }
+.jr-diary-head { display: flex; justify-content: space-between; gap: 8px; }
+.jr-feel { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--surface-3); }
+.jr-feel.f4, .jr-feel.f5 { background: color-mix(in srgb, var(--gas) 22%, transparent); }
+.jr-feel.f1 { background: color-mix(in srgb, var(--danger) 22%, transparent); }
+.jr-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.jr-tags span { font-size: 12px; padding: 2px 8px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong); color: var(--text-2); }
+
+@media (prefers-reduced-motion: reduce) { .jr-ring i { display: none; } }

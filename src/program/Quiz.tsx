@@ -4,6 +4,7 @@ import { mulberry32, shuffle } from "../engine/rng";
 import { FightersK2 } from "../core2/ui/FightersK2";
 import { sfx } from "../sound";
 import { Q_BY_ID, TOPIC_LABEL, type Question } from "./questions";
+import { emitQuizAnswer, newQuizSession } from "../journey/events";
 
 export interface QuizResult { id: string; ok: boolean }
 
@@ -36,6 +37,8 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
   const [picked, setPicked] = useState<number | null>(null);
   const [shake, setShake] = useState(0);
   const [late, setLate] = useState(false);
+  // Eine Runde = ein Quiz-Durchgang. Erste Antworten gehen an Wiederholung und Fehlerdeck (src/journey).
+  const [session] = useState(newQuizSession);
   const total = initial.length;
   const item = queue[0];
   const isAnswered = picked !== null || late;
@@ -46,7 +49,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
     const t = setTimeout(() => {
       setLate(true);
       sfx.lose();
-      if (!item.retry) setFirst((f) => [...f, { id: item.q.id, ok: false }]);
+      if (!item.retry) { setFirst((f) => [...f, { id: item.q.id, ok: false }]); emitQuizAnswer({ id: item.q.id, ok: false, session }); }
     }, timed * 1000);
     return () => clearTimeout(t);
   }, [item?.key, timed, isAnswered]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -68,7 +71,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
     setPicked(i);
     const right = i === q.answer;
     if (right) sfx.points(); else { sfx.lose(); setShake((n) => n + 1); }
-    if (!item.retry) setFirst((f) => [...f, { id: q.id, ok: right }]);
+    if (!item.retry) { setFirst((f) => [...f, { id: q.id, ok: right }]); emitQuizAnswer({ id: q.id, ok: right, session }); }
   }
 
   function next() {

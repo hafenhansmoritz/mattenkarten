@@ -14,6 +14,7 @@ import { AREA_LABEL } from "./questions";
 import {
   completeDay, currentDay, drillsDone, knotState, sameDayHint, useProgram, type ProgramProgress,
 } from "./store";
+import { ReviewCard, type JourneyStart } from "../journey/JourneyScreen";
 import "./program.css";
 
 const ALL_LESSONS: TutorialK2Def[] = [...TUTORIALS_K2, ...LESSONS_PROGRAM];
@@ -33,7 +34,7 @@ function lessonTitle(l: LessonRef): string {
 
 type View = { kind: "home" } | { kind: "day"; n: number } | { kind: "final" };
 
-export function ProgramScreen({ onBack }: { onBack: () => void }) {
+export function ProgramScreen({ onBack, onJourney }: { onBack: () => void; onJourney?: (v: JourneyStart) => void }) {
   const [p, update] = useProgram();
   const [view, setView] = useState<View>({ kind: "home" });
   const [sel, setSel] = useState(() => Math.min(currentDay(p), 7));
@@ -122,6 +123,7 @@ export function ProgramScreen({ onBack }: { onBack: () => void }) {
       {allDone && (
         <button className="btn big" onClick={() => setView({ kind: "final" })}>Deine Checkliste fürs erste Training</button>
       )}
+      {allDone && onJourney && <ReviewCard compact onOpen={onJourney} />}
       <Badges p={p} />
       <p className="muted small center">Verpasst du einen Tag, ist das eine Pause – du verlierst nichts.</p>
     </div>
