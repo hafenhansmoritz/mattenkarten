@@ -16,7 +16,7 @@ export interface Hand2Props {
   myBoard?: Board;
   /** Gesperrte Karten (State2.p.locked) – bekommen das Schloss. */
   locked?: string[];
-  /** Kraft des Spielers – Karten, die mehr kosten, werden markiert. */
+  /** Atem des Spielers (State2.kraft) – Karten, die mehr kosten, werden markiert. */
   kraft?: number;
   /** Tutorial: nur diese Karte darf gewählt werden; sie pulsiert. */
   requireCard?: string;

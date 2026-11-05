@@ -13,7 +13,7 @@ import { Hand2 } from "./Hand2";
 import type { TutorialK2Def, TutorialK2Step } from "./tutorialTypes";
 import { filterHandByZones, hiddenZones } from "./disclosure";
 import { PREDICTIONS, PREDICTION_LABEL, outcomeOf, predictionFeedback, shouldPredict, type Prediction } from "./predict";
-import { KIND_LABEL, KraftIcon, LockIcon, POS_LABEL, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
+import { ATEM_LABEL, KIND_LABEL, KraftIcon, LockIcon, POS_LABEL, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
 import { Stamp, FloatText, useHitStop, Confetti, ImpactBurst, type StampTone } from "../../components/fx";
 import { CoachAvatar } from "../../components/learn";
 import { sfx } from "../../sound";
@@ -491,7 +491,7 @@ function PredictPanel({ pending, guess, onGuess, onReveal }: {
 
 function Pips({ n }: { n: number }) {
   return (
-    <span className="k2-pips" aria-label={`Kraft ${n} von ${KRAFT_MAX}`} title="Kraft">
+    <span className="k2-pips" aria-label={`${ATEM_LABEL} ${n} von ${KRAFT_MAX}`} title={ATEM_LABEL}>
       <KraftIcon size={11} />
       {Array.from({ length: KRAFT_MAX }, (_, i) => <i key={i} className={i < n ? "on" : ""} />)}
     </span>
