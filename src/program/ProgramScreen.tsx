@@ -18,7 +18,7 @@ import { AREA_LABEL, explainFor } from "./questions";
 import {
   completeDay, currentDay, drillsDone, knotState, sameDayHint, useProgram, type ProgramProgress,
 } from "./store";
-import { ReviewCard, type JourneyStart } from "../journey/JourneyScreen";
+import { ReviewCard, type JourneyStart } from "../journey/ReviewCard";
 import { LeglockCard } from "../leglock/LeglockScreen";
 import { GymWeekCard } from "../gym/GymScreen";
 import "./program.css";

@@ -224,6 +224,7 @@ export function Arena({ arch, onExit }: { arch: Archetype; onExit: (won: boolean
 
   return (
     <div className="arena arena2">
+      <h2 className="sr-only">Kampf gegen {arch.name}</h2>
       <header className="hud">
         <button className="icon-btn" onClick={() => onExit(null)} aria-label="Kampf verlassen">✕</button>
         <FighterHud side="p" name="Du" st={match} showRes={showRes} />

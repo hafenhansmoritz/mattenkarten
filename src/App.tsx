@@ -1,30 +1,53 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState, type ComponentType } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Archetype } from "./engine/types";
 import { BELTS } from "./data/campaign";
 import { currentBeltIndex, useGame } from "./store";
 import { Campaign, NewCards } from "./screens/Campaign";
-import { Arena } from "./screens/Arena";
-import { DeckBuilder, Library } from "./screens/Deck";
-import { Lesson } from "./screens/Lesson";
-import { Puzzles } from "./screens/Puzzles";
-import { HotSeat } from "./screens/HotSeat";
-import { ShareDeck, readDeckFromHash } from "./screens/ShareDeck";
-import { TrainerCheck } from "./screens/TrainerCheck";
-import { KoerperkarteHub } from "./screens/KoerperkarteHub";
-import { ProgramScreen } from "./program/ProgramScreen";
 import { StartHero } from "./program/StartHero";
-import { WarmupScreen } from "./program/WarmupScreen";
-import { JourneyScreen, ReviewCard, type JourneyStart } from "./journey/JourneyScreen";
-import { CoachChat } from "./coach";
-import { LegalScreen } from "./legal/LegalScreen";
-import { LeglockScreen } from "./leglock/LeglockScreen";
+import { ReviewCard, type JourneyStart } from "./journey/ReviewCard";
 import { leglockMenu } from "./leglock/store";
 import { useInstallPrompt } from "./pwa";
 import { unlockAudio } from "./sound";
-import { Sammlung } from "./core2/collection/Sammlung";
-import { DailyScreen } from "./core2/daily/DailyScreen";
-import { GymScreen, type GymStart } from "./gym/GymScreen";
+import type { GymStart } from "./gym/GymScreen";
+
+// Code-Splitting (Bauplan 76): Startseite (Kampagne) lädt sofort, alles andere als eigener Chunk.
+// Der Service Worker precacht alle Chunks – offline bleibt alles verfügbar.
+const named = <M, K extends keyof M>(load: () => Promise<M>, key: K) =>
+  lazy(() => load().then((m) => ({ default: m[key] as unknown as ComponentType<any> })));
+const loadArena = () => import("./screens/Arena");
+const loadDeck = () => import("./screens/Deck");
+const loadPuzzles = () => import("./screens/Puzzles");
+const Arena = named(loadArena, "Arena");
+const DeckBuilder = named(loadDeck, "DeckBuilder");
+const Library = named(loadDeck, "Library");
+const Puzzles = named(loadPuzzles, "Puzzles");
+const Lesson = named(() => import("./screens/Lesson"), "Lesson");
+const HotSeat = named(() => import("./screens/HotSeat"), "HotSeat");
+const ShareDeck = named(() => import("./screens/ShareDeck"), "ShareDeck");
+const TrainerCheck = named(() => import("./screens/TrainerCheck"), "TrainerCheck");
+const KoerperkarteHub = named(() => import("./screens/KoerperkarteHub"), "KoerperkarteHub");
+const ProgramScreen = named(() => import("./program/ProgramScreen"), "ProgramScreen");
+const WarmupScreen = named(() => import("./program/WarmupScreen"), "WarmupScreen");
+const CoachChat = named(() => import("./coach"), "CoachChat");
+const LegalScreen = named(() => import("./legal/LegalScreen"), "LegalScreen");
+const LeglockScreen = named(() => import("./leglock/LeglockScreen"), "LeglockScreen");
+const Sammlung = named(() => import("./core2/collection/Sammlung"), "Sammlung");
+const DailyScreen = named(() => import("./core2/daily/DailyScreen"), "DailyScreen");
+const GymScreen = named(() => import("./gym/GymScreen"), "GymScreen");
+const JourneyScreen = named(() => import("./journey/JourneyScreen"), "JourneyScreen");
+
+/** Tabs und Kampf nach dem ersten Bild im Leerlauf vorladen, damit der Wechsel sofort geht. */
+function prefetchSoon() {
+  const run = () => { void loadPuzzles(); void loadDeck(); void loadArena(); };
+  const ric = (window as any).requestIdleCallback as undefined | ((f: () => void, o?: object) => void);
+  if (ric) ric(run, { timeout: 4000 }); else setTimeout(run, 2500);
+}
+
+/** Schlichter Platzhalter, solange ein Bildschirm-Chunk lädt (meist nur Millisekunden aus dem SW-Cache). */
+export function ScreenFallback() {
+  return <div className="screen-loading" role="status" aria-live="polite"><span className="sr-only">Lädt …</span></div>;
+}
 
 type Tab = "kampagne" | "raetsel" | "deck" | "mehr";
 type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "daily" | "warmup" | "gym";
@@ -42,9 +65,12 @@ export function App() {
   const belt = BELTS[currentBeltIndex(g.beaten)];
 
   // Geteiltes Deck per Link (#deck=…) öffnet direkt den Teilen-Bildschirm
-  useEffect(() => { if (readDeckFromHash()) setScreen("share"); }, []);
+  useEffect(() => {
+    if (/(?:^#|&)deck=/.test(location.hash)) void import("./screens/ShareDeck").then((m) => { if (m.readDeckFromHash()) setScreen("share"); });
+  }, []);
   // Wochenthema per Link (#gym=…) öffnet „Fürs Gym“ mit Übernehmen-Dialog
   useEffect(() => { if (/(?:^#|&)gym=/.test(location.hash)) setScreen("gym"); }, []);
+  useEffect(prefetchSoon, []);
   // iOS: Audio beim ersten Tippen entsperren
   useEffect(() => {
     const once = () => { unlockAudio(); window.removeEventListener("pointerdown", once); };
@@ -74,8 +100,8 @@ export function App() {
   if (screen === "trainer") return <TrainerCheck onBack={back} />;
   if (screen === "k2") return <KoerperkarteHub onBack={back} />;
   if (screen === "daily") return <DailyScreen onBack={back} />;
-  if (screen === "sammlung") return <div className="app"><main className="main"><Sammlung onBack={back} /></main></div>;
-  if (screen === "impressum" || screen === "datenschutz") return <div className="app"><main className="main"><LegalScreen page={screen} onBack={back} /></main></div>;
+  if (screen === "sammlung") return <div className="app"><div className="main"><Sammlung onBack={back} /></div></div>;
+  if (screen === "impressum" || screen === "datenschutz") return <div className="app"><div className="main"><LegalScreen page={screen} onBack={back} /></div></div>;
   if (screen === "gym") return <GymScreen start={gymStart} onBack={() => { setGymStart("home"); back(); }} />;
   if (screen === "warmup") return <div className="pg-wrap"><WarmupScreen onBack={back} /></div>;
   if (screen === "start") return <div className="pg-wrap"><ProgramScreen onBack={back} onJourney={openJourney} onLeglock={() => setScreen("leglock")} onGym={() => { setGymStart("week"); setScreen("gym"); }} /></div>;
@@ -92,7 +118,8 @@ export function App() {
         </div>
         <button className="icon-btn" onClick={() => g.set({ sound: !g.sound })} aria-label={g.sound ? "Ton und Vibration aus" : "Ton und Vibration an"}>{g.sound ? "♪" : "–"}</button>
       </header>
-      <main className="main">
+      <div className="main">
+        <Suspense fallback={<ScreenFallback />}>
         <AnimatePresence mode="wait">
           <motion.div key={screen === "bibliothek" ? "bib" : tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: .2 }}>
             {screen === "bibliothek" ? (
@@ -107,7 +134,8 @@ export function App() {
             )}
           </motion.div>
         </AnimatePresence>
-      </main>
+        </Suspense>
+      </div>
       <nav className="tabs tabs4" aria-label="Bereiche">
         {(Object.keys(TAB_LABEL) as Tab[]).map((t) => (
           <button key={t} className={tab === t && !screen ? "on" : ""} onClick={() => { setScreen(null); setTab(t); }}>

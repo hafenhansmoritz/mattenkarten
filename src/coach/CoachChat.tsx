@@ -105,7 +105,8 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
   // Mitscrollen
   useEffect(() => {
     const el = logRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    const calm = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: calm ? "auto" : "smooth" });
   }, [msgs]);
 
   // Laufende Anfrage beim Verlassen abbrechen

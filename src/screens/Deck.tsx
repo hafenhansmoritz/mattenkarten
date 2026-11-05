@@ -30,7 +30,9 @@ function has(c: CardDef, pos: PositionId[], role?: Role) {
 }
 
 function PhaseChips({ value, onChange, counts }: { value: PhaseId; onChange: (p: PhaseId) => void; counts?: Record<PhaseId, number> }) {
+  const hint = PHASES.find((p) => p.id === value)?.hint;
   return (
+    <>
     <div className="chips" role="toolbar" aria-label="Nach Phase filtern">
       {PHASES.map((p) => (
         <button key={p.id} className={`chip ${value === p.id ? "on" : ""}`} aria-pressed={value === p.id} title={p.hint} onClick={() => onChange(p.id)}>
@@ -40,6 +42,9 @@ function PhaseChips({ value, onChange, counts }: { value: PhaseId; onChange: (p:
         </button>
       ))}
     </div>
+    {/* Hinweis sichtbar statt nur als Tooltip (Touch hat kein Hover) */}
+    {value !== "alle" && hint && <p className="muted small phase-hint" aria-live="polite">{hint}.</p>}
+    </>
   );
 }
 
@@ -242,6 +247,7 @@ export function Library() {
           Nur No-Gi <span className="chip-n num">{GI_ONLY.size} Gi</span>
         </button>
       </div>
+      {hideGi && <p className="muted small">Gi-Karten brauchen Kragen- oder Ärmelgriffe – Mattenkarten setzt auf No-Gi.</p>}
       {ORDER.map((p) => {
         const ids = DECK_CARD_IDS.filter((id) => CARD[id].slots[0].pos === p && test(CARD[id]) && !(hideGi && GI_ONLY.has(id)));
         if (!ids.length) return null;

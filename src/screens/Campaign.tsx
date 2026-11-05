@@ -182,11 +182,10 @@ function PathNode({ a, n, open, beaten, isNext, last, delay, onFight }: NodeProp
       </div>
 
       <motion.button className="pfad-card" disabled={!open} onClick={() => onFight(a)}
-        aria-label={`${a.name}, ${kicker}. ${open ? learn : "Gesperrt"}${beaten ? ". Besiegt" : ""}${isNext ? ". Nächster Kampf" : ""}${open && !beaten && a.tutorial && rewards.length ? `. Neue Karten: ${rewards.join(", ")}` : ""}`}
         whileHover={open && !reduce ? { y: -3 } : undefined} whileTap={open ? { scale: 0.98 } : undefined}>
-        {isNext && <span className="pfad-next-pill label" aria-hidden="true">Nächster Kampf</span>}
+        {isNext && <span className="pfad-next-pill label">Nächster Kampf</span>}
         <div className="pfad-art" aria-hidden="true"><PoseThumb pos={pose} role="bottom" size={a.boss ? 96 : 78} /></div>
-        <div className="pfad-info" aria-hidden="true">
+        <div className="pfad-info">
           <span className="label pfad-kicker">{kicker}</span>
           <strong className="display">{a.name}</strong>
           <span className="pfad-learn">{open ? learn : "Gesperrt – gewinne erst den Kampf davor."}</span>

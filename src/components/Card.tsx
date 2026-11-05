@@ -99,6 +99,9 @@ export function Card(props: CardProps) {
         card.requiresControl ? ` Braucht ${card.requiresControl} ${RES.control.name}.` : ""
       }${disabled && reason ? ` Gesperrt: ${reason}` : ""}`;
 
+  const named = !!onClick && !faceDown; // Name aus Inhalt
+  const srExtra = card.requiresControl ? `Braucht ${card.requiresControl} ${RES.control.name}.` : "";
+
   return (
     <motion.div
       ref={ref}
@@ -107,7 +110,9 @@ export function Card(props: CardProps) {
       data-clickable={clickable ? "true" : "false"}
       role={onClick ? "button" : "img"}
       tabIndex={onClick && !disabled ? 0 : undefined}
-      aria-label={ariaLabel}
+      // Bild-Karten: kuratierter Name. Antippbare Karten: Name aus dem sichtbaren Text (WCAG 2.5.3 „Label in Name“,
+      // Sprachsteuerung trifft genau, was zu sehen ist) plus unsichtbare Ergänzung am Ende.
+      aria-label={named ? undefined : ariaLabel}
       aria-pressed={onClick ? selected : undefined}
       aria-disabled={disabled ? "true" : undefined}
       onClick={clickable ? onClick : undefined}
@@ -126,19 +131,20 @@ export function Card(props: CardProps) {
       transition={spring}
       style={{ zIndex: selected ? 2 : undefined }}
     >
-      <div className="mk-tilt" aria-hidden="true">
+      <div className="mk-tilt" aria-hidden={named ? undefined : "true"}>
         <div className="mk-edge">{faceDown ? <CardBack /> : <CardFront card={card} art={art} />}</div>
       </div>
       {typeof count === "number" && count > 1 && (
-        <span className="mk-count num" aria-hidden="true">
+        <span className="mk-count num" aria-hidden={named ? undefined : "true"}>
           ×{count}
         </span>
       )}
       {disabled && reason && !faceDown && (
-        <span className="mk-reason" aria-hidden="true">
+        <span className="mk-reason" aria-hidden={named ? undefined : "true"}>
           {reason}
         </span>
       )}
+      {named && srExtra && <span className="sr-only">{srExtra}</span>}
     </motion.div>
   );
 }

@@ -292,7 +292,9 @@
 }
 .mk-size-large .mk-kind-icon { width: 17px; height: 17px; }
 
-.mk-size-mini .mk-kind-label { display: none; }
+/* Mini: nur das Art-Symbol – Kartenart bleibt ohne Farbe erkennbar (Farbenblind-freundlich) */
+.mk-size-mini .mk-kind-label { font-size: 0; gap: 0; }
+.mk-size-mini .mk-kind-icon { width: 10px; height: 10px; }
 
 .mk-gem {
   position: relative;

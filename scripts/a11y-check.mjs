@@ -6,7 +6,8 @@
  * Überschriften-Reihenfolge) bei 390×844,
  * einmal mit prefers-color-scheme: dark und einmal light, und zusätzlich:
  *   – Tap-Ziele kleiner als 44×44 px (sichtbare Buttons/Links),
- *   – Bildschirme, deren Haupt-Aktion nicht im unteren Drittel liegt (nur Info).
+ *   – Farbenblind-freundlich: jede sichtbare Spielkarte zeigt ihre Art auch als Symbol
+ *     (SVG-Icon mit Fläche > 0), nicht nur über die Rahmenfarbe.
  *
  * So wiederholen:
  *   npx vite build && npx vite preview --port 4197 &
@@ -80,6 +81,7 @@ export const SCREENS = [
   { id: "trainer", go: more("Für Trainer") },
   { id: "daily", go: more("Tages-Challenge") },
   { id: "sammlung", go: more("Sammlung") },
+  { id: "gym", go: more("Fürs Gym") },
   { id: "impressum", go: seq(tab("Mehr"), clickText(/^Impressum$/)) },
 ];
 
@@ -95,12 +97,28 @@ const SMALL_TARGETS = () => {
     if (r.bottom < 0 || r.top > innerHeight * 3) continue;
     // Fließtext-Links sind ausgenommen (WCAG 2.5.8 „inline“)
     if (el.tagName === "A" && st.display === "inline") continue;
+    // Checkbox/Radio in einem ausreichend großen <label>: das Label ist die Tap-Fläche
+    const lab = el.tagName === "INPUT" ? el.closest("label") : null;
+    if (lab) { const lr = lab.getBoundingClientRect(); if (lr.width >= 44 && lr.height >= 44) continue; }
     if (r.width < 44 - 0.5 || r.height < 44 - 0.5) {
       const label = (el.getAttribute("aria-label") || el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 40);
       out.push(`${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0] || "-"} ${Math.round(r.width)}×${Math.round(r.height)} „${label}“`);
     }
   }
   return out;
+};
+
+// Farbenblind-Check: Karten mit Art-Farbe brauchen ein sichtbares Art-Symbol.
+const COLOR_ONLY_CARDS = () => {
+  const bad = [];
+  const cards = document.querySelectorAll(".mk-card:not(.mk-facedown), .k2-hcard, .k2-rcard:not(.kind-none)");
+  for (const c of cards) {
+    const r = c.getBoundingClientRect();
+    if (!r.width || !r.height) continue;
+    const icon = [...c.querySelectorAll(".mk-kind-icon, .k2-kind-ico")].some((i) => { const b = i.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(i).visibility !== "hidden"; });
+    if (!icon) bad.push((c.getAttribute("aria-label") || c.className).slice(0, 50));
+  }
+  return { total: cards.length, bad };
 };
 
 async function run() {
@@ -129,12 +147,13 @@ async function run() {
         return r.violations.map((v) => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.map((n) => ({ target: n.target.join(" "), summary: n.failureSummary?.split("\n").slice(1, 2).join(" ") })) }));
       });
       const small = await page.evaluate(SMALL_TARGETS);
+      const cb = await page.evaluate(COLOR_ONLY_CARDS);
       if (SHOTS) { mkdirSync(SHOTS, { recursive: true }); await page.screenshot({ path: path.join(SHOTS, `${s.id}-${scheme}.png`) }); }
       const nodes = res.reduce((a, v) => a + v.nodes.length, 0);
       seriousTotal += res.filter((v) => v.impact === "serious" || v.impact === "critical").length;
-      report.push({ screen: s.id, scheme, navOk, violations: res.length, nodes, rules: res, smallTargets: small, errors });
+      report.push({ screen: s.id, scheme, navOk, violations: res.length, nodes, rules: res, smallTargets: small, colorOnlyCards: cb.bad, cards: cb.total, errors });
       const tag = navOk ? "" : " (Navigation fehlgeschlagen)";
-      console.log(`${scheme.padEnd(5)} ${s.id.padEnd(11)} axe: ${String(res.length).padStart(2)} Regeln / ${String(nodes).padStart(3)} Knoten · <44px: ${String(small.length).padStart(2)}${tag}`);
+      console.log(`${scheme.padEnd(5)} ${s.id.padEnd(11)} axe: ${String(res.length).padStart(2)} Regeln / ${String(nodes).padStart(3)} Knoten · <44px: ${String(small.length).padStart(2)}${cb.total ? ` · Karten nur per Farbe: ${cb.bad.length}/${cb.total}` : ""}${tag}`);
       for (const v of res) {
         console.log(`        - [${v.impact}] ${v.id} (${v.nodes.length}): ${v.help}`);
         if (VERBOSE) for (const n of v.nodes.slice(0, 6)) console.log(`            ${n.target}  ${n.summary ?? ""}`);
@@ -145,8 +164,8 @@ async function run() {
     }
   }
   await browser.close();
-  const tot = report.reduce((a, r) => ({ v: a.v + r.violations, n: a.n + r.nodes, s: a.s + r.smallTargets.length }), { v: 0, n: 0, s: 0 });
-  console.log(`\nSumme: ${tot.v} Regelverstöße (${tot.n} Knoten) auf ${report.length} Bildschirm-Läufen · kleine Tap-Ziele: ${tot.s}`);
+  const tot = report.reduce((a, r) => ({ v: a.v + r.violations, n: a.n + r.nodes, s: a.s + r.smallTargets.length, c: a.c + r.colorOnlyCards.length }), { v: 0, n: 0, s: 0, c: 0 });
+  console.log(`\nSumme: ${tot.v} Regelverstöße (${tot.n} Knoten) auf ${report.length} Bildschirm-Läufen · kleine Tap-Ziele: ${tot.s} · Karten nur per Farbe: ${tot.c}`);
   if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify(report, null, 2));
   process.exit(seriousTotal ? 1 : 0);
 }

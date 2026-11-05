@@ -13,9 +13,18 @@ import "./styles/puzzles.css";
 import "./styles/demo.css";
 import "./styles/trainer.css";
 import "./styles/hotseat.css";
+// Bildschirm-Styles global (gleiche Reihenfolge wie vor dem Code-Splitting), damit lazy geladene
+// Chunks nichts am Aussehen ändern und z. B. „Mehr“ (Schalter, Rechtliches) sofort richtig aussieht.
+import "./styles/k2frames.css";
+import "./styles/core2.css";
+import "./styles/sammlung.css";
+import "./program/program.css";
+import "./journey/journey.css";
+import "./leglock/leglock.css";
+import "./legal/legal.css";
 import { registerSW } from "./pwa";
 registerSW();
-import { App } from "./App";
+import { App, ScreenFallback } from "./App";
 
 // Entwickler-Labor für die Kämpfer-Szenen (?figlab) – eigener Chunk, im normalen Spiel nie geladen.
 const FighterLab = React.lazy(() => import("./core2/ui/FighterLab"));
@@ -24,7 +33,11 @@ const LAB = new URLSearchParams(location.search).has("figlab");
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <MotionConfig reducedMotion="user">
-      {LAB ? <React.Suspense fallback={null}><FighterLab /></React.Suspense> : <App />}
+      {/* Ein main-Landmark und eine h1 für alle Bildschirme (Screenreader-Navigation); display: contents → Layout unverändert. */}
+      <main className="mk-root">
+        <h1 className="sr-only">Mattenkarten</h1>
+        <React.Suspense fallback={<ScreenFallback />}>{LAB ? <FighterLab /> : <App />}</React.Suspense>
+      </main>
     </MotionConfig>
   </React.StrictMode>,
 );

@@ -76,7 +76,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                       disabled={disabled}
                       data-card={c.id}
                       aria-pressed={isSel}
-                      aria-label={`${c.plain}, ${KIND_LABEL[c.kind]}, ${RARITY_LABEL[rar]}, ${ZONE_LABEL[c.zone]}${reqs.length || c.kraft ? `. Braucht ${[...reqs.map((r) => `${ZONE_LABEL[r.zone]} ${fmtSigned(r.n)}`), ...(c.kraft ? [`${c.kraft} Kraft`] : [])].join(", ")}` : ""}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
+                      aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}`).join("")}${c.kraft ? `, ${c.kraft} Kraft nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
                       title={!ok ? l?.reason : blockedByTut ? "Erst die markierte Karte" : c.plainDo}
                       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.9 }}
                       animate={{ opacity: 1, y: isSel && !reduced ? -4 : 0, scale: 1 }}
@@ -84,14 +84,14 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                       whileTap={disabled || reduced ? undefined : { scale: 0.95 }}
                       onClick={() => onSelect(isSel ? null : c.id)}>
                       <Foil />
-                      <span className="k2-hcard-kind" aria-hidden="true"><KindIcon kind={c.kind} size={9} />{KIND_LABEL[c.kind]}</span>
+                      <span className="k2-hcard-kind"><KindIcon kind={c.kind} size={9} />{KIND_LABEL[c.kind]}</span>{" "}
                       <RarityGem rarity={rar} size={10} className="k2-hcard-gem" />
-                      <span className="k2-hcard-t">{c.plain}</span>
+                      <span className="k2-hcard-t">{c.plain}</span>{" "}
                       {(reqs.length > 0 || c.kraft) && (
-                        <span className="k2-hcard-reqs" aria-hidden="true">
+                        <span className="k2-hcard-reqs">
                           {reqs.map((r) => {
                             const met = myBoard ? myBoard[r.zone] >= r.n : null;
-                            return <span key={r.zone} className={`k2-req${met === true ? " met" : met === false ? " miss" : ""}`}>{ZONE_SHORT[r.zone]} {fmtSigned(r.n)}</span>;
+                            return <span key={r.zone} className={`k2-req${met === true ? " met" : met === false ? " miss" : ""}`}>{ZONE_SHORT[r.zone]} {fmtSigned(r.n)} </span>;
                           })}
                           {c.kraft ? <span className={`k2-req kraft${tooExpensive ? " miss" : ""}`}><KraftIcon size={9} />{c.kraft}</span> : null}
                         </span>

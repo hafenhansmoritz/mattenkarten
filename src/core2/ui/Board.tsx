@@ -84,6 +84,9 @@ export function Board({ board, focus = null, lastDeltas = null, threats = [], pe
             className={`k2-row tone-${tone}${isFocus ? " is-focus" : ""}${threat ? " is-threat" : ""}${onZoneTap ? " is-tappable" : ""}`}
             aria-label={`${ZONE_QUESTION[z]} ${ownerWord(v)}${threat ? ". Er kann hier angreifen." : ""}`}
             title={ZONE_QUESTION[z]}
+            role={onZoneTap ? "button" : "group"}
+            tabIndex={onZoneTap ? 0 : undefined}
+            onKeyDown={onZoneTap ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onZoneTap(z); } } : undefined}
             onClick={onZoneTap ? () => onZoneTap(z) : undefined}>
             <div className="k2-row-label">
               <ZoneIcon zone={z} size={15} />

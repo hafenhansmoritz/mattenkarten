@@ -26,11 +26,11 @@ export function CoachButton({ level, onAsk, hint, disabled = false }: CoachButto
         onClick={() => !done && onAsk((level + 1) as 1 | 2 | 3)}
         disabled={disabled || done}
         whileTap={{ scale: 0.95 }}
-        aria-label={`${ASK_LABEL[level]}. Noch ${left} von 3 Tipps.`}
+        aria-label={`Coach: ${ASK_LABEL[level]}. Noch ${left} von 3 Tipps.`}
       >
         <CoachAvatar size={30} />
         <span className="lr-coach-txt">
-          <span className="lr-coach-k">Coach</span>
+          <span className="lr-coach-k">Coach</span>{" "}
           <span className="lr-coach-ask">{ASK_LABEL[level]}</span>
         </span>
         <span className="lr-coach-dots" aria-hidden="true">
