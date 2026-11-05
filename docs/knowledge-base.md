@@ -614,6 +614,16 @@ Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`
 - Lücken: Roy Dean-Lehrplan, optimale Sitzungslänge, Mastery-Schwelle (80 % = Hypothese), Hautinfektionen.
 - Details: research_notes/7 Tage Startprogramm/notes.md · Spec: docs/superpowers/specs/2026-11-05-7-tage-startprogramm-design.md
 
+### 8.12 No-Gi-Fokus (Recherche 2026-11-05)
+- Entscheidung Nutzer: Mattenkarten fokussiert No-Gi (Grappling ohne Anzug, MMA-nah). Standard-Regelwerk im Spiel: IBJJF Weißgurt (strengste Regel).
+- Reihenfolge bleibt (Danaher „Go Further Faster“: Body Movements + Pin-Escapes zuerst, Rücken/Turtle am Ende). Neu für No-Gi: Tag „Rücken & Front Headlock“ (Seatbelt, RNC- und Guillotine-Abwehr).
+- Griffe statt Kragen/Ärmel: Handgelenk, 2-gegen-1, Underhook, Overhook/Whizzer, Collar Tie, Bodylock, Seatbelt. Butterfly gilt als „better in no-gi“ (Gymdesk); Spider/Lasso/Worm/DLR = Gi-Guards.
+- Beinhebel: Heel Hook, Kneebar, Toe Hold, Calf Slicer, Reaping für Weißgurte verboten; Heel Hook/Reaping in No-Gi erst ab Braungurt (seit 1.1.2021) – Sekundärquellen, IBJJF-PDF nicht abrufbar [ungeprüft]. Gerader Fußhebel = einziger Anfänger-Beinhebel, nur mit Trainer.
+- Warum Vorsicht: ca. 2 cm Fersenbewegung reichen für Verletzung, Armbar ca. 30 cm (Lachlan Giles); Heel Hooks 11 % der Submission-Verletzungen, Knie 27,1 % aller Verletzungen (Hinz 2021); Knie 24,5 % (Bell et al. 2026, 341 Grappler).
+- Abklopfen: früh, bei Leg Locks nicht herausdrehen; verbal tappen, wenn Hände gefangen.
+- Karten-Audit: hb_scissor raus; 6 Karten mit Gi-Griffen umschreiben; fehlend u. a. Arm-Triangle (Side/Mount), Butterfly + Sweep, Body Lock Pass, Guillotine aus Guard, Hand Fighting, Overhook/Whizzer, Pummeling, Wrestle-up.
+- Details: docs/research/no-gi-fokus.md
+
 ## 9. Offene Prüfpunkte
 
 Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätigen, bevor es ohne `check`-Feld in Karten erscheint.
