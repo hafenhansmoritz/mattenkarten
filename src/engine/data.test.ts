@@ -21,9 +21,9 @@ describe("Karten", () => {
     expect(new Set(CARDS.map((c) => c.id)).size).toBe(CARDS.length);
   });
 
-  it("etwa 34–45 Deck-Karten", () => {
+  it("etwa 34–65 Deck-Karten", () => {
     expect(DECK_CARD_IDS.length).toBeGreaterThanOrEqual(34);
-    expect(DECK_CARD_IDS.length).toBeLessThanOrEqual(45);
+    expect(DECK_CARD_IDS.length).toBeLessThanOrEqual(65);
   });
 
   it("jeder Slot hat 2–3 Grundtechniken mit Angriff/Escape, Setup und Reaktion, 0–1 Gas", () => {

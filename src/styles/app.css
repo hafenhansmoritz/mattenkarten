@@ -191,3 +191,12 @@ ul.bad li::marker { color: var(--danger); }
   .reveal-cards { gap: 4px; }
   .vs { font-size: 20px; }
 }
+
+/* Tabs mit 4 Bereichen + Mehr-Menü */
+.tabs.tabs4 { grid-template-columns: repeat(4, 1fr); }
+.tabs.tabs4 button { font-size: 15px; }
+.more-list { display: flex; flex-direction: column; gap: 10px; }
+.more-item { text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); color: var(--text); font: inherit; cursor: pointer; min-height: 64px; }
+.more-item strong { font-size: 22px; }
+.more-item:hover { border-color: var(--line-strong); }
+.topbar { padding-top: calc(10px + env(safe-area-inset-top, 0px)); }

@@ -28,11 +28,18 @@ export const STARTER_DECK: string[] = deck(
 /** Startsammlung: eindeutige Kartenids, die zu Beginn freigeschaltet sind (Deckbau: max. 2 Kopien, Legendär 1×). */
 export const STARTER_COLLECTION: string[] = Array.from(new Set(STARTER_DECK));
 
-/** Lineare Yomi-Kurve über den Kampagnenfortschritt: reads 0.1 → 0.7, telegraph 0.9 → 0.15. */
+/**
+ * Yomi-Kurve über den Kampagnenfortschritt: reads 0.1 → 0.7, telegraph 0.9 → 0.15.
+ * reads konvex (t^READS_EXP): Weiß/Blau/Lila steigen sanft, Braun/Schwarz ziehen an.
+ * telegraph konkav (t^TELEGRAPH_EXP): die Absicht wird ab Blau seltener verraten, sonst sind die Prüfungen für
+ * Spieler, die Absichten konsequent kontern, zu leicht. Beides per Simulation kalibriert (scripts/simulate.ts).
+ */
+const READS_EXP = 1.6;
+const TELEGRAPH_EXP = 0.45;
 function curve(i: number, n: number) {
   const t = n <= 1 ? 0 : i / (n - 1);
   const r2 = (x: number) => Math.round(x * 100) / 100;
-  return { reads: r2(0.1 + 0.6 * t), telegraph: r2(0.9 - 0.75 * t) };
+  return { reads: r2(0.1 + 0.6 * Math.pow(t, READS_EXP)), telegraph: r2(0.9 - 0.75 * Math.pow(t, TELEGRAPH_EXP)) };
 }
 
 type ArchDraft = Omit<Archetype, "reads" | "telegraph">;
@@ -68,38 +75,45 @@ const DRAFTS: ArchDraft[] = [
   {
     id: "w_boss", name: "Coach Ana", title: "Prüfung Weißgurt", belt: "weiss", boss: true,
     blurb: "Die Gürtelprüfung: Ana testet die ganze Kette – Distanz, Takedown, Kontrolle, Submission.",
-    likes: { snap: 1, choke: 1 },
-    deck: deck(["jab", 2], ["level_change", 2], ["double_leg", 2], ["collar_tie", 1], ["snap_down", 2],
-      ["sprawl", 2], ["guillotine", 1], ["head_up", 1], ["stack_pass", 1], ["base_post", 1],
-      ["shrimp_recover", 1], ["upa", 1], ["to_mount", 1], ["americana", 1], ["rnc", 1]),
+    likes: { snap: 2, choke: 2, behind: 1 },
+    deck: deck(["jab", 1], ["level_change", 1], ["clinch_entry", 2], ["collar_tie", 2], ["snap_down", 2],
+      ["sprawl", 1], ["guillotine", 1], ["go_behind", 1], ["head_up", 1], ["stack_pass", 1],
+      ["shrimp_recover", 2], ["upa", 2], ["to_mount", 1], ["rnc", 1], ["elbow_knee", 1]),
+
+
     reward: ["guillotine", "sit_out"],
   },
   // ---------------- Blau ----------------
   {
     id: "b_judoka", name: "Kenji", title: "Judoka", belt: "blau",
     blurb: "Kenji wartet im Clinch auf deinen Schwerpunkt. Frames und Hüfte zurück – der Sprawl hilft gegen Würfe nicht.",
-    likes: { hip: 2, reap: 2, clinch: 1 },
-    deck: deck(["clinch_entry", 2], ["underhook", 2], ["collar_tie", 2], ["o_goshi", 2], ["o_soto", 2],
-      ["body_lock_trip", 1], ["frames_hips_back", 2], ["head_up", 1], ["to_mount", 1], ["kimura_side", 1],
-      ["americana", 1], ["shrimp_recover", 1], ["elbow_knee", 1], ["sit_out", 1]),
+    likes: { hip: 2, reap: 2, bodylock: 1, shoulderlock: 1 },
+    deck: deck(["clinch_entry", 2], ["underhook", 2], ["o_goshi", 2], ["o_soto", 2], ["body_lock_trip", 1],
+      ["frames_hips_back", 2], ["to_mount", 1], ["kimura_side", 2], ["americana", 1], ["shrimp_recover", 1],
+      ["stack_pass", 2], ["double_leg", 1], ["sprawl", 1]),
+
+
     reward: ["o_goshi", "underhook", "frames_hips_back"],
   },
   {
     id: "b_striker", name: "Dana", title: "Striker", belt: "blau",
     blurb: "Dana hält dich mit dem Jab auf Distanz und kostet dich Gas. Schließe die Distanz hinter einer Finte.",
-    likes: { strike: 2, reaktion: 1 },
-    deck: deck(["jab", 2], ["sprawl", 2], ["clinch_entry", 1], ["frames_hips_back", 2], ["head_up", 2],
-      ["whizzer", 1], ["level_change", 1], ["single_leg", 1], ["sit_out", 2], ["shrimp_recover", 2],
-      ["elbow_knee", 1], ["upa", 1], ["back_escape", 1], ["hand_defense", 1]),
+    likes: { strike: 2, shot: 1 },
+    deck: deck(["jab", 2], ["clinch_entry", 1], ["double_leg", 2], ["single_leg", 1], ["sprawl", 2], ["head_up", 1],
+      ["stack_pass", 1], ["base_post", 1], ["to_mount", 1], ["americana", 2], ["shrimp_recover", 1],
+      ["upa", 1], ["elbow_knee", 1], ["sit_out", 1], ["hand_defense", 1], ["wrist_free", 1]),
+
     reward: ["two_on_one", "arm_drag"],
   },
   {
     id: "b_boss", name: "Professor Lima", title: "Prüfung Blaugurt", belt: "blau", boss: true,
     blurb: "Lima kombiniert Würfe und Shots. Wer nur eine Familie verteidigt, landet auf dem Rücken.",
-    likes: { reap: 1, shot: 1, bodylock: 1 },
-    deck: deck(["level_change", 2], ["double_leg", 1], ["single_leg", 1], ["underhook", 2], ["body_lock_trip", 2],
-      ["o_soto", 1], ["o_goshi", 1], ["sprawl", 1], ["frames_hips_back", 1], ["to_mount", 2],
-      ["americana", 1], ["kimura_side", 1], ["armbar_mount", 1], ["shrimp_recover", 1], ["upa", 1], ["seatbelt_hooks", 1]),
+    likes: { reap: 1, shot: 1, bodylock: 1, armlock: 1 },
+    deck: deck(["level_change", 2], ["double_leg", 2], ["single_leg", 1], ["underhook", 1], ["body_lock_trip", 2],
+      ["o_soto", 1], ["o_goshi", 2], ["sprawl", 2], ["frames_hips_back", 1], ["to_mount", 1],
+      ["kimura_side", 1], ["armbar_mount", 1], ["americana", 1], ["clinch_entry", 1], ["upa", 1]),
+
+
     reward: ["o_soto", "body_lock_trip"],
   },
   // ---------------- Lila ----------------
@@ -107,28 +121,32 @@ const DRAFTS: ArchDraft[] = [
     id: "l_guard", name: "Mia", title: "Guard-Spielerin", belt: "lila",
     blurb: "Mia lebt in der Guard: Hip Bump und Kimura, Armbar und Triangle – immer in Paaren.",
     likes: { sweep: 2, shoulderlock: 1, armlock: 1, trianglechoke: 1 },
-    deck: deck(["hip_bump", 2], ["kimura_guard", 2], ["armbar_guard", 2], ["triangle", 1], ["scissor_sweep", 2],
-      ["head_up", 1], ["frames_hips_back", 1], ["sprawl", 1], ["shrimp_recover", 2], ["elbow_knee", 2],
-      ["upa", 1], ["sit_out", 1], ["hand_defense", 1], ["back_escape", 1]),
+    deck: deck(["hip_bump", 1], ["kimura_guard", 1], ["armbar_guard", 2], ["triangle", 1], ["level_change", 2],
+      ["head_up", 1], ["frames_hips_back", 1], ["sprawl", 2], ["shrimp_recover", 2], ["elbow_knee", 2],
+      ["upa", 1], ["hand_defense", 1], ["back_escape", 1], ["collar_tie", 1], ["base_post", 1]),
+
     reward: ["kimura_guard", "scissor_sweep", "base_post"],
   },
   {
     id: "l_passer", name: "Bruno", title: "Pressure-Passer", belt: "lila",
     blurb: "Bruno passt mit Druck und lässt dich nicht atmen. Guard Retention oder Shrimp – sonst kommt der Mount.",
-    likes: { pass: 2, advance: 1, shoulderlock: 1 },
-    deck: deck(["double_leg", 2], ["level_change", 1], ["collar_tie", 1], ["stack_pass", 2], ["knee_slice", 2],
-      ["base_post", 2], ["posture_defense", 1], ["to_mount", 2], ["kimura_side", 1], ["americana", 2],
-      ["armbar_mount", 1], ["shrimp_recover", 1], ["elbow_knee", 1], ["sprawl", 1]),
+    likes: { pass: 2, advance: 2, shoulderlock: 1 },
+    deck: deck(["double_leg", 1], ["level_change", 1], ["collar_tie", 1], ["stack_pass", 2], ["knee_slice", 2],
+      ["base_post", 2], ["posture_defense", 1], ["to_mount", 2], ["kimura_side", 1], ["americana", 1],
+      ["head_up", 1], ["armbar_mount", 1], ["shrimp_recover", 2], ["elbow_knee", 1], ["sprawl", 1]),
+
+
     reward: ["knee_slice", "kimura_side"],
   },
   {
     id: "l_boss", name: "Mestre Duarte", title: "Prüfung Lilagurt", belt: "lila", boss: true,
     blurb: "Duarte bestraft jede Submission ohne Kontrolle – und findet aus jeder Escape einen Weg zurück nach oben.",
     likes: { pass: 1, sweep: 1, trianglechoke: 1 },
-    deck: deck(["level_change", 1], ["double_leg", 1], ["snap_down", 1], ["collar_tie", 1], ["sprawl", 1],
-      ["guillotine", 1], ["hip_bump", 1], ["armbar_guard", 1], ["triangle", 1], ["knee_slice", 2],
-      ["base_post", 1], ["posture_defense", 1], ["to_mount", 1], ["armbar_mount", 1], ["underhook_knees", 1],
-      ["shrimp_recover", 1], ["upa", 1], ["mount_to_back", 1], ["rnc", 1]),
+    deck: deck(["level_change", 1], ["snap_down", 2], ["collar_tie", 2], ["sprawl", 1], ["hip_bump", 1],
+      ["armbar_guard", 1], ["triangle", 1], ["knee_slice", 1], ["base_post", 1], ["posture_defense", 1],
+      ["armbar_mount", 1], ["underhook_knees", 1], ["rnc", 1], ["head_up", 1], ["stack_pass", 1],
+      ["hand_defense", 1], ["sit_out", 1], ["clinch_entry", 1]),
+
     reward: ["triangle", "underhook_knees"],
   },
   // ---------------- Braun ----------------
@@ -136,57 +154,66 @@ const DRAFTS: ArchDraft[] = [
     id: "br_wrestler", name: "Jonas", title: "Ringer (Scrambler)", belt: "braun",
     blurb: "Jonas lebt im Front Headlock: Snap Down, Go-Behind, Guillotine. Kopf hoch!",
     likes: { snap: 2, behind: 2, choke: 1 },
-    deck: deck(["collar_tie", 2], ["snap_down", 2], ["double_leg", 1], ["single_leg", 1], ["sprawl", 2],
-      ["whizzer", 1], ["go_behind", 2], ["guillotine", 1], ["elbow_block", 1], ["sit_out", 1],
-      ["seatbelt_hooks", 2], ["rnc", 1], ["mount_to_back", 1], ["hand_defense", 1], ["back_escape", 1]),
+    deck: deck(["collar_tie", 1], ["snap_down", 2], ["single_leg", 1], ["sprawl", 1], ["go_behind", 2],
+      ["guillotine", 1], ["elbow_block", 1], ["sit_out", 1], ["seatbelt_hooks", 2], ["rnc", 1],
+      ["head_up", 1], ["hand_defense", 1], ["shrimp_recover", 2], ["level_change", 2], ["upa", 1]),
+
     reward: ["elbow_block", "mount_to_back"],
   },
   {
     id: "br_backtaker", name: "Lea", title: "Back-Taker", belt: "braun",
     blurb: "Lea will deinen Rücken. Arm Drag, Seatbelt, Hooks – und dann der Würger. Hände verteidigen zuerst.",
-    likes: { drag: 2, behind: 1, choke: 2 },
-    deck: deck(["two_on_one", 2], ["arm_drag", 2], ["collar_tie", 1], ["clinch_entry", 1], ["head_up", 1],
-      ["go_behind", 1], ["mount_to_back", 2], ["to_mount", 1], ["seatbelt_hooks", 2], ["rnc", 1],
-      ["hand_defense", 2], ["back_escape", 1], ["shrimp_recover", 1], ["elbow_knee", 1], ["sprawl", 1]),
+    likes: { drag: 2, behind: 2, choke: 2 },
+    deck: deck(["two_on_one", 2], ["arm_drag", 2], ["collar_tie", 1], ["clinch_entry", 1], ["go_behind", 1],
+      ["mount_to_back", 2], ["to_mount", 1], ["seatbelt_hooks", 1], ["rnc", 1], ["hand_defense", 2],
+      ["back_escape", 1], ["shrimp_recover", 2], ["wrist_free", 1], ["sprawl", 2]),
+
+
     reward: ["hand_defense", "back_escape"],
   },
   {
     id: "br_boss", name: "Sensei Okada", title: "Prüfung Braungurt", belt: "braun", boss: true,
     blurb: "Okada wirft, kontrolliert und streckt den Arm – geduldig, mit voller Kontrolle.",
-    likes: { reap: 1, armlock: 2, advance: 1 },
-    deck: deck(["underhook", 2], ["o_soto", 1], ["o_goshi", 1], ["frames_hips_back", 1], ["ankle_pick", 1],
-      ["collar_tie", 1], ["to_mount", 2], ["armbar_mount", 2], ["americana", 1], ["kimura_side", 1],
-      ["base_post", 1], ["posture_defense", 1], ["mount_to_back", 1], ["seatbelt_hooks", 1], ["upa", 1],
-      ["shrimp_recover", 1], ["hand_defense", 1]),
+    likes: { reap: 1, armlock: 2, advance: 1, setup: 1 },
+    deck: deck(["underhook", 1], ["o_soto", 2], ["o_goshi", 1], ["body_lock_trip", 2], ["sprawl", 1], ["to_mount", 2],
+      ["armbar_mount", 2], ["americana", 1], ["kimura_side", 1], ["posture_defense", 1], ["wrist_free", 1],
+      ["upa", 2], ["shrimp_recover", 1], ["double_leg", 1], ["single_leg", 1]),
+
+
     reward: ["armbar_mount", "ankle_pick"],
   },
   // ---------------- Schwarz ----------------
   {
     id: "s_mma", name: "Rafa", title: "MMA-Allrounder", belt: "schwarz",
     blurb: "Rafa mischt Jab, Shot und Clinch – und liest deine Muster.",
-    likes: { strike: 1, shot: 1, clinch: 1 },
-    deck: deck(["jab", 2], ["level_change", 2], ["double_leg", 2], ["single_leg", 1], ["sprawl", 2],
-      ["clinch_entry", 1], ["underhook", 1], ["body_lock_trip", 1], ["frames_hips_back", 1], ["knee_slice", 1],
-      ["to_mount", 1], ["mount_to_back", 1], ["seatbelt_hooks", 1], ["rnc", 1], ["shrimp_recover", 1], ["upa", 1]),
+    likes: { strike: 2, shot: 1, advance: 1 },
+    deck: deck(["jab", 2], ["level_change", 2], ["double_leg", 1], ["single_leg", 1], ["sprawl", 2],
+      ["clinch_entry", 1], ["underhook", 1], ["body_lock_trip", 1], ["knee_slice", 1], ["to_mount", 1],
+      ["mount_to_back", 1], ["seatbelt_hooks", 1], ["rnc", 1], ["shrimp_recover", 2], ["wrist_free", 1],
+      ["frames_hips_back", 1]),
+
+
     reward: ["knee_slice"],
   },
   {
     id: "s_system", name: "Professor Vale", title: "System-Grappler", belt: "schwarz",
     blurb: "Vale greift nur in Paaren an. Jede Verteidigung öffnet den nächsten Angriff.",
-    likes: { sweep: 1, shoulderlock: 1, trianglechoke: 1, snap: 1 },
-    deck: deck(["collar_tie", 1], ["snap_down", 2], ["double_leg", 2], ["head_up", 1], ["sprawl", 1],
-      ["hip_bump", 2], ["kimura_guard", 2], ["armbar_guard", 1], ["triangle", 1], ["base_post", 1],
-      ["posture_defense", 1], ["to_mount", 1], ["seatbelt_hooks", 1], ["rnc", 1], ["hand_defense", 1], ["elbow_knee", 1]),
+    likes: { sweep: 2, shoulderlock: 1, trianglechoke: 1, snap: 1 },
+    deck: deck(["snap_down", 1], ["head_up", 2], ["hip_bump", 2], ["kimura_guard", 1], ["armbar_guard", 1],
+      ["triangle", 1], ["base_post", 2], ["posture_defense", 1], ["to_mount", 2], ["rnc", 1],
+      ["elbow_knee", 1], ["shrimp_recover", 2], ["upa", 1], ["wrist_free", 1], ["collar_tie", 1]),
+
     reward: ["arm_drag"],
   },
   {
     id: "s_boss", name: "Großmeister Hara", title: "Prüfung Schwarzgurt", belt: "schwarz", boss: true,
     blurb: "Die letzte Prüfung. Hara kennt jede Kette – und weiß, was du als Nächstes tust.",
     likes: { advance: 1, choke: 1, behind: 1 },
-    deck: deck(["level_change", 1], ["double_leg", 1], ["collar_tie", 1], ["snap_down", 1], ["arm_drag", 1],
-      ["sprawl", 1], ["whizzer", 1], ["head_up", 1], ["go_behind", 1], ["guillotine", 1], ["knee_slice", 1],
-      ["base_post", 1], ["posture_defense", 1], ["to_mount", 1], ["mount_to_back", 1], ["seatbelt_hooks", 2],
-      ["rnc", 1], ["hand_defense", 1], ["back_escape", 1]),
+    deck: deck(["level_change", 2], ["double_leg", 1], ["collar_tie", 2], ["snap_down", 1], ["arm_drag", 2],
+      ["sprawl", 1], ["go_behind", 1], ["guillotine", 1], ["knee_slice", 1], ["base_post", 2],
+      ["posture_defense", 1], ["to_mount", 1], ["mount_to_back", 1], ["seatbelt_hooks", 1], ["rnc", 1],
+      ["hand_defense", 1]),
+
     reward: ["rnc"],
   },
 ];

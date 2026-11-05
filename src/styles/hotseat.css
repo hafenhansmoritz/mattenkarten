@@ -1,0 +1,122 @@
+/* ============ Duell zu zweit (Pass-and-Play) ============ */
+
+/* ---------- Setup ---------- */
+.hs-setup {
+  min-height: 100dvh; display: flex; flex-direction: column; gap: 16px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(90% 50% at 50% 0%, #1a2647 0%, var(--bg) 70%);
+  max-width: 760px; margin: 0 auto; width: 100%; box-sizing: border-box;
+}
+.hs-setup-head { display: flex; align-items: center; gap: 12px; }
+.hs-setup-head h1 { margin: 0; font-size: clamp(34px, 9vw, 52px); line-height: 1; }
+.hs-setup-head .label { color: var(--text-3); }
+.hs-setup-intro { margin: 0; color: var(--text-2); line-height: 1.45; }
+.hs-setup-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 620px) { .hs-setup-grid { grid-template-columns: 1fr 1fr; } }
+.hs-player-card {
+  --pc: var(--gi-p);
+  display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: var(--radius, 12px);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--pc) 18%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--pc) 55%, transparent);
+}
+.hs-player-card.o { --pc: var(--gi-o); }
+.hs-player-card h2 { margin: 0; color: var(--pc); }
+.hs-field { display: flex; flex-direction: column; gap: 4px; }
+.hs-field .label { color: var(--text-3); }
+.hs-field input, .hs-field select {
+  font: inherit; font-size: 16px; /* kein iOS-Zoom */ color: var(--text); background: var(--bg-2);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm); min-height: 46px; padding: 8px 12px; width: 100%; box-sizing: border-box;
+}
+.hs-field input:focus-visible, .hs-field select:focus-visible { outline: 2px solid var(--pc); outline-offset: 2px; }
+.hs-deck-blurb { margin: 0; font-size: 14px; color: var(--text-2); line-height: 1.4; min-height: 2.8em; }
+.hs-start { align-self: stretch; margin-top: auto; }
+
+/* ---------- Kette für beide ---------- */
+.hs-chain { display: flex; flex-direction: column; gap: 4px; padding: 2px max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px)); }
+.hs-chain-row { --pc: var(--gi-p); position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 64px) 1fr; gap: 6px; align-items: center; border-radius: 6px; }
+.hs-chain-row.o { --pc: var(--gi-o); }
+.hs-chain-name { font-weight: 700; font-size: 12px; color: var(--pc); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-chain-links { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+.hs-link { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 22px; padding: 2px 3px; border-radius: 5px; background: var(--surface); border: 1px solid var(--line); color: var(--text-3); font-size: 11px; }
+.hs-link-n { font-weight: 700; }
+.hs-link-l { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-link.on { background: color-mix(in srgb, var(--pc) 22%, transparent); border-color: color-mix(in srgb, var(--pc) 50%, transparent); color: var(--text); }
+.hs-link.cur { box-shadow: 0 0 0 2px var(--pc), 0 0 14px color-mix(in srgb, var(--pc) 45%, transparent); }
+@media (max-width: 420px) {
+  .hs-link-l { display: none; }
+  .hs-chain-row { grid-template-columns: minmax(0, 56px) 1fr; }
+}
+
+/* ---------- HUD / Bühne ---------- */
+.hotseat .fname { max-width: 9ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hotseat .hs-tag-p { color: var(--gi-p); }
+.hotseat .hs-tag-o { color: var(--gi-o); }
+
+/* ---------- Kartenwahl ---------- */
+.hs-pick { --pc: var(--gi-p); border-top: 3px solid var(--pc); }
+.hs-pick.o { --pc: var(--gi-o); }
+.hs-pick-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px)); }
+.hs-pick-head .label { color: var(--text-3); }
+.hs-whose { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; color: var(--pc); }
+.hs-pick .intent b { color: var(--pc); }
+.hs-confirm-btn.o { background: linear-gradient(180deg, #f06a6e, var(--gi-o)); }
+.hs-confirm-btn.p { background: linear-gradient(180deg, #5d9fff, var(--gi-p)); box-shadow: 0 6px 18px rgba(62, 139, 255, .35); }
+
+/* ---------- Übergabe / Sichtschutz ---------- */
+.hs-handoff {
+  --pc: var(--points);
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px;
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--pc) 30%, #0b0f1a), #070a12 70%);
+}
+.hs-handoff.p { --pc: var(--gi-p); }
+.hs-handoff.o { --pc: var(--gi-o); }
+.hs-handoff-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; max-width: 380px; width: 100%; }
+.hs-handoff-kicker { color: var(--text-2); }
+.hs-handoff h2 { margin: 0; font-size: clamp(38px, 11vw, 60px); line-height: 1; }
+.hs-handoff p { margin: 0; color: var(--text-2); font-size: 17px; }
+.hs-handoff p b { color: var(--text); }
+.hs-handoff-icon { display: flex; gap: 10px; }
+.hs-handoff-icon .hs-dot { width: 56px; height: 56px; box-shadow: 0 0 40px var(--dot); }
+.hs-handoff-btn { width: 100%; min-height: 72px; font-size: 22px; border: none; color: #fff; background: var(--pc); box-shadow: 0 10px 30px color-mix(in srgb, var(--pc) 45%, transparent); margin-top: 8px; }
+.hs-handoff-btn.both { background: linear-gradient(90deg, var(--gi-p), var(--gi-o)); }
+.hs-handoff-btn:hover:not(:disabled) { filter: brightness(1.08); background: var(--pc); }
+.hs-handoff-btn.both:hover:not(:disabled) { background: linear-gradient(90deg, var(--gi-p), var(--gi-o)); }
+.hs-handoff-btn:focus-visible, .hs-confirm-btn:focus-visible, .hs-end-actions .btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+.hs-dot { --dot: var(--gi-p); display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--dot); flex: none; }
+.hs-dot.o { --dot: var(--gi-o); }
+
+/* ---------- Erklärung ---------- */
+.hs-played { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; }
+.hs-played-item b { margin-right: 4px; }
+.hs-played-item.p b { color: var(--gi-p); }
+.hs-played-item.o b { color: var(--gi-o); }
+.hs-played-item .label { color: var(--text-3); margin-left: 4px; }
+.hs-reads, .hs-safety-res { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.hs-reads li, .hs-safety-res li { padding: 6px 10px; border-radius: 8px; background: var(--surface); border-left: 3px solid var(--text-3); }
+.hs-reads li.ok, .hs-safety-res li.ok { border-left-color: #59d39a; }
+.hs-reads li.miss, .hs-safety-res li.miss { border-left-color: var(--danger); }
+
+/* ---------- Ende ---------- */
+.hs-end.p { border-color: var(--gi-p); box-shadow: 0 0 0 1px var(--gi-p), 0 20px 60px rgba(62, 139, 255, .3); }
+.hs-end.o { border-color: var(--gi-o); box-shadow: 0 0 0 1px var(--gi-o), 0 20px 60px rgba(229, 72, 77, .3); }
+.hs-score { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hs-score-col { --pc: var(--gi-p); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+.hs-score-col.o { --pc: var(--gi-o); }
+.hs-score-col.win { border-color: var(--pc); box-shadow: 0 0 18px color-mix(in srgb, var(--pc) 40%, transparent); }
+.hs-score-name { font-weight: 800; color: var(--pc); }
+.hs-score-pts { font-size: 44px; line-height: 1; }
+.hs-score-col .label { color: var(--text-3); }
+.hs-end-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
+/* ---------- Bestätigen ---------- */
+.hs-confirm-bg { align-items: center; padding: 20px; }
+.hs-confirm { max-width: 380px; width: 100%; background: var(--bg-2); border: 1px solid var(--line-strong); border-radius: var(--radius-lg, 16px); padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.hs-confirm h2 { margin: 0; font-size: 32px; }
+.hs-confirm p { margin: 0; color: var(--text-2); }
+.hs-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.hs-row .btn { flex: 1 1 140px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-handoff-icon .hs-dot { box-shadow: none; }
+}

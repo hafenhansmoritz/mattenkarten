@@ -13,7 +13,7 @@ export function basicsFor(pos: PositionId, role: Role): CardDef[] {
 }
 
 /** Nur Deck-Karten (für Deckbau und Validierung). */
-export const DECK_CARD_IDS: string[] = DECK_CARDS.map((c) => c.id);
+export const DECK_CARD_IDS: string[] = [...DECK_CARDS, ...EXPANSION_CARDS].map((c) => c.id);
 
 /**
  * Verbotene Techniken – NICHT spielbar, nur als Regel-Lektion in Weiß (Spec 3).

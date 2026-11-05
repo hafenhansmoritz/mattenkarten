@@ -8,6 +8,7 @@ import { Lesson } from "./Lesson";
 import { MistakeTraining } from "./MistakeTraining";
 import { POS_LABEL } from "../components/cardText";
 import { POSITION_GUIDE } from "../data/positions";
+import { DemoButton, TechniqueDemo } from "../components/demo";
 import type { CardDef, PositionId, Role } from "../engine/types";
 
 const ORDER: PositionId[] = ["dist", "clinch", "fhl", "guard", "side", "mount", "back"];
@@ -79,6 +80,7 @@ export function PlainDetail({ id, onClose }: { id: string; onClose: () => void }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+  const [demo, setDemo] = useState<string | null>(null);
   const big = c.plain ?? c.name;
   const showTerm = !!c.plain && c.plain !== c.name;
   return (
@@ -95,8 +97,10 @@ export function PlainDetail({ id, onClose }: { id: string; onClose: () => void }
             {c.plainDo && <motion.p className="pd-do" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.18 }}>{c.plainDo}</motion.p>}
             {showTerm && <p className="pd-term"><span className="label">Fachbegriff</span> {c.name}{c.de ? ` · ${c.de}` : ""}</p>}
             <p className="pd-where small muted">Wo: {[...new Set(c.slots.map((s) => POSITION_GUIDE[s.pos].plain))].join(", ")}</p>
+            <DemoButton cardId={c.id} onOpen={setDemo} />
           </div>
         </div>
+        {demo && <TechniqueDemo cardId={demo} onClose={() => setDemo(null)} />}
         <motion.div className="detail-text" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
           <h4 className="label">Darauf kommt es an</h4>
           <ul className="good">{c.keys.map((k) => <li key={k}>{k}</li>)}</ul>

@@ -1,0 +1,104 @@
+/* ============================================================
+   Trainer-Modus & Deck teilen – mobile first, Night-Arena-Tokens
+   ============================================================ */
+
+.tr-screen { --tr-ok: var(--gas); --tr-change: var(--points); gap: 14px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); max-width: 720px; margin-inline: auto; width: 100%; }
+.tr-head { display: flex; align-items: center; gap: 10px; }
+.tr-head h2 { font-size: 28px; }
+
+.tr-panel { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); }
+.tr-h { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 20px; letter-spacing: .01em; display: flex; align-items: baseline; gap: 8px; margin: 0; }
+.tr-intro { background: linear-gradient(160deg, var(--surface-2), var(--surface)); border-color: var(--line-strong); }
+.tr-intro p { margin: 0; }
+
+.tr-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.tr-row .btn { flex: 1 1 160px; }
+
+.tr-field { display: flex; flex-direction: column; gap: 4px; }
+.tr-input { font: inherit; font-size: 16px; /* kein iOS-Zoom */ color: var(--text); background: var(--bg-2); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 10px 12px; min-height: 44px; width: 100%; min-width: 0; }
+.tr-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.tr-input::placeholder { color: var(--text-3); }
+input.tr-input[readonly] { color: var(--text-2); text-overflow: ellipsis; }
+.tr-note { resize: vertical; min-height: 72px; }
+.tr-report-text { font-family: var(--font-mono); font-size: 13px; line-height: 1.5; min-height: 180px; }
+
+.tr-status { color: var(--text); margin: 0; }
+.tr-ok { color: var(--gas); margin: 0; }
+.tr-warn { color: var(--points); margin: 0; }
+
+/* ---------- Mini-Karten ---------- */
+.tr-minis { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 10px; margin-inline: -2px; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--scroll-a) transparent; }
+.tr-mini { position: relative; flex: none; scroll-snap-align: start; }
+.tr-mini.locked .mk-card { filter: grayscale(.85) brightness(.6); }
+.tr-lock { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text); pointer-events: none; }
+.tr-lock svg { width: 22px; height: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.6)); }
+
+/* ---------- Phasen-Abdeckung ---------- */
+.tr-cov { display: flex; flex-direction: column; gap: 6px; }
+.tr-cov-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.tr-cov-list li { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.tr-cov-bar { position: relative; width: 100%; max-width: 28px; height: 44px; border-radius: var(--radius-xs); background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; }
+.tr-cov-bar i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, var(--scroll-b), var(--mat-line)); transition: height var(--t-mid) var(--ease-out); }
+.tr-cov-list li.gap .tr-cov-bar { border-color: var(--points); border-style: dashed; }
+.tr-cov-n { font-size: 13px; font-weight: 700; }
+.tr-cov-l { font-size: 10px; line-height: 1.15; color: var(--text-2); text-align: center; overflow-wrap: anywhere; }
+
+.tr-preview { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; border-top: 1px solid var(--line); }
+.tr-preview > .btn { align-self: stretch; }
+.tr-locked { padding: 10px 12px; border-radius: var(--radius); background: rgba(255, 209, 102, .08); border: 1px solid rgba(255, 209, 102, .3); }
+.tr-locked p { margin: 0 0 4px; }
+.tr-locked ul { margin: 0; padding-left: 18px; font-size: 14px; }
+
+/* ---------- Fortschritt ---------- */
+.tr-progress { position: sticky; top: 64px; z-index: 5; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); background: rgba(20, 28, 49, .92); backdrop-filter: blur(8px); border: 1px solid var(--line-strong); }
+.tr-progress-t { font-weight: 700; white-space: nowrap; }
+.tr-progress-bar { height: 8px; border-radius: var(--radius-pill); background: var(--bg-2); overflow: hidden; }
+.tr-progress-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gas), var(--scroll-b)); transition: width var(--t-mid) var(--ease-out); }
+.tr-toggle { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; min-height: 44px; cursor: pointer; }
+.tr-toggle input { width: 18px; height: 18px; accent-color: var(--scroll-b); }
+
+/* ---------- Prüfkarten ---------- */
+.tr-group { display: flex; flex-direction: column; gap: 10px; }
+.tr-group-h { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 18px; margin: 6px 0 0; display: flex; align-items: baseline; gap: 8px; }
+.tr-group-h .small { font-family: var(--font-body); text-transform: none; font-weight: 400; }
+
+.tr-card { --tr-accent: var(--line-strong); display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--tr-accent); transition: border-color var(--t-fast), background var(--t-fast); }
+.tr-k-angriff { --tr-accent: var(--k-angriff); }
+.tr-k-setup { --tr-accent: var(--k-setup); }
+.tr-k-reaktion { --tr-accent: var(--k-reaktion); }
+.tr-card.is-ok { background: linear-gradient(0deg, rgba(95, 227, 180, .06), rgba(95, 227, 180, .06)), var(--surface); border-color: rgba(95, 227, 180, .35); border-left-color: var(--tr-ok); }
+.tr-card.is-change { background: linear-gradient(0deg, rgba(255, 209, 102, .06), rgba(255, 209, 102, .06)), var(--surface); border-color: rgba(255, 209, 102, .35); border-left-color: var(--tr-change); }
+.tr-card p { margin: 0; }
+.tr-card-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.tr-plain { margin: 0; font-size: 18px; line-height: 1.2; }
+.tr-term { color: var(--text-2); font-size: 14px; }
+.tr-kind { flex: none; padding: 3px 8px; border-radius: var(--radius-pill); background: var(--bg-2); color: var(--tr-accent); border: 1px solid currentColor; font-size: 11px; }
+.tr-meta { display: flex; flex-wrap: wrap; gap: 6px 10px; color: var(--text-3); }
+.tr-why { color: var(--points); }
+.tr-do { font-weight: 700; }
+.tr-block { display: flex; flex-direction: column; gap: 2px; }
+.tr-block ul { margin: 0; padding-left: 18px; font-size: 14px; }
+.tr-block p { font-size: 14px; }
+.tr-mistakes .label { color: var(--danger); }
+.tr-safety { padding: 8px 10px; border-radius: var(--radius-sm); background: rgba(255, 107, 107, .08); border: 1px solid rgba(255, 107, 107, .25); }
+.tr-safety .label { color: var(--danger); }
+.tr-src a { color: var(--focus); overflow-wrap: anywhere; }
+
+.tr-verdict { display: flex; gap: 8px; flex-wrap: wrap; }
+.tr-verdict .btn.small { min-height: 44px; flex: 1 1 100px; }
+.tr-verdict .btn.ghost { flex: 0 1 auto; }
+.tr-yes.on { background: var(--tr-ok); border-color: transparent; color: var(--text-ink); }
+.tr-no.on { background: var(--tr-change); border-color: transparent; color: var(--text-ink); }
+.tr-yes.on:hover:not(:disabled) { background: var(--tr-ok); }
+.tr-no.on:hover:not(:disabled) { background: var(--tr-change); }
+
+
+@media (min-width: 640px) {
+  .tr-head h2 { font-size: 34px; }
+  .tr-panel, .tr-card { padding: 18px; }
+  .tr-cov-l { font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-cov-bar i, .tr-progress-bar i, .tr-card { transition: none; }
+}

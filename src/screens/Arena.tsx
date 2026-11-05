@@ -18,6 +18,7 @@ import {
   PositionGuideCard, GoalLine, CoachButton, PredictPicker, RevealExplain, RecapView, ResourceBadge, TriangleExplainer, CoachAvatar,
 } from "../components/learn";
 import { useGame } from "../store";
+import { MatchAnalysis, matchSummary } from "../coach";
 import { sfx } from "../sound";
 
 const CHAIN = ["Abstand", "Umklammern", "Zu Boden", "Kontrolle", "Aufgabe"];
@@ -368,6 +369,7 @@ export function Arena({ arch, onExit }: { arch: Archetype; onExit: (won: boolean
             <span className="label">{arch.name} · {arch.title}</span>
             <h2 className="display">{endTitle(match, won, tapOk)}</h2>
             <p>{tut && won ? tut.winText : endText(match, won, tapOk)}</p>
+            <MatchAnalysis summary={matchSummary(match, arch.name, rec)} />
             <RecapView recap={rec} won={!!won} onContinue={() => onExit(won)} />
           </motion.div>
         </motion.div>

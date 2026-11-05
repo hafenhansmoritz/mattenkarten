@@ -279,6 +279,29 @@ Escape-Reihenfolgen sind belegt und eignen sich als Sequenz-Voraussetzung: Frame
 | RNC ↔ Armbar | Zwei-Hand-Abwehr öffnet den Arm | belegt (BJJ Atlas) |
 | Double ↔ Single | nur indirekt: Hand vom Knie zwingt zum Single | teilweise belegt (Dake) |
 
+### 4.7 Content-Paket 2 (Erweiterungskarten, Stand 2026-11-05)
+
+Karten in `src/data/expansion.ts`. Nur bestehende Positionen und Tags. Spalten wie oben, zusätzlich die Karten-ID.
+
+| Karte (ID) | Aktion | typische Reaktion | Re-Attack/Folge | Quelle | Status |
+|---|---|---|---|---|---|
+| `jab_cross` | Jab-Cross (1-2): Jab öffnet die Deckung, Cross mit der hinteren Hand durch die Mitte | Slip/Parry | Einzelschläge sind „too predictable“, darum Kombination | [Evolve MMA Combinations](https://evolve-mma.com/blog/the-5-basic-yet-effective-combinations-all-boxers-need-to-know/) | belegt |
+| `feint_shot` | Shot-Finte: Level Change oder Schritt vor, ohne zu schießen | Gegner senkt die Hände, macht den Stand breit oder weicht zurück | Schlag oder echter Takedown; Jab-Cross → Finte | [Evolve MMA Takedown Feints](https://evolve-mma.com/blog/the-art-of-takedown-feints-in-mma/), [Evolve University Level Changes](https://evolve-university.com/blog/how-to-use-level-changes-to-set-up-strikes-and-takedowns/) | belegt (schließt Prüfpunkt 8 teilweise: Jab-Cross → Duck → Shot belegt) |
+| `slip_parry` | Parry (Hand lenkt den Jab ab) / Slip (Kopf neben den Schlag) | – | sofort kontern | [Evolve MMA Jab Defense](https://evolve-mma.com/blog/heres-how-to-defend-the-jab-in-muay-thai/) | belegt; dass Slip/Parry Beinangriffe nicht stoppt, ist [Design] |
+| `cage_press` | Gegner an Käfig/Wand pinnen: Kopf unter sein Kinn, Underhook, Kopf und Hüfte kontrollieren | Underhook erkämpfen, Wrist Control, Whizzer, zur Seite drehen | Single, Double, Trips, High Crotch, Hüftwürfe | [Evolve MMA Cage](https://evolve-mma.com/blog/heres-how-to-use-the-cage-in-mma/), [Evolve MMA Cage Escape](https://evolve-mma.com/blog/how-to-use-the-cage-wall-to-escape-takedowns-in-mma/) | belegt (Prüfpunkt 17 teilweise geschlossen); Sicherheitshinweis „gepolsterte Wand“ [FW] |
+| `double_unders` | Double Underhooks: zweiten Underhook erkämpfen | Overhook als übliche Defensivreaktion | Single/Double, Trips, Würfe; Body Lock | [Evolve MMA Underhooks](https://evolve-mma.com/blog/understanding-underhooks-and-overhooks-in-mma/) | belegt; Öffnung für Body Lock/Trip zusätzlich über [JitsuIQ Body Lock](https://jitsuiq.com/takedowns/body-lock-takedown.html) |
+| `wrist_control` | Handgelenk kontrollieren | verhindert, dass er die Hände für den Takedown verschließt | Underhook auf der anderen Seite | [Evolve MMA Cage Escape](https://evolve-mma.com/blog/how-to-use-the-cage-wall-to-escape-takedowns-in-mma/), [Evolve MMA Clinch](https://evolve-mma.com/blog/5-areas-to-improve-in-your-mma-clinch-game/) | belegt (kontert `bodylock`) |
+| `butterfly_sweep` | Butterfly Sweep: Haken innen, Gewicht nach vorn laden, zur Seite fallen und heben | Hand posten („the sweep fails the moment a hand hits the mat“), zurückweichen | X-Guard Sweep; Ende Mount oder Side Control | [BJJ Atlas Butterfly](https://bjj-atlas.pages.dev/sweeps/butterfly-sweep) | belegt (Konter im Spiel: `base_post` kontert `sweep`) |
+| `knee_shield` | Knee Shield: Knie gegen Schulter/Brust, Fuß hakt den Knöchel, Frames als zweite Linie | Crossface, Switch Base; gegen Knee Cut: Backstep | Cross-Sleeve-Back-Take, Scissor Sweep | [Evolve MMA Knee Shield](https://evolve-mma.com/blog/bjj-101-knee-shield-half-guard/), [BJJ Atlas Knee Cut](https://bjj-atlas.pages.dev/guard-passing/knee-cut) | belegt (blockt Knee Cut laut BJJ Atlas); dass er auch Toreando/Stack stoppt, ist [Design] |
+| `toreando` | Toreando: Beine zur einen Seite werfen, zur anderen herumlaufen | Gegner folgt und baut die Guard neu auf; halbe Erholung → Half Guard | Knee Cut, Leg Drag; Side Control oder Knee on Belly | [BJJ Atlas Toreando](https://bjj-atlas.pages.dev/guard-passing/toreando) | belegt; Dilemma Toreando ↔ Knee Slice über „If they block one path, another opens“ ([BJJ Atlas Knee Cut](https://bjj-atlas.pages.dev/guard-passing/knee-cut)) |
+| `knee_on_belly` | Knee on Belly aus Side Control: Knie auf Bauch/unteres Brustbein, fernes Bein weit | Gegner framt, drückt das Knie weg, dreht sich | Armbar, Kimura/Americana, Mount, Rücken, Kragenwürger | [BJJ Atlas Knee on Belly](https://bjj-atlas.pages.dev/immobilizations/knee-on-belly) | belegt; Knie nicht auf die Rippen (Quelle) – schließt Prüfpunkt 22 für KOB teilweise. Punkte im Spiel bewusst nicht vergeben [Design] |
+| `cross_collar` | Cross Collar aus dem Mount (nur Gi): erster Griff sehr tief, Daumen innen/außen, Ellbogen runter, Brust vor | Arme hochdrücken, Griffe früh bekämpfen | Armbar; Ezekiel als Alternative | [BJJ Atlas Cross Collar](https://bjj-atlas.pages.dev/submissions/cross-collar-choke) | belegt; Kragenwürger stehen nicht unter den Weißgurt-Verboten bei [BJJ Fanatics Illegal Moves](https://bjjfanatics.com/blogs/news/illegal-moves-in-bjj) (nennt dort Jumping Guard und Wrist Locks) [Sekundär] – IBJJF-Liste selbst prüfen (Prüfpunkt 1) |
+| `collar_defense` | Kragengriffe abwehren: ersten Griff verhindern, zweiten blocken, zuletzt gegen die Ellbogen drücken | – | Bridge zur Seite des Angriffsarms | [Submission Shark](https://submissionshark.com/blogs/bjj-for-begginers/how-to-defend-yourself-from-cross-collar-chokes-in-jiu-jitsu-bjj), [JitsuIQ Cross Collar](https://jitsuiq.com/submissions/chokes/cross-collar-choke.html) | belegt (Händlerblog + JitsuIQ, beide schwach → Trainer-Review empfohlen) |
+| `back_armbar` | Armbar vom Rücken, wenn er den Würger mit beiden Händen verteidigt und die Arme streckt | Arme eng halten | zurück zum RNC (Paar RNC ↔ Armbar, 4.6) | [BJJ Atlas RNC](https://bjj-atlas.pages.dev/submissions/rear-naked-choke), [JitsuIQ Back Control](https://jitsuiq.com/positions/back/back-control.html) | belegt; Gegenkarte `hand_defense` kontert `armlock` ebenfalls – Dilemma hebelt den `choke`-Konter aus |
+| `shrimp_back_escape` | Shrimp-Escape vom Rücken: Hände hoch in Gebetshaltung, Schultern auf die Matte, Hüfte weg | Gegner folgt mit Hooks | Guard (oben oder unten); bei starken Hooks andere Escapes | [Evolve MMA Back Escapes](https://evolve-mma.com/blog/3-back-mount-escapes-you-need-to-know-in-bjj/), [BJJ Atlas Back](https://bjj-atlas.pages.dev/escapes/back-escapes) | belegt; Ergebnis im Spiel: Guard unten [Design-Vereinfachung] |
+
+Bewusst **nicht** aufgenommen: Clinch-Knie (Evolve nennt nur Knie zum Kopf – für Neulinge ungeeignet, kein passender Tag), Kick Catch (eigener Tag fehlt), Bow-and-Arrow und Ezekiel (nur Gi, Quellen zu dünn), Leg-Lock-Escape vom Rücken (führt zu Heel-Hook-Positionen), Ghost Escape (laut BJJ Atlas nicht für Anfänger).
+
 ---
 
 ## 5. Sicherheit und Regeln
@@ -734,6 +757,21 @@ Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätig
 - https://thedifficultway.blogspot.com/2011/05/tai-otoshi.html
 - https://students.washington.edu/judouw/dojo/gokyu.html
 - https://judobund.de/fileadmin/user_upload/judobund.de/Downloads/Downloadcenter/Kyu-Graduierungen/Anforderungen_fuer_Kyu-Grade_2024.pdf
+
+**Content-Paket 2 (Abschnitt 4.7)**
+- https://evolve-mma.com/blog/the-5-basic-yet-effective-combinations-all-boxers-need-to-know/
+- https://evolve-mma.com/blog/the-art-of-takedown-feints-in-mma/
+- https://evolve-university.com/blog/how-to-use-level-changes-to-set-up-strikes-and-takedowns/
+- https://evolve-mma.com/blog/heres-how-to-defend-the-jab-in-muay-thai/
+- https://evolve-mma.com/blog/heres-how-to-use-the-cage-in-mma/
+- https://evolve-mma.com/blog/how-to-use-the-cage-wall-to-escape-takedowns-in-mma/
+- https://evolve-mma.com/blog/bjj-101-knee-shield-half-guard/
+- https://evolve-mma.com/blog/3-back-mount-escapes-you-need-to-know-in-bjj/
+- https://bjj-atlas.pages.dev/immobilizations/knee-on-belly
+- https://bjj-atlas.pages.dev/submissions/cross-collar-choke
+- https://jitsuiq.com/submissions/chokes/cross-collar-choke.html
+- https://jitsuiq.com/positions/back/back-control.html
+- https://submissionshark.com/blogs/bjj-for-begginers/how-to-defend-yourself-from-cross-collar-chokes-in-jiu-jitsu-bjj
 
 **Techniken: Boden, Escapes, Submissions**
 - https://evolve-mma.com/blog/the-complete-brazilian-jiu-jitsu-beginners-guide/

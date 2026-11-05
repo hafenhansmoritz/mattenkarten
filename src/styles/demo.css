@@ -1,0 +1,125 @@
+/* ============================================================
+   Mattenkarten – "So geht's"-Technikdemos (Präfix dm-)
+   Mobile-first, Tokens aus theme.css.
+   ============================================================ */
+
+.dm-demo {
+  display: flex; flex-direction: column; gap: 10px;
+  width: 100%; max-width: 480px; margin: 0 auto;
+  padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(170deg, #1b2850 0%, var(--bg-2) 60%);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  color: var(--text);
+  outline: none;
+}
+
+.dm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.dm-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dm-kicker {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--k-setup);
+}
+.dm-title {
+  margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1;
+  letter-spacing: .01em; text-transform: uppercase;
+}
+.dm-sub { font-size: 13px; color: var(--text-2); }
+.dm-close {
+  flex: none; display: grid; place-items: center; width: 36px; height: 36px;
+  border-radius: var(--radius-pill); border: 1px solid var(--line); background: var(--surface-2);
+  color: var(--text-2); cursor: pointer;
+}
+.dm-close:hover { color: var(--text); border-color: var(--line-strong); }
+
+.dm-stage {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background:
+    radial-gradient(70% 90% at 50% 100%, rgba(62, 139, 255, .22), transparent 70%),
+    linear-gradient(180deg, #0f1a36, var(--bg-2));
+  border: 1px solid var(--mat-line);
+}
+.dm-svg { display: block; width: 100%; height: auto; }
+.dm-slowtag {
+  position: absolute; top: 8px; right: 8px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: var(--radius-pill);
+  background: rgba(255, 209, 102, .16); color: var(--points); border: 1px solid rgba(255, 209, 102, .4);
+}
+
+.dm-caption { min-height: 52px; display: flex; align-items: center; justify-content: center; text-align: center; }
+.dm-caption-text {
+  margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 22px; line-height: 1.1;
+  letter-spacing: .01em; text-wrap: balance;
+}
+.dm-caption-text.is-start { color: var(--text-2); font-size: 18px; }
+.dm-caption-text.is-end { color: var(--points); }
+
+.dm-dots { display: flex; justify-content: center; gap: 4px; }
+.dm-dot {
+  /* großzügige Trefferfläche, sichtbarer Punkt per ::before */
+  position: relative; width: 26px; height: 22px; padding: 0; border: 0; background: none; cursor: pointer;
+}
+.dm-dot::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; transform: translate(-50%, -50%);
+  border-radius: 50%; background: var(--surface-3); border: 1px solid var(--line-strong);
+  transition: width var(--t-mid) var(--ease-out), background-color var(--t-fast);
+}
+.dm-dot.is-start::before { border-radius: 2px; }
+.dm-dot.is-done::before { background: rgba(62, 139, 255, .55); }
+.dm-dot.is-on::before { width: 20px; border-radius: var(--radius-pill); background: var(--gi-p); border-color: transparent; }
+.dm-dot:focus-visible { outline: none; }
+.dm-dot:focus-visible::before { box-shadow: 0 0 0 2px var(--focus); }
+
+.dm-controls { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.dm-ctl-gap { width: 6px; }
+.dm-ctl {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-width: 44px; height: 44px; padding: 0 10px;
+  border-radius: var(--radius-pill); border: 1px solid var(--line-strong);
+  background: var(--surface-2); color: var(--text); cursor: pointer;
+  transition: background-color var(--t-fast), transform var(--t-fast) var(--ease-out);
+}
+.dm-ctl:hover:not(:disabled) { background: var(--surface-3); }
+.dm-ctl:active:not(:disabled) { transform: scale(.95); }
+.dm-ctl:disabled { opacity: .35; cursor: default; }
+.dm-ctl:focus-visible, .dm-close:focus-visible, .dm-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.dm-ctl-main { min-width: 56px; height: 52px; background: var(--gi-p); border-color: transparent; color: #fff; }
+.dm-ctl-main:hover:not(:disabled) { background: #5a9cff; }
+.dm-slow.is-on { background: rgba(255, 209, 102, .16); border-color: rgba(255, 209, 102, .5); color: var(--points); }
+.dm-slow-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
+
+.dm-count {
+  margin: 0; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-3);
+  letter-spacing: .06em; text-transform: uppercase;
+}
+
+/* Kleiner Button auf Karten / im Detail */
+.dm-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 32px; padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(62, 139, 255, .55);
+  background: rgba(62, 139, 255, .16);
+  color: var(--text);
+  font-family: var(--font-body); font-size: 13px; font-weight: 700; line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--t-fast), transform var(--t-fast) var(--ease-out);
+}
+.dm-btn svg { color: var(--gi-p); }
+.dm-btn:hover { background: rgba(62, 139, 255, .28); }
+.dm-btn:active { transform: scale(.96); }
+
+@media (max-width: 360px) {
+  .dm-title { font-size: 22px; }
+  .dm-caption-text { font-size: 19px; }
+  .dm-ctl { min-width: 40px; height: 40px; padding: 0 8px; }
+  .dm-ctl-main { min-width: 50px; height: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-dot::before, .dm-ctl, .dm-btn { transition: none; }
+}
