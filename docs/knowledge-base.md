@@ -604,6 +604,16 @@ Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`
 
 ---
 
+### 8.11 7-Tage-Startprogramm (Recherche 2026-11-05)
+- Realistisch in 7 Tagen: Wissen & Entscheidungen, keine Motorik. Gracie Combatives ≈ 23 Lektionen à 1 h, je 3× besucht + 12 Reflex-Klassen (≈ 80 h, eigene Rechnung); GB Fundamentals 16 Wochen; GB: Live-Sparring erst ab 3. Streifen.
+- Viel Video → höhere Selbsteinschätzung ohne Leistungsgewinn → App zeigt „Wissen geprüft“ getrennt von „Können: Matte“.
+- Reihenfolge Danaher „Go Further Faster“: Pin-Befreiungen zuerst (Mount, Side, Frames, KoB/N-S, dann Rücken/Turtle).
+- Abstand Wiederholung ≈ 20–40 % der Behaltenszeit (Cepeda 2008) → bei 1 Woche: 1, 2, 4 Tage.
+- Streaks (Silverman & Barasch): intakt motiviert (66 vs. 58 %), Bruch schadet v. a. bei Selbstschuld → keine Bruch-Benachrichtigung, Pause statt Rückstufung.
+- Solo-Drills: Brücke, Shrimp, Technical Stand-up, Fallen aus dem Sitz, Sprawl, Guard-Haltung. Nicht allein: Würfe/Takedowns mit Partner, Rollen über Kopf, Aufgaben bis Druck, Sparring, Beinhebel, Fallen aus dem Stand [eigene Zusammenstellung, ungeprüft].
+- Lücken: Roy Dean-Lehrplan, optimale Sitzungslänge, Mastery-Schwelle (80 % = Hypothese), Hautinfektionen.
+- Details: research_notes/7 Tage Startprogramm/notes.md · Spec: docs/superpowers/specs/2026-11-05-7-tage-startprogramm-design.md
+
 ## 9. Offene Prüfpunkte
 
 Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätigen, bevor es ohne `check`-Feld in Karten erscheint.
