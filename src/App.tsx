@@ -12,12 +12,14 @@ import { HotSeat } from "./screens/HotSeat";
 import { ShareDeck, readDeckFromHash } from "./screens/ShareDeck";
 import { TrainerCheck } from "./screens/TrainerCheck";
 import { KoerperkarteHub } from "./screens/KoerperkarteHub";
+import { ProgramScreen } from "./program/ProgramScreen";
+import { StartHero } from "./program/StartHero";
 import { CoachChat } from "./coach";
 import { useInstallPrompt } from "./pwa";
 import { unlockAudio } from "./sound";
 
 type Tab = "kampagne" | "raetsel" | "deck" | "mehr";
-type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2";
+type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start";
 const TAB_LABEL: Record<Tab, string> = { kampagne: "Kampagne", raetsel: "Rätsel", deck: "Deck", mehr: "Mehr" };
 
 export function App() {
@@ -58,6 +60,7 @@ export function App() {
   if (screen === "share") return <ShareDeck onBack={() => { if (location.hash.startsWith("#deck=")) history.replaceState(null, "", location.pathname); back(); }} />;
   if (screen === "trainer") return <TrainerCheck onBack={back} />;
   if (screen === "k2") return <KoerperkarteHub onBack={back} />;
+  if (screen === "start") return <div className="pg-wrap"><ProgramScreen onBack={back} /></div>;
 
   return (
     <div className="app">
@@ -76,7 +79,7 @@ export function App() {
               <div className="screen"><button className="btn small ghost" onClick={back}>← Zurück</button><Library /></div>
             ) : (
               <>
-                {tab === "kampagne" && <Campaign onFight={setFight} />}
+                {tab === "kampagne" && <><StartHero onOpen={() => setScreen("start")} /><Campaign onFight={setFight} /></>}
                 {tab === "raetsel" && <Puzzles onBack={() => setTab("kampagne")} />}
                 {tab === "deck" && <DeckBuilder />}
                 {tab === "mehr" && <MoreMenu open={setScreen} />}
@@ -100,6 +103,7 @@ export function App() {
 function MoreMenu({ open }: { open: (s: Screen) => void }) {
   const { canInstall, iosHint, promptInstall } = useInstallPrompt();
   const items: { s: Screen; title: string; text: string }[] = [
+    { s: "start", title: "7-Tage-Start", text: "Neu hier? In 7 Tagen à 15 Minuten sicher und mit Plan ins erste Training." },
     { s: "k2", title: "Neu: Körperkarte (Prototyp)", text: "Der neue Spielkern: Zonen gewinnen, befreien, passieren, Aufgabe in drei Schritten." },
     { s: "bibliothek", title: "Bibliothek", text: "Alle Karten, „So geht's“-Animationen, Training und dein Fehler-Deck." },
     { s: "hotseat", title: "Duell zu zweit", text: "Am selben Handy gegeneinander – verdeckt wählen, gleichzeitig aufdecken." },

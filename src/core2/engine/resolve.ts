@@ -2,10 +2,32 @@
 import type { Card2, Event2, Round2, Side, State2, SubTrack, Zone } from "../types";
 import { ZONES } from "../types";
 import { clampZone, other, POS_LABEL, roleOf, sign, topFor, ZONE_LABEL } from "./board";
-import { checkCard, PASS, unmetRequires } from "./legal";
+import { checkCard, heldInSub, PASS, unmetRequires } from "./legal";
 import { cardById } from "./registry";
 
 export const KRAFT_MAX = 5;
+
+/** Balance-Schalter (Spec „Balance-Änderungen“). */
+export const BALANCE = {
+  /** Dilemma: der Rahmen stoppt den Angriff, gewinnt aber selbst keine Zone. */
+  dilemmaNoFrameGain: true,
+  /** Aufgabe-Angriff gegen Aufbauen in derselben Zone: Leiste +2 statt +1. */
+  caughtBuildingSteps: 2,
+  /** Ab dieser Stufe setzt ein Rahmen die Leiste nicht mehr zurück, sondern hält sie nur (Druck). 4 = aus. */
+  pressureStep: 2,
+  /** Ein gestoppter Angriff wird nicht gesperrt (sofort neu versuchen). */
+  stoppedAttackStaysFree: false,
+  /** Aufgabe-Angriff, während er in einer anderen Zone rahmt (falsche Zone): Leiste +2. */
+  wrongFrameSteps: 2,
+  /** Aufbauen gegen Aufbauen in derselben Zone: der Obere setzt sich durch (+1), im Stand hebt es sich auf. */
+  topWinsBuildTie: true,
+  /** Ein Aufgabegriff, der in derselben Runde sitzt, stoppt die Flucht (Positionswechsel) des Gegners. */
+  gripStopsEscape: true,
+  /** Rahmen gewinnt beim erfolgreichen Konter Zone(n). */
+  frameGain: true,
+  /** Gerangel (Angriff gegen Angriff ohne Vorsprung in der Zone): Vorteil auf der Körperkarte, dann mehr Kraft gewinnt. */
+  kraftWinsScramble: true,
+};
 
 export function cloneState(s: State2): State2 {
   return {
@@ -32,6 +54,7 @@ interface Ctx {
   notes: Note[];
   acted: Set<Side>;    // Seiten, deren Karte etwas bewirkt hat
   pendingMoves: { side: Side; card: Card2 }[];
+  stopped: Set<Side>;  // Seiten, deren Angriff gestoppt wurde (Balance: nicht gesperrt)
 }
 
 const q = (c: Card2) => `„${c.plain}“`;
@@ -64,6 +87,16 @@ function frameSubs(ctx: Ctx, side: Side, c: Card2, ac: Card2): boolean {
   let hit = false;
   for (const t of ctx.s.subs) {
     if (t.owner === foe && t.id === ac.submission.id && t.step > 0) {
+      if (t.step >= BALANCE.pressureStep) {
+        hit = true;
+        ctx.notes.push({
+          prio: 50, side,
+          headline: you(side) ? `Dein ${q(c)} hält seinen Griff nur auf.` : `Sein ${q(c)} hält deinen Griff nur auf.`,
+          why: "Druck: Steht die Aufgabe auf Schritt 2, stoppt ein Rahmen sie nur noch.",
+          zone: c.zone,
+        });
+        continue;
+      }
       t.step = (t.step - 1) as SubTrack["step"];
       ctx.events.push({ t: "sub", owner: foe, id: t.id, step: t.step });
       hit = true;
@@ -80,14 +113,14 @@ function frameSubs(ctx: Ctx, side: Side, c: Card2, ac: Card2): boolean {
 }
 
 /** Angriff ausführen (Erfolg). Positionswechsel werden gesammelt und am Ende angewendet. */
-function attackSucceeds(ctx: Ctx, side: Side, c: Card2): boolean {
+function attackSucceeds(ctx: Ctx, side: Side, c: Card2, steps = 1): boolean {
   if (unmetRequires(ctx.start, side, c).length) return false;
   ctx.acted.add(side);
   if (c.submission) {
     let t = ctx.s.subs.find((x) => x.owner === side && x.id === c.submission!.id);
     if (!t) { t = { id: c.submission.id, name: c.submission.name, owner: side, step: 0, zone: c.zone }; ctx.s.subs.push(t); }
     t.zone = c.zone;
-    t.step = Math.min(3, t.step + 1) as SubTrack["step"];
+    t.step = Math.min(3, t.step + steps) as SubTrack["step"];
     ctx.events.push({ t: "sub", owner: side, id: t.id, step: t.step });
     if (t.step >= 3) {
       ctx.notes.push({
@@ -136,13 +169,39 @@ function applyMove(ctx: Ctx, side: Side, c: Card2): void {
 function resolveMoves(ctx: Ctx): void {
   const mv = ctx.pendingMoves;
   if (mv.length === 0) return;
-  if (mv.length === 1) { applyMove(ctx, mv[0].side, mv[0].card); return; }
+  if (mv.length === 1) {
+    const m = mv[0];
+    // Balance „Griff hält fest“: setzt der Gegner in derselben Runde erfolgreich einen Aufgabegriff an, scheitert die Flucht.
+    if (BALANCE.gripStopsEscape && heldInSub(ctx.s, m.side)) {
+      ctx.stopped.add(m.side);
+      ctx.notes.push({
+        prio: 65, side: other(m.side),
+        headline: you(m.side) ? `Sein Griff hält dich: ${q(m.card)} scheitert.` : `Dein Griff hält ihn: ${q(m.card)} scheitert.`,
+        why: "Wer im Moment der Flucht gegriffen wird, muss erst den Griff lösen.",
+        zone: m.card.zone,
+      });
+      return;
+    }
+    applyMove(ctx, m.side, m.card);
+    return;
+  }
   // Beide Angriffe mit Positionswechsel erfolgreich (nur in verschiedenen Zonen möglich):
   // wer in seiner Zone weiter vorne liegt, setzt sich durch; Gleichstand = Gerangel.
   const v = mv.map((m) => ctx.start.board[m.card.zone] * sign(m.side));
-  if (v[0] === v[1]) { scramble(ctx, null); return; }
-  const w = v[0] > v[1] ? mv[0] : mv[1];
+  const kw = kraftWinner(ctx);
+  if (v[0] === v[1] && !kw) { scramble(ctx, null); return; }
+  const w = v[0] > v[1] ? mv[0] : v[1] > v[0] ? mv[1] : mv.find((m) => m.side === kw)!;
   applyMove(ctx, w.side, w.card);
+}
+
+/** Balance „Gerangel“: bei Gleichstand in der Zone setzt sich durch, wer auf der ganzen Körperkarte vorne liegt
+ *  (Vorteil), sonst wer zu Rundenbeginn mehr Kraft hatte. null = echtes Gerangel. */
+function kraftWinner(ctx: Ctx): Side | null {
+  if (!BALANCE.kraftWinsScramble) return null;
+  const sum = ZONES.reduce((a, z) => a + ctx.start.board[z], 0);
+  if (sum !== 0) return sum > 0 ? "p" : "o";
+  const a = ctx.start.p.kraft, b = ctx.start.o.kraft;
+  return a > b ? "p" : b > a ? "o" : null;
 }
 
 function scramble(ctx: Ctx, zone: Zone | null): void {
@@ -184,7 +243,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
   }
 
   const s = cloneState(s0);
-  const ctx: Ctx = { s, start: s0, events: [], notes: [], acted: new Set(), pendingMoves: [] };
+  const ctx: Ctx = { s, start: s0, events: [], notes: [], acted: new Set(), pendingMoves: [], stopped: new Set() };
 
   // Kraft bezahlen.
   for (const side of ["p", "o"] as Side[]) { const c = cards[side]; if (c?.kraft) changeKraft(ctx, side, -c.kraft); }
@@ -201,14 +260,26 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       if (P.kind === "angriff") {
         rule = "angriff=angriff";
         const vp = s0.board[z]; // >0: p vorne
-        if (vp === 0) { scramble(ctx, z); triWinner = "none"; }
+        const kw = kraftWinner(ctx);
+        if (vp === 0 && !kw) { scramble(ctx, z); triWinner = "none"; }
         else {
-          const w: Side = vp > 0 ? "p" : "o";
+          const w: Side = vp > 0 ? "p" : vp < 0 ? "o" : kw!;
           if (attackSucceeds(ctx, w, cards[w]!)) triWinner = w; else triWinner = "none";
         }
       } else if (P.kind === "aufbauen") {
         rule = "aufbauen=aufbauen"; triWinner = "none";
-        ctx.notes.push({ prio: 10, side: null, headline: `Beide bauen an ${ZONE_LABEL[z]} – hebt sich auf.`, zone: z });
+        const t = s0.top;
+        if (BALANCE.topWinsBuildTie && t) {
+          addZone(ctx, t, z, 1);
+          ctx.acted.add(t);
+          triWinner = t;
+          ctx.notes.push({
+            prio: 15, side: t,
+            headline: you(t) ? `Beide bauen an ${ZONE_LABEL[z]} – du oben setzt dich durch.` : `Beide bauen an ${ZONE_LABEL[z]} – er oben setzt sich durch.`,
+            why: "Bauen beide in derselben Zone, gewinnt der Obere: er hat das Gewicht.",
+            zone: z,
+          });
+        } else ctx.notes.push({ prio: 10, side: null, headline: `Beide bauen an ${ZONE_LABEL[z]} – hebt sich auf.`, zone: z });
       } else {
         rule = "rahmen=rahmen"; triWinner = "none";
         ctx.notes.push({ prio: 5, side: null, headline: "Beide rahmen – nichts passiert.", zone: z });
@@ -216,7 +287,8 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
     } else if (kinds.includes("angriff") && kinds.includes("aufbauen")) {
       rule = "angriff>aufbauen";
       const a = byKind("angriff");
-      triWinner = attackSucceeds(ctx, a, cards[a]!) ? a : "none";
+      // Erwischt beim Aufbauen statt Verteidigen: ein Aufgabegriff rutscht gleich weiter.
+      triWinner = attackSucceeds(ctx, a, cards[a]!, cards[a]!.submission ? BALANCE.caughtBuildingSteps : 1) ? a : "none";
     } else if (kinds.includes("aufbauen") && kinds.includes("rahmen")) {
       rule = "aufbauen>rahmen";
       const b = byKind("aufbauen"), c = cards[b]!;
@@ -233,7 +305,8 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       rule = "rahmen>angriff";
       const r = byKind("rahmen"), a = other(r);
       const rc = cards[r]!, ac = cards[a]!;
-      gainWith(ctx, r, rc);
+      ctx.stopped.add(a);
+      if (BALANCE.frameGain && !(ac.dilemmaOpens && BALANCE.dilemmaNoFrameGain)) gainWith(ctx, r, rc);
       frameSubs(ctx, r, rc, ac);
       ctx.acted.add(r);
       triWinner = r;
@@ -265,7 +338,9 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
           why: c.why, zone: c.zone,
         });
       } else if (c.kind === "angriff") {
-        attackSucceeds(ctx, side, c);
+        const foeCard = cards[other(side)];
+        const wrong = !!c.submission && foeCard?.kind === "rahmen";
+        attackSucceeds(ctx, side, c, wrong ? BALANCE.wrongFrameSteps : 1);
       } else {
         {
           leer = true;
@@ -293,8 +368,10 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
   if (!s.result) resolveMoves(ctx);
 
   // Rundenende: Sperren, Kraft, Rundenzähler, Ziel/Punkte.
-  s.p.locked = P ? [P.id] : [];
-  s.o.locked = O ? [O.id] : [];
+  const lockOf = (side: Side, c: Card2 | null): string[] =>
+    !c || (BALANCE.stoppedAttackStaysFree && c.kind === "angriff" && ctx.stopped.has(side)) ? [] : [c.id];
+  s.p.locked = lockOf("p", P);
+  s.o.locked = lockOf("o", O);
   if (!s.result && s.goal && s.goal.some((g) => g.pos === s.pos && g.role === roleOf(s, "p"))) {
     s.result = { type: "goal", winner: "p" };
   }

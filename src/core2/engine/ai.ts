@@ -70,6 +70,9 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     if (b[c.zone] >= 2) v -= 3; // bereits voll
     if (c.alsoGain) for (const z of ZONES) if (c.alsoGain[z] && b[z] < 2) v += 0.6 + (need[z] ?? 0) * 0.8;
     if (thrZones.has(c.zone)) v -= 1.5; // dort droht ein Angriff (Angriff > Aufbauen)
+    // Finte: läuft meine Aufgabe in dieser Zone, erwartet er dort einen Rahmen.
+    const run = mySubs.find((x) => x.zone === c.zone && x.step >= 1);
+    if (run) v += 1.5 + run.step;
   } else {
     // Rahmen: nur sinnvoll gegen Angriffe oder laufende Leisten in der Zone.
     const t = thr.find((x) => x.zone === c.zone);
@@ -126,7 +129,13 @@ export function evaluate(s: State2, side: Side): number {
   const b = boardFor(s, side);
   let v = (s[side].pts - s[foe].pts) * 4 + posValue(s.pos, roleOf(s, side)) * 2.5;
   for (const z of ZONES) v += b[z] * 1.2;
-  for (const t of s.subs) v += (t.owner === side ? 1 : -1) * t.step * t.step * 3;
+  for (const t of s.subs) {
+    const own = t.owner === side ? 1 : -1;
+    v += own * t.step * t.step * 3;
+    // Offene Leiste: der Verteidiger hat nächste Runde keinen Rahmen in dieser Zone (gesperrt).
+    const def = t.owner === side ? foe : side;
+    if (!okCards(s, def).some((c) => c.kind === "rahmen" && c.zone === t.zone)) v += own * t.step * 4;
+  }
   v += (s[side].kraft - s[foe].kraft) * 0.3;
   // Offensive Optionen (eigene ok-Angriffe) zählen, gegnerische Bedrohungen kosten.
   v += okCards(s, side).filter((c) => c.kind === "angriff").length * 0.8;
