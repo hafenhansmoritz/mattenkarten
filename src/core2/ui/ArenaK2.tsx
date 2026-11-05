@@ -19,6 +19,10 @@ import { Stamp, FloatText, useHitStop, Confetti, ImpactBurst, type StampTone } f
 import { CoachAvatar } from "../../components/learn";
 import { sfx } from "../../sound";
 import { useGame } from "../../store";
+import { collectRound } from "../collection/store";
+import { Sammlung } from "../collection/Sammlung";
+import { RarityGem } from "./frame";
+import { rarityOf } from "./rarity";
 import "../../styles/core2.css";
 
 export interface ArenaK2Props {
@@ -30,6 +34,8 @@ export interface ArenaK2Props {
   /** Optional: Startzustand (Tests/Demos). Überschreibt tutorial.start. */
   initialState?: State2;
   seed?: number;
+  /** Optional: Endzustand melden, sobald das Match vorbei ist (z. B. Tages-Challenge). */
+  onResult?: (s: State2) => void;
 }
 
 type Phase = "pick" | "predict" | "flip" | "impact" | "result" | "tap" | "release" | "end";
@@ -144,9 +150,20 @@ export function ArenaK2(props: ArenaK2Props) {
   const [predStats, setPredStats] = useState({ n: 0, ok: 0 });
   const [frozen, hitStop] = useHitStop();
   const [fx, setFx] = useState<{ shake: "x" | "y" | null; flash: Side | null; zoom: boolean; slowmo: boolean; windup: Side | null }>({ shake: null, flash: null, zoom: false, slowmo: false, windup: null });
+  /** In diesem Match neu gesammelte Karten (Sammlung, Schritt 71). */
+  const [newCards, setNewCards] = useState<string[]>([]);
+  const [showSammlung, setShowSammlung] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const later = (ms: number, f: () => void) => { timers.current.push(setTimeout(f, reduced ? Math.min(ms, 120) : ms)); };
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  // Gong zu Beginn jedes Matches (auch Revanche) und am Ende.
+  useEffect(() => { sfx.gong(); }, [matchNo]);
+  const resultSent = useRef(false);
+  useEffect(() => {
+    if (phase !== "end") return;
+    sfx.gong();
+    if (!resultSent.current) { resultSent.current = true; props.onResult?.(s); }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------- abgeleitete Infos ----------
   const myRole = roleOf(s, "p");
@@ -211,6 +228,7 @@ export function ArenaK2(props: ArenaK2Props) {
     setMore(false);
     setPhase("flip");
     sfx.flip();
+    if (r.events.some((e) => e.t === "kraft" && e.side === "p" && e.delta < 0)) later(180, () => sfx.breath());
     setFx((f) => ({ ...f, windup: "p" }));
     later(260, () => setFx((f) => ({ ...f, windup: "o" })));
 
@@ -230,7 +248,9 @@ export function ArenaK2(props: ArenaK2Props) {
         flash: r.winner === "p" || r.winner === "o" ? (r.winner === "p" ? "o" : "p") : null,
         zoom: tapped || moved, slowmo: moved, });
       if (strong) { hitStop(tapped ? 160 : 90); setBurst(Date.now()); }
-      if (tapped) sfx.tap(); else if (moved) sfx.hit(); else if (r.rule === "rahmen>angriff") sfx.counter(); else sfx.select();
+      const got = collectRound(r);
+      if (got.length) setNewCards((n) => [...n, ...got.filter((id) => !n.includes(id))]);
+      if (tapped || moved) sfx.mat(); else if (r.rule === "rahmen>angriff") sfx.counter(); else sfx.select();
       if (st) setStamp({ ...st, key: Date.now() });
       const pts = r.events.filter((e): e is Extract<Event2, { t: "points" }> => e.t === "points");
       if (pts.length) {
@@ -244,6 +264,7 @@ export function ArenaK2(props: ArenaK2Props) {
           setPhase(next.result.winner === "o" ? "tap" : "release");
           // Spieler verteidigt: Griff sitzt, bis er tappt. Spieler greift an: er klopft sofort ab.
           setTapAnim(next.result.winner === "o" ? "hold" : "tapping");
+          if (next.result.winner === "p") sfx.tap(); // er klopft dreimal ab
         } else setPhase("result");
       });
     });
@@ -272,7 +293,7 @@ export function ArenaK2(props: ArenaK2Props) {
   }, [phase, tapOk]); // eslint-disable-line react-hooks/exhaustive-deps
   const hitTap = () => {
     if (tapOk) return;
-    if (phase === "tap") game.set({ taps: game.taps + 1 }); else game.set({ releases: game.releases + 1 });
+    if (phase === "tap") { game.set({ taps: game.taps + 1 }); sfx.tap(); } else game.set({ releases: game.releases + 1 });
     setTapOk(true);
     // Sicherheit als Belohnung: erst sieht man das Abklopfen bzw. das sofortige Loslassen, dann das Ende.
     if (phase === "tap") { setTapAnim("tapping"); later(950, () => setTapAnim("release")); }
@@ -289,6 +310,7 @@ export function ArenaK2(props: ArenaK2Props) {
     const ns = props.initialState ?? startState({ ...props, initialState: undefined }, (tut?.seed ?? props.seed ?? Date.now() % 100000) + n * 7919);
     setS(ns); setShown(ns); setPhase("pick"); setSel(null); setRound(null); setTapOk(null); setTapAnim(null); setBubbleDone([]);
     setPending(null); setGuess(null); setPredStats({ n: 0, ok: 0 });
+    setNewCards([]); resultSent.current = false;
     setCards({ p: null, o: null });
   };
 
@@ -393,7 +415,7 @@ export function ArenaK2(props: ArenaK2Props) {
               {hisLocked.length > 0 && <span className="k2-hislock"><LockIcon size={10} /> {hisLocked.map((c) => c.plain).join(", ")}</span>}
             </div>
           )}
-          <Hand2 cards={handShown} legal={legal} hiddenZones={hidZones} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.select(); }}
+          <Hand2 cards={handShown} legal={legal} hiddenZones={hidZones} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.click(); }}
             myBoard={myBoard} locked={s.p.locked} kraft={s.p.kraft} requireCard={requireCard} highlightZone={hlZone} />
           <button type="button" className="btn primary big k2-go" disabled={anyLegal ? !sel || (!!requireCard && sel !== requireCard) : false} onClick={reveal}>
             {!anyLegal ? "Passen" : sel ? "Aufdecken!" : "Wähle eine Karte"}
@@ -436,6 +458,10 @@ export function ArenaK2(props: ArenaK2Props) {
         )}
       </AnimatePresence>
 
+      {showSammlung && (
+        <div className="k2-sm-layer"><Sammlung onBack={() => setShowSammlung(false)} /></div>
+      )}
+
       {/* Ende */}
       {phase === "end" && s.result && (
         <motion.div className="k2-end" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -460,6 +486,13 @@ export function ArenaK2(props: ArenaK2Props) {
                 <li key={w.round}><span className="k2-end-r">R{w.round}</span><span><b>{w.headline}</b> {w.why}</span></li>
               ))}
             </ol>
+            {newCards.length > 0 && (
+              <button type="button" className="k2-end-collect" onClick={() => setShowSammlung(true)}>
+                <span className="gems">{newCards.slice(0, 5).map((id) => { const c = cardById(id); return c ? <RarityGem key={id} rarity={rarityOf(c)} size={12} /> : null; })}</span>
+                <b>{newCards.length === 1 ? "1 neue Karte gesammelt" : `${newCards.length} neue Karten gesammelt`}</b>
+                <span>Ansehen ›</span>
+              </button>
+            )}
             <div className="k2-end-btns">
               <button type="button" className="btn ghost" onClick={() => onExit(won)}>Zurück</button>
               <button type="button" className="btn primary" onClick={rematch}>Revanche</button>

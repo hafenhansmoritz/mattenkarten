@@ -6,7 +6,8 @@ import { haptic } from "./haptics";
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let comp: DynamicsCompressorNode | null = null;
-let volume = 0.8;
+/** Standard: an, aber leise (Lernspiel, oft unterwegs). Stumm über den Schalter in „Mehr“ (Store: sound). */
+let volume = 0.55;
 const noiseCache = new Map<string, AudioBuffer>();
 
 function soundOn(): boolean {
@@ -164,13 +165,39 @@ export const sfx = {
       tone(f * 2, 0.1, "sine", 0.025, i * 0.07 + 0.01);
     });
   },
-  /** Abklopfen: drei Klatscher auf Matte/Körper. */
+  /** Abklopfen: drei schnelle Klapse mit der flachen Hand (Matte/Körper). */
   tap: () => {
     haptic.error();
-    [0, 0.13, 0.26].forEach((d) => {
-      noise({ dur: 0.06, gain: 0.32, type: "bandpass", freq: 1400, q: 0.9, delay: d });
-      thump(d, 0.12, 180, 80, 0.07);
+    [0, 0.11, 0.22].forEach((d, i) => {
+      noise({ dur: 0.055, gain: 0.3 - i * 0.03, type: "bandpass", freq: 1500 - i * 80, q: 0.9, delay: d });
+      thump(d, 0.12, 190, 80, 0.07);
     });
+  },
+  /** Leiser, weicher Klick (Karte wählen). */
+  click: () => {
+    haptic.tap();
+    noise({ dur: 0.018, gain: 0.07, type: "bandpass", freq: 2600, q: 2.5 });
+    tone(520, 0.045, "sine", 0.035, 0.002, -80, 0.003);
+  },
+  /** Positionswechsel: dumpfer Körper auf der Matte, ohne Klatschen. */
+  mat: () => {
+    haptic.hit();
+    thump(0, 0.42, 120, 38, 0.42);
+    noise({ dur: 0.28, gain: 0.2, type: "lowpass", freq: 420, freqTo: 90, kind: "pink", attack: 0.008 });
+    noise({ dur: 0.05, gain: 0.06, type: "bandpass", freq: 900, q: 0.6, delay: 0.005 });
+    thump(0.1, 0.08, 80, 40, 0.16);
+  },
+  /** Atem ausgeben: hörbares Ausatmen (gefiltertes Rauschen, fällt ab). */
+  breath: () => {
+    noise({ dur: 0.55, gain: 0.09, type: "bandpass", freq: 1300, freqTo: 520, q: 0.7, kind: "pink", attack: 0.12 });
+    noise({ dur: 0.45, gain: 0.04, type: "highpass", freq: 3200, attack: 0.1, delay: 0.03 });
+  },
+  /** Gong zu Kampfbeginn und -ende: unharmonische Teiltöne, langer Ausklang. */
+  gong: () => {
+    const f = 98;
+    [[1, 0.09, 2.6], [2.02, 0.05, 2.0], [2.76, 0.04, 1.7], [4.07, 0.025, 1.2], [5.4, 0.015, 0.9]].forEach(([m, g, d]) =>
+      tone(f * m, d, "sine", g, 0, -f * m * 0.012, 0.006));
+    noise({ dur: 0.08, gain: 0.05, type: "bandpass", freq: 700, q: 1.2 });
   },
   /** Sieg: Fanfare + Publikums-Anschwellen aus gefiltertem Rauschen. */
   win: () => {

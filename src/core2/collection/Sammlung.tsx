@@ -9,6 +9,7 @@ import { Foil, KindIcon, RarityGem } from "../ui/frame";
 import { RARITIES, RARITY_HINT, RARITY_LABEL, mmaNote, rarityOf } from "../ui/rarity";
 import { markSeen, useCollection } from "./store";
 import { sfx } from "../../sound";
+import "../../styles/core2.css";
 import "../../styles/sammlung.css";
 
 const POS_ORDER: string[] = ["stand", "clinch", "guard", "half", "turtle", "side", "mount", "back"];
