@@ -8,6 +8,7 @@ import { sfx } from "../sound";
 import { DAYS, NOT_ALONE, READY_CHECKLIST, type LessonRef, type ProgramDay } from "./days";
 import { LESSONS_PROGRAM } from "./lessons";
 import { PositionMap } from "./PositionMap";
+import { HealthGate } from "./HealthGate";
 import { Quiz, type QuizResult } from "./Quiz";
 import { AREAS, buildExam, scoreExam } from "./exam";
 import { AREA_LABEL } from "./questions";
@@ -324,11 +325,13 @@ function DayRun({ day, p, update, onExit }: {
           )}
 
           {step === "drill" && (
-            <DrillCard day={day} onChoose={(d) => {
-              update((x) => completeDay(x, day.n, d));
-              if (d === "done") sfx.win(); else sfx.select();
-              go();
-            }} />
+            <HealthGate>
+              <DrillCard day={day} onChoose={(d) => {
+                update((x) => completeDay(x, day.n, d));
+                if (d === "done") sfx.win(); else sfx.select();
+                go();
+              }} />
+            </HealthGate>
           )}
 
           {step === "done" && <DayDone day={day} p={p} onNext={() => onExit(true)} />}

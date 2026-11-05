@@ -16,11 +16,12 @@ import { ProgramScreen } from "./program/ProgramScreen";
 import { StartHero } from "./program/StartHero";
 import { JourneyScreen, ReviewCard, type JourneyStart } from "./journey/JourneyScreen";
 import { CoachChat } from "./coach";
+import { LegalScreen } from "./legal/LegalScreen";
 import { useInstallPrompt } from "./pwa";
 import { unlockAudio } from "./sound";
 
 type Tab = "kampagne" | "raetsel" | "deck" | "mehr";
-type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "journey" | "training";
+type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training";
 const TAB_LABEL: Record<Tab, string> = { kampagne: "Kampagne", raetsel: "Rätsel", deck: "Deck", mehr: "Mehr" };
 
 export function App() {
@@ -63,6 +64,7 @@ export function App() {
   if (screen === "share") return <ShareDeck onBack={() => { if (location.hash.startsWith("#deck=")) history.replaceState(null, "", location.pathname); back(); }} />;
   if (screen === "trainer") return <TrainerCheck onBack={back} />;
   if (screen === "k2") return <KoerperkarteHub onBack={back} />;
+  if (screen === "impressum" || screen === "datenschutz") return <div className="app"><main className="main"><LegalScreen page={screen} onBack={back} /></main></div>;
   if (screen === "start") return <div className="pg-wrap"><ProgramScreen onBack={back} onJourney={openJourney} /></div>;
   if (screen === "journey" || screen === "training") return <div className="pg-wrap"><JourneyScreen start={screen === "training" ? "training" : journeyStart} onBack={back} /></div>;
 
@@ -131,6 +133,10 @@ function MoreMenu({ open }: { open: (s: Screen) => void }) {
       {canInstall && <button className="btn primary big" onClick={() => promptInstall()}>App installieren</button>}
       {iosHint && <p className="muted small">Als App installieren: Teilen → „Zum Home-Bildschirm“.</p>}
       <p className="muted small">Mattenkarten ersetzt kein Training mit Trainer. Bei Schmerzen: stoppen und Trainer oder Arzt fragen. <a href="/landing/" target="_blank" rel="noopener">Über Mattenkarten</a></p>
+      <nav className="more-legal" aria-label="Rechtliches">
+        <button type="button" onClick={() => open("impressum")}>Impressum</button>
+        <button type="button" onClick={() => open("datenschutz")}>Datenschutz</button>
+      </nav>
     </div>
   );
 }

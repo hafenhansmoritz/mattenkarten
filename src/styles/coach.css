@@ -274,3 +274,17 @@
 @media (prefers-reduced-motion: reduce) {
   .co-typing i { animation: none; opacity: .7; }
 }
+
+/* KI-Kennzeichnung & Einwilligung */
+.co-ai-label { margin: 0; padding: 6px max(14px, env(safe-area-inset-left, 0px)); font-size: 12.5px; line-height: 1.35; color: var(--text-2); background: color-mix(in srgb, var(--k-setup) 9%, transparent); border-bottom: 1px solid var(--line); }
+.co-ai-label b { color: var(--text); }
+.co-analysis-card .co-ai-label { margin-top: 8px; padding: 6px 8px; border: 0; border-radius: var(--radius-sm); }
+.co-ai-tag { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+.co-consent { margin: 4px 0 0 40px; padding: 14px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid color-mix(in srgb, var(--k-setup) 45%, transparent); font-size: 15px; display: flex; flex-direction: column; gap: 8px; }
+.co-consent.compact { margin: 0; }
+.co-consent > b { color: var(--k-setup); }
+.co-consent p { margin: 0; color: var(--text-2); }
+.co-consent p b { color: var(--text); }
+.co-consent a { color: var(--text); }
+.co-consent .btn { align-self: flex-start; min-width: 160px; }
+.co-link-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--text-2); text-decoration: underline; cursor: pointer; }

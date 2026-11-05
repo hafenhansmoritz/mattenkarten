@@ -15,29 +15,14 @@ export default defineConfig({
       manifest: false,
       workbox: {
         globPatterns: ["**/*.{js,css,html,png,svg,ico,webmanifest,woff2,json}"],
-        globIgnores: ["landing/**"],
+        // Landingpage nicht precachen – Impressum/Datenschutz schon (App zeigt sie unter „Mehr“, auch offline).
+        globIgnores: ["landing/index.html", "landing/*.{webp,jpg,png}"],
         navigateFallback: "index.html",
         navigateFallbackDenylist: [/^\/api\//, /^\/landing/],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "StaleWhileRevalidate",
-            options: { cacheName: "google-fonts-css", expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 } },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-files",
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
       },
       devOptions: { enabled: false },
     }),

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Datenschutz – Mattenkarten</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0B0F1A">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="legal.css">
+</head>
+<body>
+<header class="top"><div class="in">
+  <a class="brand" href="./">Matten<b>karten</b></a>
+  <nav aria-label="Rechtliches"><a href="impressum.html">Impressum</a><a href="/">Zur App</a></nav>
+</div></header>
+<main>
+<!-- Einzige Quelle für die Datenschutzerklärung: Die App lädt den Inhalt von <article id="legal"> (Mehr → Datenschutz).
+     Bei jeder Änderung an Speicher-Schlüsseln, Diensten oder api/coach.ts diese Seite anpassen. -->
+<article id="legal" class="legal">
+<h1>Datenschutz&shy;erklärung</h1>
+<p class="legal-draft"><b>Vorlage – vor Veröffentlichung rechtlich prüfen lassen.</b> Alle <span class="ph">[MARKIERTEN]</span> Angaben muss der Betreiber ergänzen oder prüfen.</p>
+
+<h2>Kurz gesagt</h2>
+<ul>
+  <li>Kein Konto, keine Anmeldung, keine Werbung.</li>
+  <li>Keine Cookies, kein Tracking, keine Analyse-Tools.</li>
+  <li>Dein Spielstand bleibt auf deinem Gerät (im Browser-Speicher). Wir bekommen ihn nicht.</li>
+  <li>Schriften liegen auf unserem eigenen Server – es wird nichts von Google geladen.</li>
+  <li>Nur wenn du den KI-Coach benutzt und vorher zustimmst, geht deine Frage über unseren Server an Anthropic, damit eine Antwort erzeugt werden kann.</li>
+  <li>Wie bei jeder Website verarbeitet unser Hosting-Anbieter technische Zugriffsdaten (z. B. IP-Adresse).</li>
+</ul>
+
+<h2>1. Verantwortlicher</h2>
+<p>
+<span class="ph">[VOR- UND NACHNAME bzw. FIRMA]</span><br>
+<span class="ph">[STRASSE HAUSNUMMER]</span>, <span class="ph">[PLZ ORT]</span><br>
+E-Mail: <span class="ph">[E-MAIL]</span>
+</p>
+<p class="muted">Eine Datenschutzbeauftragte bzw. ein Datenschutzbeauftragter ist nicht benannt, weil keine gesetzliche Pflicht besteht. <span class="ph">[PRÜFEN]</span></p>
+
+<h2>2. Hosting und Server-Logfiles</h2>
+<p>Website und App werden bei <b>Vercel Inc.</b>, 440 N Barranca Ave #4133, Covina, CA 91723, USA gehostet <span class="ph">[ANSCHRIFT PRÜFEN]</span>. Beim Aufruf verarbeitet Vercel automatisch technische Daten, die dein Browser sendet:</p>
+<ul>
+  <li>IP-Adresse, Datum und Uhrzeit des Abrufs</li>
+  <li>aufgerufene Adresse (URL), übertragene Datenmenge, Statuscode</li>
+  <li>Browser-Typ und -Version, Betriebssystem (User-Agent), ggf. Referrer</li>
+</ul>
+<p>Zweck: Auslieferung der Seiten, Sicherheit und Fehleranalyse. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einem sicheren, funktionierenden Angebot). Speicherdauer der Logs: nach den Vorgaben von Vercel <span class="ph">[SPEICHERDAUER LAUT VERCEL-TARIF PRÜFEN]</span>.</p>
+<p>Mit Vercel besteht ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO) <span class="ph">[DPA IM VERCEL-KONTO ABSCHLIESSEN/BESTÄTIGEN]</span>. Vercel kann Daten in den USA verarbeiten. Grundlage dafür ist <span class="ph">[EU-US Data Privacy Framework – Zertifizierung von Vercel prüfen – und/oder EU-Standardvertragsklauseln aus dem DPA]</span>.</p>
+
+<h2>3. Speicherung auf deinem Gerät (localStorage)</h2>
+<p>Damit du weiterspielen kannst, speichert die App deinen Fortschritt im Speicher deines Browsers. Diese Daten werden <b>nicht an uns übertragen</b>. Verwendete Einträge:</p>
+<div class="tw"><table>
+  <thead><tr><th>Eintrag</th><th>Inhalt</th></tr></thead>
+  <tbody>
+    <tr><td><code>mattenkarten-save-v2</code></td><td>Spielstand: freigeschaltete Karten, Deck, Kampagne, Punkte (XP), Siege/Niederlagen, Fehler-Deck, Ton an/aus</td></tr>
+    <tr><td><code>mattenkarten-puzzles-v1</code></td><td>Fortschritt bei den Rätseln</td></tr>
+    <tr><td><code>mk.program.v1</code></td><td>Fortschritt im 7-Tage-Start (erledigte Tage mit Datum, Drills, Prüfungsergebnis, Checkliste)</td></tr>
+    <tr><td><code>mk.k2.done</code></td><td>erledigte Lektionen der Körperkarte</td></tr>
+    <tr><td><code>mk.journey.v1</code></td><td>deine Reise nach der Startwoche: Trainingstagebuch (Datum, trainierte Positionen, wo du hängen geblieben bist, Gefühl 1–5, eigene Notiz, Frage für die nächste Stunde) und der Wiederholungsplan für Fragen</td></tr>
+    <tr><td><code>mk-timed</code></td><td>Einstellung „Zeitdruck“ an/aus</td></tr>
+    <tr><td><code>mattenkarten-trainer-v1</code></td><td>Haken in der Trainer-Prüfliste</td></tr>
+    <tr><td><code>mk.coach.consent.v1</code></td><td>dass und wann du dem Hinweis zum KI-Coach zugestimmt hast</td></tr>
+    <tr><td><code>mk.health.ok.v1</code></td><td>dass und wann du den Gesundheitshinweis vor den Matten-Drills bestätigt hast</td></tr>
+  </tbody>
+</table></div>
+<p>Zusätzlich legt der Service Worker die Programmdateien (HTML, JavaScript, Bilder, Schriften) im Cache deines Browsers ab, damit die App auch offline startet. Darin sind keine persönlichen Daten.</p>
+<p>Rechtsgrundlage: § 25 Abs. 2 Nr. 2 TDDDG – die Speicherung ist unbedingt erforderlich, damit die App den von dir gewünschten Dienst (Spielen mit gespeichertem Fortschritt, offline) erbringen kann. Personenbezogene Daten im Sinne der DSGVO erheben wir dabei nicht, weil die Einträge dein Gerät nicht verlassen.</p>
+<p>Löschen: Du kannst alle Einträge jederzeit entfernen, indem du in deinem Browser die Website-Daten für diese Seite löschst (bei installierter App: App deinstallieren). Dein Fortschritt ist dann weg.</p>
+
+<h2>4. KI-Coach (Anthropic)</h2>
+<p>Der KI-Coach ist freiwillig. Er wird erst benutzt, wenn du ihm eine Frage stellst oder auf „Analyse vom Coach“ tippst – und erst, nachdem du dem Hinweis in der App zugestimmt hast.</p>
+<h3>Was übertragen wird</h3>
+<ul>
+  <li><b>Im Chat:</b> deine Frage und die bisherigen Nachrichten des aktuellen Gesprächs (höchstens 12 Nachrichten, je höchstens 4.000 Zeichen).</li>
+  <li><b>Bei der Match-Analyse:</b> eine Zusammenfassung des gerade gespielten Matches (Ergebnis, Anzahl Züge, Punkte, Spielmomente, Name des Computer-Gegners, Kartenvorschläge).</li>
+  <li>Kein Name, keine E-Mail, kein Konto. Dein Spielstand wird nicht mitgeschickt.</li>
+</ul>
+<h3>Wie es übertragen wird</h3>
+<p>Dein Browser schickt die Anfrage an unsere Server-Funktion (<code>/api/coach</code>) bei Vercel. Diese leitet nur den Text an die Programmierschnittstelle (API) von <b>Anthropic</b> weiter, die die Antwort erzeugt. Anthropic erhält dabei nicht deine IP-Adresse, sondern die des Servers. Unsere Funktion nutzt deine IP-Adresse kurzzeitig im Arbeitsspeicher, um Missbrauch zu begrenzen (höchstens 20 Anfragen in 10 Minuten); sie wird dafür nicht dauerhaft gespeichert. Die Inhalte deiner Fragen schreiben wir nicht in Logs. Der Chatverlauf wird in der App nicht gespeichert und ist weg, sobald du den Coach verlässt.</p>
+<h3>Empfänger</h3>
+<p><b>Anthropic</b> <span class="ph">[VERTRAGSPARTNER UND ANSCHRIFT LAUT ANTHROPIC-VERTRAG/KONTO EINTRAGEN, z. B. Anthropic, PBC, San Francisco, USA]</span>. Anthropic verarbeitet die Daten als Auftragsverarbeiter <span class="ph">[DPA/Commercial Terms von Anthropic prüfen und bestätigen]</span>. Nach Angaben von Anthropic werden Daten aus der kommerziellen API nicht zum Training von Modellen verwendet <span class="ph">[AKTUELLE ANTHROPIC-BEDINGUNGEN PRÜFEN]</span>. Speicherdauer bei Anthropic: <span class="ph">[LAUT ANTHROPIC-RICHTLINIE EINTRAGEN]</span>.</p>
+<p>Die Verarbeitung findet in den USA statt. Grundlage für die Übermittlung: <span class="ph">[EU-US Data Privacy Framework – Zertifizierung prüfen – und/oder EU-Standardvertragsklauseln]</span>.</p>
+<h3>Rechtsgrundlage und Widerruf</h3>
+<p>Art. 6 Abs. 1 lit. a DSGVO (deine Einwilligung). Du kannst sie jederzeit im Coach mit „Zustimmung zurücknehmen“ widerrufen; danach werden keine Fragen mehr gesendet. Die bis dahin erfolgte Verarbeitung bleibt rechtmäßig. Ohne Einwilligung kannst du die App vollständig nutzen, nur ohne KI-Coach.</p>
+<h3>Bitte beachten</h3>
+<ul>
+  <li>Schreib keine Namen, Kontaktdaten oder Gesundheitsangaben (z. B. Verletzungen, Krankheiten) in den Chat. Der Coach gibt dazu ohnehin keine Auskunft – bei Beschwerden frag eine Ärztin oder einen Arzt.</li>
+  <li>Antworten werden von einer KI erzeugt und können falsch sein. Sie ersetzen weder Trainer noch Arzt.</li>
+  <li>Wenn du jünger als 16 bist, nutze den KI-Coach nur mit Zustimmung deiner Eltern.</li>
+</ul>
+
+<h2>5. Deck teilen</h2>
+<p>Beim Teilen eines Decks steht der Deck-Code im Link hinter dem Zeichen „#“. Dieser Teil eines Links wird vom Browser nicht an den Server gesendet. Wohin du den Link schickst, entscheidest du selbst.</p>
+
+<h2>6. Links zu Quellen</h2>
+<p>In der Bibliothek verlinken wir Quellen auf anderen Websites. Erst wenn du einen Link antippst, verbindet sich dein Browser mit der fremden Seite; dort gilt deren Datenschutzerklärung.</p>
+
+<h2>7. Deine Rechte</h2>
+<p>Du hast das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen Verarbeitungen auf Grundlage von Art. 6 Abs. 1 lit. f (Art. 21). Eine erteilte Einwilligung kannst du jederzeit für die Zukunft widerrufen (Art. 7 Abs. 3). Schreib uns dazu an <span class="ph">[E-MAIL]</span>.</p>
+<p>Weil wir keine Konten führen und deinen Spielstand nicht kennen, können wir dir zu Daten auf deinem Gerät nichts zuordnen – die löschst du selbst (siehe Abschnitt 3).</p>
+<p>Du kannst dich bei einer Datenschutz-Aufsichtsbehörde beschweren, z. B. bei der für unseren Sitz zuständigen: <span class="ph">[ZUSTÄNDIGE LANDESDATENSCHUTZBEHÖRDE]</span>.</p>
+
+<h2>8. Keine automatisierte Entscheidung</h2>
+<p>Es gibt keine automatisierte Entscheidungsfindung oder Profilbildung im Sinne von Art. 22 DSGVO.</p>
+
+<p class="muted">Stand: November 2026</p>
+</article>
+</main>
+<footer><a href="./">Startseite</a><a href="impressum.html">Impressum</a><a href="/">Zur App</a></footer>
+</body>
+</html>

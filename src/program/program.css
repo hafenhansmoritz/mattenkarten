@@ -216,3 +216,8 @@
 .pg-mistakes { margin: 0; padding-left: 18px; }
 .pg-film { margin: 0; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px dashed var(--line-strong); }
 .pg-selfcheck ul.pg-mistakes { list-style: disc; padding-left: 18px; gap: 2px; }
+
+/* ---------- Gesundheitshinweis vor dem ersten Drill ---------- */
+.pg-health { border-color: color-mix(in srgb, var(--points) 45%, transparent); }
+.pg-health-list { margin: 4px 0 6px; padding-left: 20px; display: grid; gap: 8px; }
+.pg-health-list li { line-height: 1.45; }

@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CoachAvatar } from "../components/learn/icons";
 import { askCoach, coachAvailable, CoachError } from "./client";
+import { useCoachConsent } from "./consent";
 import { COACH_LIMITS, type CoachMatchSummary, type CoachMessage } from "./types";
 
 export const COACH_CHIPS = [
@@ -15,6 +16,35 @@ const GREETING =
   "Hi, ich bin dein Coach. Frag mich zu Positionen, Karten oder Regeln – ich gebe dir erst einen Tipp, dann die ganze Erklärung.";
 
 type Availability = "checking" | "on" | "off";
+
+const PRIVACY_URL = "/landing/datenschutz.html";
+
+/** Pflicht-Kennzeichnung: KI-generiert, kann falsch sein, kein Ersatz für Trainer/Arzt. */
+export function CoachAiLabel() {
+  return (
+    <p className="co-ai-label" role="note">
+      <b>KI-generiert.</b> Antworten können falsch sein und ersetzen weder Trainer noch Arzt.
+    </p>
+  );
+}
+
+/** Hinweis vor der ersten Frage: Frage geht zur Verarbeitung an Anthropic. Zustimmung wird lokal gemerkt. */
+export function CoachConsentCard({ onAccept, compact }: { onAccept: () => void; compact?: boolean }) {
+  return (
+    <div className={`co-consent${compact ? " compact" : ""}`} role="region" aria-label="Hinweis zum KI-Coach">
+      <b>Bevor du fragst</b>
+      <p>
+        Der Coach ist eine KI. Damit er antworten kann, wird {compact ? "eine Zusammenfassung deines Matches" : "deine Frage (mit dem bisherigen Gespräch)"} über
+        unseren Server an <b>Anthropic</b> (USA) geschickt und dort verarbeitet. Kein Name, kein Konto.
+      </p>
+      {!compact && <p>Schreib keine Namen oder Gesundheitsangaben hinein. Unter 16? Nur mit Erlaubnis deiner Eltern.</p>}
+      <p className="co-consent-links">
+        <a href={PRIVACY_URL} target="_blank" rel="noopener">Datenschutz</a> · Du kannst die Zustimmung jederzeit zurücknehmen.
+      </p>
+      <button type="button" className="btn primary" onClick={onAccept}>Einverstanden</button>
+    </div>
+  );
+}
 
 function useAvailability(): Availability {
   const [a, setA] = useState<Availability>("checking");
@@ -62,6 +92,7 @@ interface Bubble extends CoachMessage {
 
 export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; initialQuestion?: string }) {
   const avail = useAvailability();
+  const [consent, setConsent] = useCoachConsent();
   const [msgs, setMsgs] = useState<Bubble[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -82,7 +113,7 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
   const send = useCallback(
     async (raw: string) => {
       const text = raw.trim().slice(0, COACH_LIMITS.maxChars);
-      if (!text || busy || avail !== "on") return;
+      if (!text || busy || avail !== "on" || !consent) return;
       const history: Bubble[] = [...msgs.filter((m) => !m.error), { role: "user", content: text }];
       setMsgs([...history, { role: "assistant", content: "" }]);
       setDraft("");
@@ -109,15 +140,15 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
         inputRef.current?.focus();
       }
     },
-    [avail, busy, msgs],
+    [avail, busy, msgs, consent],
   );
 
   useEffect(() => {
-    if (avail === "on" && initialQuestion && !sentInitial.current) {
+    if (avail === "on" && consent && initialQuestion && !sentInitial.current) {
       sentInitial.current = true;
       void send(initialQuestion);
     }
-  }, [avail, initialQuestion, send]);
+  }, [avail, consent, initialQuestion, send]);
 
   const stop = () => abortRef.current?.abort();
   const reset = () => {
@@ -125,7 +156,7 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
     setMsgs([]);
   };
   const tooLong = msgs.length >= COACH_LIMITS.maxMessages - 1;
-  const canType = avail === "on" && !busy && !tooLong;
+  const canType = avail === "on" && consent && !busy && !tooLong;
 
   return (
     <section className="co-screen" aria-label="Coach">
@@ -142,6 +173,7 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
           <button type="button" className="co-text-btn" onClick={reset}>Neu</button>
         )}
       </header>
+      <CoachAiLabel />
 
       <div className="co-log" ref={logRef} role="log" aria-live="polite" aria-busy={busy}>
         <div className="co-row coach">
@@ -156,11 +188,16 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
           </div>
         )}
 
+        {avail !== "off" && !consent && (
+          <CoachConsentCard onAccept={() => { setConsent(true); requestAnimationFrame(() => inputRef.current?.focus()); }} />
+        )}
+
         {msgs.map((m, i) => (
           <div key={i} className={`co-row ${m.role === "user" ? "me" : "coach"}${m.error ? " err" : ""}`}>
             {m.role === "assistant" && <CoachAvatar size={32} />}
             <div className="co-bubble">
               {m.content ? <CoachText text={m.content} /> : <Typing />}
+              {m.role === "assistant" && !m.error && m.content && <span className="co-ai-tag">KI-Antwort</span>}
             </div>
           </div>
         ))}
@@ -174,7 +211,7 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
         {msgs.length === 0 && (
           <div className="co-chips" role="group" aria-label="Schnellfragen">
             {COACH_CHIPS.map((c) => (
-              <button key={c} type="button" className="co-chip" disabled={avail !== "on"} onClick={() => void send(c)}>
+              <button key={c} type="button" className="co-chip" disabled={avail !== "on" || !consent} onClick={() => void send(c)}>
                 {c}
               </button>
             ))}
@@ -195,7 +232,7 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
             value={draft}
             maxLength={COACH_LIMITS.maxChars}
             disabled={!canType}
-            placeholder={avail === "checking" ? "Coach wird geweckt …" : avail === "off" ? "Coach nicht aktiv" : "Frag zum Beispiel: Was ist ein Sprawl?"}
+            placeholder={avail === "checking" ? "Coach wird geweckt …" : avail === "off" ? "Coach nicht aktiv" : !consent ? "Erst den Hinweis oben bestätigen" : "Frag zum Beispiel: Was ist ein Sprawl?"}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -214,7 +251,12 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
             </button>
           )}
         </form>
-        <p className="co-disclaimer">Technik lernst du auf der Matte mit deinem Trainer. Bei Schmerzen: aufhören und abklären lassen.</p>
+        <p className="co-disclaimer">
+          Technik lernst du auf der Matte mit deinem Trainer. Bei Schmerzen: aufhören und abklären lassen.
+          {consent && (
+            <> <button type="button" className="co-link-btn" onClick={() => { stop(); setConsent(false); }}>Zustimmung zurücknehmen</button></>
+          )}
+        </p>
       </div>
     </section>
   );
@@ -223,13 +265,18 @@ export function CoachChat({ onBack, initialQuestion }: { onBack: () => void; ini
 /** Endbildschirm: "Analyse vom Coach" → gestreamte Kurz-Analyse (≤ 90 Wörter). */
 export function MatchAnalysis({ summary }: { summary: CoachMatchSummary }) {
   const avail = useAvailability();
+  const [consent, setConsent] = useCoachConsent();
   const [text, setText] = useState("");
-  const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
+  const [state, setState] = useState<"idle" | "consent" | "busy" | "done" | "error">("idle");
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  const run = async () => {
+  const run = async (accepted = false) => {
+    if (!consent && !accepted) {
+      setState("consent");
+      return;
+    }
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     setText("");
@@ -262,6 +309,8 @@ export function MatchAnalysis({ summary }: { summary: CoachMatchSummary }) {
             <b>Analyse vom Coach</b>
           </span>
         </button>
+      ) : state === "consent" ? (
+        <CoachConsentCard compact onAccept={() => { setConsent(true); void run(true); }} />
       ) : (
         <div className={`co-analysis-card${state === "error" ? " err" : ""}`} aria-live="polite" aria-busy={state === "busy"}>
           <div className="co-analysis-head">
@@ -277,6 +326,7 @@ export function MatchAnalysis({ summary }: { summary: CoachMatchSummary }) {
           <div className="co-analysis-body">
             {text ? <CoachText text={text} /> : <Typing />}
           </div>
+          {state !== "error" && <CoachAiLabel />}
         </div>
       )}
     </div>
