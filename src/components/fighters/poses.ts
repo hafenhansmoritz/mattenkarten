@@ -249,24 +249,25 @@ function back(): ScenePair {
 }
 
 function half(): ScenePair {
-  // Half Guard: B auf der Seite/dem Rücken, Kopf rechts; B's Beine klemmen EIN Bein von A (das nahe) ein.
-  // B's ferner Arm holt den Underhook unter A's Achsel. A liegt Brust auf Brust mit Crossface (nah).
+  // Half Guard: B auf der Seite/dem Rücken, Kopf rechts, Oberkörper leicht aufgedreht; B's Beine klemmen EIN Bein
+  // von A ein (A's fernes Bein: B's nahes Bein hakt von oben über A's Wade, B's fernes Bein liegt darunter).
+  // B's ferner Arm holt den Underhook unter A's Achsel. A liegt Brust auf Brust mit Crossface (nah),
+  // das freie nahe Bein weit nach hinten gestreckt.
   const b = build({
-    hip: { x: 216, y: 176 }, torso: -6, headAng: 2, face: 1, z: 0,
+    hip: { x: 212, y: 176 }, torso: -10, headAng: 0, face: 1, z: 0,
     // near: Rahmen an A's Hüfte; far: Underhook unter A's Achsel Richtung Rücken
-    handF: { x: 206, y: 150 }, handB: { x: 222, y: 140 }, elbowBendF: -1, elbowBendB: 1,
-    // near-Bein über A's Wade (Knie hoch), far-Bein unter A's Schienbein → Lockdown/Triangle
-    legF: { foot: { x: 150, y: 168 }, bend: -1 },
-    legB: { foot: { x: 156, y: ON_MAT }, bend: -1 },
+    handF: { x: 196, y: 152 }, handB: { x: 208, y: 138 }, elbowBendF: -1, elbowBendB: 1,
+    legF: { foot: { x: 146, y: 172 }, bend: -1 },
+    legB: { foot: { x: 152, y: ON_MAT }, bend: -1 },
   });
   const a = build({
-    hip: { x: 190, y: 152 }, torso: -4, headAng: 28, face: 1, z: 1,
-    // Crossface (near) um B's Kopf, far-Arm Underhook/Kopf-Arm
-    handF: { x: 280, y: 170 }, handB: { x: 236, y: 172 }, elbowBendF: 1, elbowBendB: -1,
-    // eingeklemmtes nahes Bein: Knie auf der Matte zwischen B's Beinen, Schienbein flach nach hinten
-    legF: { kneel: -1, shinDir: 180 },
-    // freies fernes Bein: weit nach hinten auf den Zehen (Hüfte flach)
-    legB: { foot: { x: 112, y: ON_MAT }, bend: 1 },
+    hip: { x: 184, y: 150 }, torso: -4, headAng: 28, face: 1, z: 1,
+    // Crossface (near) um B's Kopf, far-Arm unter B's Kopf
+    handF: { x: 282, y: 172 }, handB: { x: 240, y: 174 }, elbowBendF: 1, elbowBendB: -1,
+    // freies nahes Bein: weit nach hinten auf den Zehen (Hüfte flach)
+    legF: { foot: { x: 108, y: ON_MAT }, bend: 1 },
+    // eingeklemmtes fernes Bein: Knie auf der Matte, Schienbein flach nach hinten (zwischen B's Beinen)
+    legB: { kneel: -1, shinDir: 180 },
   });
   return { a, b };
 }
@@ -283,7 +284,7 @@ function turtle(): ScenePair {
   const a = build({
     hip: { x: 166, y: 128 }, torso: 14, headAng: 50, face: 1, z: 1,
     // near: unter B's Achsel zur Brust; far: über B's Schulter → Seatbelt
-    handF: { x: 238, y: 172 }, handB: { x: 246, y: 164 }, elbowBendF: -1, elbowBendB: -1,
+    handF: { x: 236, y: 166 }, handB: { x: 248, y: 160 }, elbowBendF: -1, elbowBendB: -1,
     legF: { foot: { x: 158, y: ON_MAT }, bend: 1 },
     legB: { foot: { x: 128, y: ON_MAT }, bend: 1 },
   });
