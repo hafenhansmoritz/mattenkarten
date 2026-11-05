@@ -85,10 +85,17 @@ describe("Startprogramm – Tagesplan", () => {
     expect(Q_BY_ID["q-sub-leglock"].why).toMatch(/Heel Hook für Weißgurte verboten; bei Beinhebel früh abklopfen, nie rausdrehen/);
   });
 
-  it("Checkliste aus der Spec, ungeprüfter Punkt markiert", () => {
-    expect(READY_CHECKLIST.length).toBe(11);
+  it("Checkliste aus der Spec plus Hygiene-Block, jeder Punkt belegt oder markiert", () => {
+    expect(READY_CHECKLIST.length).toBe(15);
+    expect(new Set(READY_CHECKLIST.map((c) => c.id)).size).toBe(READY_CHECKLIST.length);
     expect(READY_CHECKLIST.find((c) => c.id === "bein")?.text).toMatch(/Heel Hook/);
-    expect(READY_CHECKLIST.find((c) => c.id === "haut")?.check).toBe(true);
+    for (const c of READY_CHECKLIST) expect(c.src || c.check, c.id).toBeTruthy();
+    const hyg = READY_CHECKLIST.filter((c) => c.group === "hygiene");
+    const txt = hyg.map((c) => c.text).join(" | ");
+    for (const re of [/Rashguard/, /Shorts ohne Taschen/, /Reißverschluss/, /Mundschutz/, /Hautausschlag/, /offene Wunde/i, /Fußnägel/]) expect(txt).toMatch(re);
+    // „nicht trainieren“ bei offener Wunde ist strenger als CDC/USA Wrestling („abdecken“) → Trainer prüfen
+    expect(READY_CHECKLIST.find((c) => c.id === "wunde")?.check).toBe(true);
+    expect(READY_CHECKLIST.find((c) => c.id === "haut")?.src).toMatch(/USA Wrestling/);
   });
 
   it("Landkarte: Hierarchie nach KB 3.2, Ziele lösbar", () => {

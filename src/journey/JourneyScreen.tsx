@@ -10,7 +10,9 @@ import { LESSONS_PROGRAM } from "../program/lessons";
 import { PositionMap } from "../program/PositionMap";
 import { Quiz, type QuizResult } from "../program/Quiz";
 import { ALL_QUESTIONS, Q_BY_ID, TOPIC_LABEL } from "../program/questions";
-import { currentDay, loadProgress } from "../program/store";
+import { currentDay, drillsDone, loadProgress } from "../program/store";
+import { loadWarmups } from "../program/warmup";
+import { MAT_GOAL, knowledgeMeter, matMeter } from "./meters";
 import { sfx } from "../sound";
 import {
   POSITIONS, POS_LABEL, RECOMMEND, ROLES, resolveLesson, roleLabel, suggestQuestion,
@@ -217,6 +219,8 @@ function Home({ j, today, onBack, onReview, onTraining }: {
         <p className="muted pg-promise">Kurz wiederholen, Fehler ausbügeln, Training festhalten. Kein Druck, keine Erinnerungen.</p>
       </header>
 
+      <Meters j={j} />
+
       <section className="pg-panel jr-review">
         <div className="jr-row">
           <div>
@@ -274,6 +278,33 @@ function Home({ j, today, onBack, onReview, onTraining }: {
 
       <Diary log={j.log} />
     </div>
+  );
+}
+
+/* ---------- Wissen vs. Mattenpraxis: zwei Anzeigen, nie ein gemeinsamer Wert ---------- */
+
+function Meters({ j }: { j: JourneyState }) {
+  const k = knowledgeMeter(j.acc);
+  const m = matMeter({ drills: drillsDone(loadProgress()), warmups: loadWarmups().done.length, trainings: j.log.length });
+  const pct = k.rate === null ? null : Math.round(k.rate * 100);
+  return (
+    <section className="jr-meters" aria-label="Wissen und Mattenpraxis – getrennt">
+      <div className="jr-meter know">
+        <div className="jr-meter-head"><span className="label">Wissen</span><b className="num">{pct === null ? "–" : `${pct} %`}</b></div>
+        <div className="jr-bar" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct ?? 0} aria-label="Wissen">
+          <motion.i initial={{ width: 0 }} animate={{ width: `${pct ?? 0}%` }} transition={{ duration: 0.8, ease: [0.2, 0.7, 0.2, 1] }} />
+        </div>
+        <p className="small muted">{pct === null ? `Ab 5 Antworten (bisher ${k.n}).` : `Richtig beim ersten Versuch, letzte ${k.n} Antworten aus Rätseln und Wiederholung.`}</p>
+      </div>
+      <div className="jr-meter mat">
+        <div className="jr-meter-head"><span className="label">Mattenpraxis</span><b className="num">{m.units}</b></div>
+        <div className="jr-bar" role="meter" aria-valuemin={0} aria-valuemax={MAT_GOAL} aria-valuenow={Math.min(m.units, MAT_GOAL)} aria-label="Mattenpraxis">
+          <motion.i initial={{ width: 0 }} animate={{ width: `${m.frac * 100}%` }} transition={{ duration: 0.8, delay: 0.1, ease: [0.2, 0.7, 0.2, 1] }} />
+        </div>
+        <p className="small muted">Selbst eingetragen: <span className="num">{m.trainings}</span> Trainings · <span className="num">{m.drills}</span> Drills · <span className="num">{m.warmups}</span>× Aufwärmen. Balken bis {MAT_GOAL} (Richtwert).</p>
+      </div>
+      <p className="small jr-meters-why"><b>Warum getrennt?</b> Wissen im Kopf ist nicht Können im Körper. Das zweite wächst nur auf der Matte.</p>
+    </section>
   );
 }
 

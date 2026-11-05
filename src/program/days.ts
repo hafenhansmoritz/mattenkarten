@@ -3,6 +3,9 @@
 // No-Gi-Reihenfolge (KB 8.12, research_notes/No-Gi Fokus/notes.md): 4 Guard No-Gi, 5 Stand & Hand Fighting,
 // 6 Rücken & Front Headlock (plus Aufgabe als Prozess). Passieren mit Keilen bleibt als Kern-2-Lektion im Menü.
 
+import type { ConceptId } from "./concepts";
+import type { TimerConfig } from "./timer";
+
 export type LessonRef =
   | { kind: "map" }                 // Tag 1: Positions-Landkarte (kein Match)
   | { kind: "k2"; id: string }      // Kern-2-Lektion (TUTORIALS_K2 oder LESSONS_PROGRAM)
@@ -20,6 +23,8 @@ export interface Drill {
   checks: DrillPoint[];
   /** Typische Fehler: 1–2. */
   mistakes: DrillPoint[];
+  /** Solo-Drill-Timer (Runden, Arbeit/Pause in s, Seitenwechsel). */
+  timer: TimerConfig;
 }
 
 export interface ProgramDay {
@@ -37,6 +42,10 @@ export interface ProgramDay {
   /** Bilderrätsel (Tag 1–4): „Wo bist du?“ / „Was ist hier falsch?“ – kommen nach den Rätseln. */
   pics?: string[];
   drill: Drill;
+  /** Grundkonzept, das an diesem Tag eingeführt wird (eigener Schritt vor der Lektion). */
+  concept?: ConceptId;
+  /** Grundkonzepte, auf die „Warum heute das?“ zurückgreift (kompakte Karte in der Übersicht). */
+  recall?: ConceptId[];
 }
 
 // Selbst-Check und typische Fehler der Drills: research_notes/7 Tage Startprogramm/notes.md, Abschnitt 3
@@ -67,12 +76,13 @@ export const DAYS: ProgramDay[] = [
       mistakes: [
         { text: "Gewicht rutscht auf den Nacken.", check: true },
       ],
+      timer: { rounds: 3, work: 60, rest: 60 },
     },
   },
   {
     n: 2, title: "Raus aus dem Mount",
     goal: "Unten im Mount: erst Rahmen, dann Elbow Escape oder Upa.",
-    why: "Erst raus, dann angreifen: Befreien ist dein erstes Ziel im Jiu-Jitsu.",
+    why: "Erst schützen, dann raus: Die Schutzhaltung kommt vor jeder Befreiung.",
     lessons: [{ kind: "k2", id: "k2-raus-von-unten" }],
     warmup: ["q-pos-best", "q-pos-guard-name", "q-tap-how"],
     puzzle: ["q-mount-first", "q-mount-upa-trap", "q-mount-switch"],
@@ -94,12 +104,14 @@ export const DAYS: ProgramDay[] = [
         { text: "Nur die Schultern bewegen sich, die Hüfte bleibt liegen.", check: true },
         { text: "Immer nur die Lieblingsseite üben." },
       ],
+      timer: { rounds: 3, work: 60, rest: 30, switchSides: true },
     },
+    concept: "schutz",
   },
   {
     n: 3, title: "Raus aus Side Control",
     goal: "Unten in Side Control: Rahmen, Hüfte weg, Guard zurück.",
-    why: "Side Control kommt in jedem Training. Mit Rahmen und Hüfte kommst du raus.",
+    why: "Side Control kommt in jedem Training. Erst Schutzhaltung, dann Rahmen und Hüfte – so kommst du raus.",
     lessons: [{ kind: "k2", id: "p-side-escape" }],
     warmup: ["q-mount-no-back", "q-mount-breathe", "q-pos-mount-name", "q-tap-dizzy"],
     puzzle: ["q-side-order", "q-side-goal", "q-side-underhook"],
@@ -119,14 +131,16 @@ export const DAYS: ProgramDay[] = [
       mistakes: [
         { text: "Shrimpen, ohne vorher mit der Brücke Platz zu schaffen." },
       ],
+      timer: { rounds: 4, work: 60, rest: 30, switchSides: true, labels: ["Shrimp über die Matte", "Shrimp über die Matte", "Brücke-Shrimp", "Brücke-Shrimp"] },
     },
+    recall: ["schutz"],
   },
   {
     n: 4, title: "Guard in No-Gi",
     goal: "Oben: Haltung, Kopf hoch. Unten: Nacken und Arm greifen, Butterfly, aufstehen.",
-    why: "Ohne Gi greifst du Körper statt Stoff. Und oben schützt du deinen Hals.",
+    why: "Ohne Gi greifst du Körper statt Stoff. Unten gilt die Schutzhaltung, oben schützt du deinen Hals.",
     lessons: [{ kind: "k2", id: "p-guard-posture" }],
-    warmup: ["q-side-frame", "q-mount-progress", "q-side-shrimp"],
+    warmup: ["q-side-frame", "q-mount-progress", "q-side-shrimp", "q-schutz-neck"],
     puzzle: ["q-guard-nogi-grip", "q-guard-top-posture", "q-guard-guillotine-top"],
     pics: ["qi-guard-posture", "qi-guard-flat"],
     drill: {
@@ -146,7 +160,9 @@ export const DAYS: ProgramDay[] = [
         { text: "Rund im Rücken, zusammengesunken." },
         { text: "Hastig aufstehen ohne feste Basis." },
       ],
+      timer: { rounds: 3, work: 60, rest: 30, switchSides: true, labels: ["Guard-Haltung halten", "Technical Stand-up", "Technical Stand-up"] },
     },
+    recall: ["schutz"],
   },
   {
     n: 5, title: "Stand & Hand Fighting",
@@ -171,12 +187,13 @@ export const DAYS: ProgramDay[] = [
         { text: "Der Kopf schlägt nach hinten auf die Matte." },
         { text: "Luft anhalten statt ausatmen." },
       ],
+      timer: { rounds: 2, work: 60, rest: 30, labels: ["Sprawl solo", "Fallen aus dem Sitz"] },
     },
   },
   {
     n: 6, title: "Rücken & Front Headlock",
     goal: "Rücken schützen, Hals verteidigen – und eine Aufgabe sicher ansetzen.",
-    why: "In No-Gi sind Rücken und Front Headlock zentral. Erst den Hals schützen, dann selbst beenden.",
+    why: "Schutzhaltung heißt: Rücken nie zeigen, Hände an den Hals. Erst schützen, dann selbst beenden.",
     lessons: [{ kind: "k2", id: "p-back-protect" }, { kind: "k2", id: "k2-erst-griff-dann-beenden" }],
     warmup: ["q-stand-orthodox", "q-stand-breakfall", "q-guard-standup", "q-mount-switch"],
     puzzle: ["q-sub-rnc-def", "q-back-headlock", "q-back-seatbelt"],
@@ -195,7 +212,9 @@ export const DAYS: ProgramDay[] = [
       mistakes: [
         { text: "Schwache Basis beim Aufstehen – du kippst leicht um." },
       ],
+      timer: { rounds: 3, work: 60, rest: 30, switchSides: true },
     },
+    recall: ["schutz"],
   },
   {
     n: 7, title: "Prüfung",
@@ -219,6 +238,7 @@ export const DAYS: ProgramDay[] = [
       mistakes: [
         { text: "Tempo vor Sauberkeit." },
       ],
+      timer: { rounds: 4, work: 60, rest: 15, switchSides: true, labels: ["Brücke", "Shrimp", "Technical Stand-up", "Fallen aus dem Sitz"] },
     },
   },
 ];
@@ -228,20 +248,33 @@ export const RETRIEVAL_PLAN: Record<number, number[]> = {
   1: [], 2: [1], 3: [2, 1], 4: [3, 2], 5: [4, 3, 1], 6: [5, 4, 2],
 };
 
-/** Checkliste „Bereit fürs erste Training“ (Spec). */
-export const READY_CHECKLIST: { id: string; text: string; check?: boolean }[] = [
-  { id: "frueh", text: "10–15 Minuten früher da sein" },
-  { id: "naegel", text: "Finger- und Fußnägel kurz" },
-  { id: "schmuck", text: "Schmuck ab" },
-  { id: "sauber", text: "Geduscht, saubere Kleidung, Badelatschen, Wasser" },
-  { id: "neu", text: "Dem Partner sagen: „Ich bin neu“ – und Verletzungen nennen" },
-  { id: "tap", text: "Früh und deutlich abklopfen (Hand, Fuß oder Wort)" },
-  { id: "bein", text: "Beinhebel: früh abklopfen, nie rausdrehen – Heel Hooks sind für Weißgurte verboten" },
-  { id: "kraft", text: "Mit 60–70 % Kraft arbeiten" },
-  { id: "fragen", text: "Vor dem Drillen fragen" },
-  { id: "frage", text: "Eine Frage pro Stunde an den Trainer mitbringen" },
-  { id: "haut", text: "Bei Hautausschlag oder Infekt nicht trainieren", check: true },
+/** Checkliste „Bereit fürs erste Training“ (Spec) – mit Hygiene-Block (Schritt 61).
+ * Quellen: research_notes/7 Tage Startprogramm/notes.md, Abschnitt 4 (BJJ More First 3 Months [Marketing]),
+ * CDC „Athletes: MRSA Prevention and Control“ (https://www.cdc.gov/mrsa/prevention/athletes.html),
+ * USA Wrestling „Health Watch: preventing the spread of infectious skin diseases“
+ * (https://content.usawmembership.com/articles/17425), IBJJF Uniform (https://ibjjf.com/uniform). */
+export interface CheckItem { id: string; text: string; group: "start" | "hygiene"; src?: string; check?: boolean }
+
+export const READY_CHECKLIST: CheckItem[] = [
+  { id: "frueh", group: "start", text: "10–15 Minuten früher da sein", src: "BJJ More (Recherche 4)" },
+  { id: "schmuck", group: "start", text: "Schmuck ab", src: "BJJ More (Recherche 4)" },
+  { id: "neu", group: "start", text: "Dem Partner sagen: „Ich bin neu“ – und Verletzungen nennen", src: "Cursa (KB 5.2)" },
+  { id: "tap", group: "start", text: "Früh und deutlich abklopfen (Hand, Fuß oder Wort)", src: "Cursa (KB 5.1)" },
+  { id: "bein", group: "start", text: "Beinhebel: früh abklopfen, nie rausdrehen – Heel Hooks sind für Weißgurte verboten", src: "KB 5.3, 8.12" },
+  { id: "kraft", group: "start", text: "Mit 60–70 % Kraft arbeiten", src: "Cursa (KB 5.2)" },
+  { id: "fragen", group: "start", text: "Vor dem Drillen fragen", src: "Gracie Barra Etikette (KB 5.2)" },
+  { id: "frage", group: "start", text: "Eine Frage pro Stunde an den Trainer mitbringen", src: "BJJ More (Recherche 4)" },
+  { id: "rash", group: "hygiene", text: "Rashguard und Shorts frisch gewaschen – nach jedem Training in die Wäsche", src: "BJJ More (Recherche 4); CDC; USA Wrestling" },
+  { id: "shorts", group: "hygiene", text: "Shorts ohne Taschen und ohne Reißverschluss", src: "IBJJF Uniform (No-Gi)" },
+  { id: "sauber", group: "hygiene", text: "Vorher geduscht, Badelatschen abseits der Matte, Wasser dabei", src: "BJJ More (Recherche 4)" },
+  { id: "naegel", group: "hygiene", text: "Finger- und Fußnägel kurz geschnitten", src: "BJJ More (Recherche 4)" },
+  { id: "mund", group: "hygiene", text: "Mundschutz empfohlen – spätestens vor dem ersten Sparring", src: "BJJ More (Recherche 4)" },
+  { id: "haut", group: "hygiene", text: "Bei Hautausschlag nicht trainieren – dem Trainer sagen und ärztlich abklären", src: "USA Wrestling (bis zur Heilung kein Kontakt); CDC (melden)" },
+  // CDC und USA Wrestling verlangen nur „abdecken“; „nicht trainieren“ bei offener Wunde ist die vorsichtigere Regel → Trainer prüfen.
+  { id: "wunde", group: "hygiene", text: "Offene Wunde: lieber aussetzen – kleine Kratzer dicht abdecken", src: "CDC; USA Wrestling (abdecken)", check: true },
 ];
+
+export const CHECK_GROUP_LABEL: Record<CheckItem["group"], string> = { start: "Ablauf & Sicherheit", hygiene: "Hygiene" };
 
 /** Was du nicht allein übst (Spec). */
 export const NOT_ALONE = [

@@ -245,3 +245,90 @@
 .pg-fr-self-res strong { font-size: 19px; }
 .pg-fr-self-res.ok strong { color: var(--gas); }
 .pg-fr-ai { margin: 0; color: var(--text-2); }
+/* ---------- Solo-Drill-Timer (Schritt 56) ---------- */
+.dt {
+  position: relative; display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, var(--surface-2), var(--surface)); border: 1px solid var(--line-strong);
+  --dt-c: var(--text-3);
+}
+.dt-prep { --dt-c: var(--points); }
+.dt-work { --dt-c: var(--gas); }
+.dt-rest { --dt-c: var(--gi-p); }
+.dt-done { --dt-c: var(--points); }
+.dt-head { display: flex; justify-content: space-between; align-items: center; }
+.dt-body { display: grid; grid-template-columns: 132px 1fr; gap: 14px; align-items: center; }
+.dt-ring { position: relative; width: 132px; aspect-ratio: 1; }
+.dt-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.dt-track { fill: none; stroke: var(--surface-3); stroke-width: 9; }
+.dt-arc { fill: none; stroke: var(--dt-c); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset .2s linear, stroke .3s; }
+.dt.run.dt-work .dt-arc { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--gas) 60%, transparent)); }
+.dt-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.dt-time { font-size: 34px; line-height: 1; color: var(--text); }
+.dt-phase { font-size: 13px; font-weight: 700; color: var(--dt-c); text-transform: uppercase; letter-spacing: .06em; }
+.dt-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.dt-info p { margin: 0; }
+.dt-label { display: flex; flex-direction: column; }
+.dt-label b { font-size: 18px; }
+.dt-side b { color: var(--dt-c); }
+.dt-switch {
+  position: absolute; left: 50%; top: 46%; translate: -50% -50%; z-index: 2; pointer-events: none; white-space: nowrap;
+  padding: 10px 18px; border-radius: var(--radius-pill); font-size: 30px; color: var(--text-ink);
+  background: var(--points); box-shadow: 0 10px 30px rgba(255, 209, 102, .4);
+}
+.dt-ctrl { display: flex; gap: 10px; }
+.dt-main { flex: 1; min-height: 64px; font-size: 22px; }
+.dt-note { margin: 0; }
+@media (max-width: 360px) { .dt-body { grid-template-columns: 112px 1fr; } .dt-ring { width: 112px; } .dt-time { font-size: 28px; } }
+
+/* ---------- Schutzhaltung (Schritt 9) ---------- */
+.sh-figure {
+  position: relative; overflow: hidden; width: 100%; max-width: 360px; align-self: center; border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--mat-a), var(--mat-b));
+}
+.sh-figure svg { width: 100%; height: auto; display: block; }
+.sh-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.sh-lines line { stroke: var(--points); stroke-width: 2; stroke-dasharray: 4 3; }
+.sh-lines circle { fill: var(--points); stroke: #fff; stroke-width: 1.5; }
+.sh-lines .on line { stroke: var(--gas); stroke-dasharray: none; }
+.sh-lines .on circle { fill: var(--gas); }
+.sh-spot {
+  position: absolute; height: 36px; min-width: 44px; padding: 0 10px 0 4px; border-radius: var(--radius-pill); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font: inherit; font-weight: 800; font-size: 13px;
+  color: var(--text-ink); background: var(--points); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0, 0, 0, .45);
+}
+.sh-spot > .num { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: rgba(0, 0, 0, .15); }
+.sh-spot i { position: absolute; inset: -4px; border-radius: var(--radius-pill); border: 2px solid var(--points); pointer-events: none; }
+.sh-spot.on { background: var(--gas); }
+.sh-spot.sel { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sh-spot:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sh-found { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; }
+.sh-tip { margin: 0; }
+.sh-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sh-list li { padding: 8px 10px; border-radius: var(--radius); background: var(--surface-2); border-left: 3px solid var(--gas); }
+.sh-src a { color: var(--text-2); }
+.sh-card { border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--gas) 35%, transparent); background: color-mix(in srgb, var(--gas) 8%, transparent); }
+.sh-card-head {
+  width: 100%; display: grid; grid-template-columns: 22px 1fr 18px; gap: 8px; align-items: center; padding: 10px 12px;
+  font: inherit; color: var(--text); text-align: left; background: none; border: 0; cursor: pointer; min-height: 44px;
+}
+.sh-card-ico { color: var(--gas); display: grid; place-items: center; }
+.sh-card-chev { font-weight: 800; color: var(--text-2); text-align: center; }
+.sh-card .sh-list { padding: 0 10px 10px; }
+
+/* ---------- Aufwärmen (Schritt 57) ---------- */
+.pg-warmup-go {
+  display: grid; grid-template-columns: 44px 1fr 18px; gap: 12px; align-items: center; padding: 12px 14px; min-height: 64px;
+  font: inherit; color: var(--text); text-align: left; cursor: pointer; border-radius: var(--radius-lg);
+  background: var(--surface); border: 1px solid var(--line-strong);
+}
+.pg-warmup-ico { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: var(--text-ink); background: var(--gas); }
+.wu-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.wu-list li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; padding: 10px 12px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+.wu-list p { margin: 2px 0 0; }
+.wu-n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-3); font-weight: 800; }
+.wu-safe { color: var(--text-2); }
+.wu-screen .pg-health { margin-top: 0; }
+
+/* ---------- Checkliste in Gruppen (Schritt 61) ---------- */
+.pg-check-group { display: flex; flex-direction: column; gap: 6px; }
+.pg-check-group h4 { margin: 6px 0 0; color: var(--text-2); }

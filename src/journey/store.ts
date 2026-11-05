@@ -25,7 +25,12 @@ export interface TrainingEntry {
 export interface JourneyState extends ReviewState {
   v: 1;
   log: TrainingEntry[];
+  /** Letzte erste Antworten (richtig/falsch) aus Programm, Prüfung und Wiederholung – nur für den Wissens-Balken. */
+  acc?: boolean[];
 }
+
+/** Wie viele letzte Antworten der Wissens-Balken betrachtet. */
+export const ACC_WINDOW = 40;
 
 export const EMPTY_JOURNEY: JourneyState = { v: 1, items: {}, errors: {}, graduated: 0, log: [] };
 const fresh = (): JourneyState => ({ v: 1, items: {}, errors: {}, graduated: 0, log: [] });
@@ -51,7 +56,8 @@ export function sanitizeJourney(v: unknown): JourneyState {
   const review = sanitizeReview(v);
   const o = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
   const log = Array.isArray(o.log) ? o.log.map(sanitizeEntry).filter((e): e is TrainingEntry => !!e).slice(-200) : [];
-  return { v: 1, ...review, log };
+  const acc = Array.isArray(o.acc) ? o.acc.filter((x): x is boolean => typeof x === "boolean").slice(-ACC_WINDOW) : [];
+  return { v: 1, ...review, log, acc };
 }
 
 export function loadJourney(): JourneyState {
@@ -101,7 +107,7 @@ export function useJourney(): JourneyState {
 /* ---------- Aktionen ---------- */
 
 export function recordAnswer(id: string, ok: boolean, session: string, today = localDate()) {
-  updateJourney((s) => ({ ...s, ...applyAnswer(s, { id, ok, session }, today) }));
+  updateJourney((s) => ({ ...s, ...applyAnswer(s, { id, ok, session }, today), acc: [...(s.acc ?? []), ok].slice(-ACC_WINDOW) }));
 }
 
 /** Fragen aus abgeschlossenen Programm-Tagen nachtragen (für alle, die vor diesem Modul gelernt haben). */

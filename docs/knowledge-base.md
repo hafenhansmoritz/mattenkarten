@@ -613,6 +613,11 @@ Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`
 - Solo-Drills: Brücke, Shrimp, Technical Stand-up, Fallen aus dem Sitz, Sprawl, Guard-Haltung. Nicht allein: Würfe/Takedowns mit Partner, Rollen über Kopf, Aufgaben bis Druck, Sparring, Beinhebel, Fallen aus dem Stand [eigene Zusammenstellung, ungeprüft].
 - Lücken: Roy Dean-Lehrplan, optimale Sitzungslänge, Mastery-Schwelle (80 % = Hypothese), Hautinfektionen.
 - Details: research_notes/7 Tage Startprogramm/notes.md · Spec: docs/superpowers/specs/2026-11-05-7-tage-startprogramm-design.md
+- **Umsetzung 2026-11-05 (Schritte 9, 56, 57, 61, 62):**
+  - Schutzhaltung (Tag 2, `src/program/concepts.ts`): Ellbogen eng, Kinn unten (nicht verkrampft), Hände vorn am Hals, Rücken nie zeigen. Beleg: [Cursa](https://cursa.app/en/page/bjj-starter-guide-safety-tapping-and-positional-priorities) („Reconnect elbows to ribs … to prevent arm isolation“, „hands to defend the space around your neck“, „Keep chin neutral (not cranked)“, „don't turn away and give your back“); Danaher 2.4; Priit Mihkelson „Grilled Chicken“ (Ellbogen-Knie-Verbindung, „Protect your spine first“) nur über [BJJ More](https://bjjmore.com/grilled-chicken-guard-retention-system/) [Marketing: Affiliate].
+  - Drill-Timer und Aufwärmen (5 × 45 s, 15 s Pause): Format nach Grapplearts (3 × 1 min, 1 min Pause). Signale nur Vibration + Ton, Wake Lock API mit Fallback.
+  - Hygiene: Kleidung nach jeder Einheit waschen, Wunden abdecken, Hautinfekt melden ([CDC MRSA Athletes](https://www.cdc.gov/mrsa/prevention/athletes.html)); Athleten mit infektiöser Hauterkrankung bis zur Heilung ohne Kontakt ([USA Wrestling Health Watch](https://content.usawmembership.com/articles/17425)); No-Gi-Shorts ohne Taschen, Reißverschluss, Knöpfe ([IBJJF Uniform](https://ibjjf.com/uniform)). „Bei offener Wunde aussetzen“ ist strenger als die Quellen (dort: abdecken) → check.
+  - Wissen vs. Mattenpraxis getrennt anzeigen (Begründung oben: Video hebt Selbsteinschätzung ohne Leistungsgewinn). Mattenpraxis-Richtwert 20 Einheiten = eigene Setzung.
 
 ### 8.12 No-Gi-Fokus (Recherche 2026-11-05)
 - Entscheidung Nutzer: Mattenkarten fokussiert No-Gi (Grappling ohne Anzug, MMA-nah). Standard-Regelwerk im Spiel: IBJJF Weißgurt (strengste Regel).

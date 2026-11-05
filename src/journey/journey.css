@@ -117,3 +117,17 @@
 .jr-tags span { font-size: 12px; padding: 2px 8px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong); color: var(--text-2); }
 
 @media (prefers-reduced-motion: reduce) { .jr-ring i { display: none; } }
+
+/* ---------- Wissen vs. Mattenpraxis (Schritt 62) ---------- */
+.jr-meters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.jr-meter { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }
+.jr-meter p { margin: 0; }
+.jr-meter-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.jr-meter-head b { font-size: 24px; }
+.jr-bar { height: 10px; border-radius: var(--radius-pill); background: var(--surface-3); overflow: hidden; }
+.jr-bar i { display: block; height: 100%; border-radius: inherit; }
+.jr-meter.know .jr-bar i { background: var(--gi-p); }
+.jr-meter.know .jr-meter-head b { color: var(--gi-p); }
+.jr-meter.mat .jr-bar i { background: var(--gas); }
+.jr-meter.mat .jr-meter-head b { color: var(--gas); }
+.jr-meters-why { grid-column: 1 / -1; margin: 0; color: var(--text-2); }

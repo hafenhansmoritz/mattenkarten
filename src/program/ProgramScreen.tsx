@@ -5,7 +5,10 @@ import { TUTORIALS_K2 } from "../core2/data/tutorials";
 import type { TutorialK2Def } from "../core2/ui/tutorialTypes";
 import { Confetti, Stamp } from "../components/fx";
 import { sfx } from "../sound";
-import { DAYS, NOT_ALONE, READY_CHECKLIST, type LessonRef, type ProgramDay } from "./days";
+import { CHECK_GROUP_LABEL, DAYS, NOT_ALONE, READY_CHECKLIST, type LessonRef, type ProgramDay } from "./days";
+import { DrillTimer } from "./DrillTimer";
+import { SchutzCard, SchutzStep } from "./Schutzhaltung";
+import { WarmupScreen } from "./WarmupScreen";
 import { LESSONS_PROGRAM } from "./lessons";
 import { PositionMap } from "./PositionMap";
 import { HealthGate } from "./HealthGate";
@@ -34,7 +37,7 @@ function lessonTitle(l: LessonRef): string {
    Einstieg
    ============================================================ */
 
-type View = { kind: "home" } | { kind: "day"; n: number } | { kind: "final" };
+type View = { kind: "home" } | { kind: "day"; n: number } | { kind: "final" } | { kind: "warmup" };
 
 export function ProgramScreen({ onBack, onJourney, onLeglock }: { onBack: () => void; onJourney?: (v: JourneyStart) => void; onLeglock?: () => void }) {
   const [p, update] = useProgram();
@@ -53,6 +56,7 @@ export function ProgramScreen({ onBack, onJourney, onLeglock }: { onBack: () => 
     );
   }
   if (view.kind === "final") return <Final p={p} update={update} onBack={() => setView({ kind: "home" })} />;
+  if (view.kind === "warmup") return <WarmupScreen onBack={() => setView({ kind: "home" })} />;
 
   const cur = currentDay(p);
   const allDone = cur > 7;
@@ -85,6 +89,7 @@ export function ProgramScreen({ onBack, onJourney, onLeglock }: { onBack: () => 
           </div>
           <p className="pg-goal">{day.goal}</p>
           <p className="pg-whyday small"><b>Warum heute das?</b> {day.why}</p>
+          {day.recall?.includes("schutz") && <SchutzCard />}
           <ol className="pg-parts">
             {day.n === 7 ? (
               <>
@@ -98,7 +103,7 @@ export function ProgramScreen({ onBack, onJourney, onLeglock }: { onBack: () => 
                 <span className="num">{i + 1}</span> {lab}
                 <span className="muted small">
                   {i === 0 ? (day.warmup.length ? ` · ${day.warmup.length} Fragen zu früheren Tagen` : " · heute noch nicht")
-                    : i === 1 ? ` · ${day.lessons.map(lessonTitle).join(" + ")}`
+                    : i === 1 ? ` · ${[...(day.concept === "schutz" ? ["Neu: Schutzhaltung"] : []), ...day.lessons.map(lessonTitle)].join(" + ")}`
                     : i === 2 ? ` · ${day.puzzle.length + (day.pics?.length ?? 0)} Situationen${day.pics?.length ? ", davon " + day.pics.length + " Bilder" : ""}`
                     : ` · ${day.drill.title}`}
                 </span>
@@ -122,6 +127,11 @@ export function ProgramScreen({ onBack, onJourney, onLeglock }: { onBack: () => 
         </motion.section>
       </AnimatePresence>
 
+      <button type="button" className="pg-warmup-go" onClick={() => { sfx.select(); setView({ kind: "warmup" }); }}>
+        <span className="pg-warmup-ico num" aria-hidden="true">5′</span>
+        <span><b>Aufwärmen</b> <span className="small muted">· No-Gi, 5 Minuten mit Timer: Brücke, Shrimp, Sprawl, Stand-up, Fallen</span></span>
+        <span aria-hidden="true">›</span>
+      </button>
       {allDone && (
         <button className="btn big" onClick={() => setView({ kind: "final" })}>Deine Checkliste fürs erste Training</button>
       )}
@@ -189,7 +199,7 @@ function Badges({ p }: { p: ProgramProgress }) {
    Ein Tag: Aufwärmen → Lektion → Rätsel → Drill
    ============================================================ */
 
-type Step = "warmup" | "lesson" | "puzzle" | "drill" | "exam" | "examResult" | "boss" | "done";
+type Step = "warmup" | "concept" | "lesson" | "puzzle" | "drill" | "exam" | "examResult" | "boss" | "done";
 
 function DayRun({ day, p, update, onExit }: {
   day: ProgramDay; p: ProgramProgress;
@@ -198,7 +208,7 @@ function DayRun({ day, p, update, onExit }: {
 }) {
   const isExam = day.n === 7;
   const steps: Step[] = isExam ? ["exam", "examResult", "boss", "drill", "done"] : [
-    ...(day.warmup.length ? (["warmup"] as Step[]) : []), "lesson", "puzzle", "drill", "done",
+    ...(day.warmup.length ? (["warmup"] as Step[]) : []), ...(day.concept ? (["concept"] as Step[]) : []), "lesson", "puzzle", "drill", "done",
   ];
   const [si, setSi] = useState(0);
   const step = steps[si];
@@ -249,7 +259,7 @@ function DayRun({ day, p, update, onExit }: {
   const visibleParts = isExam ? ["Prüfung", "Boss", "Drill"] : PART_LABEL.filter((l) => l !== "Aufwärmen" || day.warmup.length);
   const partIndex = isExam
     ? (step === "exam" || step === "examResult" ? 0 : step === "boss" ? 1 : 2)
-    : ({ warmup: 0, lesson: 1, puzzle: 2, drill: 3 } as Record<string, number>)[step] - (day.warmup.length ? 0 : 1);
+    : ({ warmup: 0, concept: 1, lesson: 1, puzzle: 2, drill: 3 } as Record<string, number>)[step] - (day.warmup.length ? 0 : 1);
 
   return (
     <div className="pg-screen pg-run">
@@ -276,6 +286,8 @@ function DayRun({ day, p, update, onExit }: {
               <Quiz ids={day.warmup} kicker="Aufwärmen" onDone={go} />
             </>
           )}
+
+          {step === "concept" && day.concept === "schutz" && <SchutzStep onDone={go} />}
 
           {step === "lesson" && lref?.kind === "map" && <PositionMap onDone={go} />}
 
@@ -370,7 +382,7 @@ function DrillCard({ day, onChoose }: { day: ProgramDay; onChoose: (d: "done" | 
   const allTicked = checks.length > 0 && ticked.length === checks.length;
   return (
     <div className="pg-panel pg-drill">
-      <span className="label">Matten-Drill · ca. 2–4 Minuten</span>
+      <span className="label">Matten-Drill · ca. 2–5 Minuten</span>
       <h3 className="display pg-h">{day.drill.title}</h3>
       <ol className="pg-drill-steps">
         {day.drill.steps.map((s, i) => (
@@ -378,6 +390,7 @@ function DrillCard({ day, onChoose }: { day: ProgramDay; onChoose: (d: "done" | 
         ))}
       </ol>
       <p className="pg-safety small"><b>Sicherheit:</b> {day.drill.safety}</p>
+      <DrillTimer title="Drill-Timer" config={day.drill.timer} />
       <section className="pg-selfcheck" aria-label="Selbst-Check">
         <h4>Selbst-Check <span className="muted small">· nach dem Drill abhaken ({ticked.length}/{checks.length})</span></h4>
         <ul>
@@ -487,20 +500,26 @@ function Final({ p, update, onBack }: { p: ProgramProgress; update: (fn: (p: Pro
 
       <section className="pg-panel">
         <h3 className="display pg-h">Checkliste</h3>
-        <ul className="pg-check">
-          {READY_CHECKLIST.map((c) => {
-            const on = ticked.has(c.id);
-            return (
-              <li key={c.id}>
-                <button type="button" className={on ? "on" : ""} aria-pressed={on}
-                  onClick={() => { sfx.select(); update((x) => ({ ...x, checklist: on ? x.checklist.filter((i) => i !== c.id) : [...x.checklist, c.id] })); }}>
-                  <span className="pg-box">{on ? "✓" : ""}</span>
-                  <span>{c.text}{c.check && <span className="pg-check-flag small"> (Trainer fragen)</span>}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        {(Object.keys(CHECK_GROUP_LABEL) as (keyof typeof CHECK_GROUP_LABEL)[]).map((g) => (
+          <div key={g} className="pg-check-group">
+            <h4 className="label">{CHECK_GROUP_LABEL[g]}</h4>
+            <ul className="pg-check">
+              {READY_CHECKLIST.filter((c) => c.group === g).map((c) => {
+                const on = ticked.has(c.id);
+                return (
+                  <li key={c.id}>
+                    <button type="button" className={on ? "on" : ""} aria-pressed={on}
+                      onClick={() => { sfx.select(); update((x) => ({ ...x, checklist: on ? x.checklist.filter((i) => i !== c.id) : [...x.checklist, c.id] })); }}>
+                      <span className="pg-box">{on ? "✓" : ""}</span>
+                      <span>{c.text}{c.check && <span className="pg-check-flag small"> (Trainer fragen)</span>}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+        <p className="small muted">Hygiene-Quellen: BJJ More, CDC (MRSA bei Sportlern), USA Wrestling, IBJJF-Kleiderordnung.</p>
         {all && <p className="pg-hint small">Alles abgehakt. Viel Spaß bei deinem ersten Training!</p>}
       </section>
 

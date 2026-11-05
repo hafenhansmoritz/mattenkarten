@@ -14,6 +14,7 @@ import { TrainerCheck } from "./screens/TrainerCheck";
 import { KoerperkarteHub } from "./screens/KoerperkarteHub";
 import { ProgramScreen } from "./program/ProgramScreen";
 import { StartHero } from "./program/StartHero";
+import { WarmupScreen } from "./program/WarmupScreen";
 import { JourneyScreen, ReviewCard, type JourneyStart } from "./journey/JourneyScreen";
 import { CoachChat } from "./coach";
 import { LegalScreen } from "./legal/LegalScreen";
@@ -25,7 +26,7 @@ import { Sammlung } from "./core2/collection/Sammlung";
 import { DailyScreen } from "./core2/daily/DailyScreen";
 
 type Tab = "kampagne" | "raetsel" | "deck" | "mehr";
-type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "daily";
+type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "daily" | "warmup";
 const TAB_LABEL: Record<Tab, string> = { kampagne: "Kampagne", raetsel: "Rätsel", deck: "Deck", mehr: "Mehr" };
 
 export function App() {
@@ -71,6 +72,7 @@ export function App() {
   if (screen === "daily") return <DailyScreen onBack={back} />;
   if (screen === "sammlung") return <div className="app"><main className="main"><Sammlung onBack={back} /></main></div>;
   if (screen === "impressum" || screen === "datenschutz") return <div className="app"><main className="main"><LegalScreen page={screen} onBack={back} /></main></div>;
+  if (screen === "warmup") return <div className="pg-wrap"><WarmupScreen onBack={back} /></div>;
   if (screen === "start") return <div className="pg-wrap"><ProgramScreen onBack={back} onJourney={openJourney} onLeglock={() => setScreen("leglock")} /></div>;
   if (screen === "leglock") return <div className="pg-wrap"><LeglockScreen onBack={back} /></div>;
   if (screen === "journey" || screen === "training") return <div className="pg-wrap"><JourneyScreen start={screen === "training" ? "training" : journeyStart} onBack={back} /></div>;
@@ -121,6 +123,7 @@ function MoreMenu({ open }: { open: (s: Screen) => void }) {
     { s: "training", title: "Nach dem Training", text: "Training eintragen, passende Lektion holen, Frage für den Trainer. Dazu Wiederholen und Tagebuch." },
     { s: "k2", title: "Neu: Körperkarte (Prototyp)", text: "Der neue Spielkern: Zonen gewinnen, befreien, passieren, Aufgabe in drei Schritten." },
     { s: "bibliothek", title: "Bibliothek", text: "Alle Karten, „So geht's“-Animationen, Training und dein Fehler-Deck." },
+    { s: "warmup", title: "Aufwärmen", text: "5 Minuten No-Gi mit Timer: Brücke, Shrimp, Sprawl, Technical Stand-up, Fallen aus dem Sitz." },
     { s: "hotseat", title: "Duell zu zweit", text: "Am selben Handy gegeneinander – verdeckt wählen, gleichzeitig aufdecken." },
     { s: "coach", title: "KI-Coach", text: "Frag nach Positionen, Techniken und Regeln – in einfachen Worten." },
     { s: "share", title: "Deck teilen", text: "Dein Deck als Code oder Link verschicken – oder eins übernehmen." },

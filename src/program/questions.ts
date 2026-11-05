@@ -7,14 +7,14 @@ import type { Pos2, Side } from "../core2/types";
 import type { BodyPart } from "../components/fighters";
 
 export type Topic =
-  | "positionen" | "abklopfen" | "mount" | "side" | "guard" | "stand" | "keile" | "aufgabe" | "ruecken";
+  | "positionen" | "abklopfen" | "mount" | "side" | "guard" | "stand" | "keile" | "aufgabe" | "ruecken" | "schutz";
 
 /** Prüfungsbereiche für Tag 7 (je ≥ 80 %). */
 export type Area = "basis" | "befreien" | "guardstand" | "kontrolle";
 
 export const TOPIC_AREA: Record<Topic, Area> = {
   positionen: "basis", abklopfen: "basis",
-  mount: "befreien", side: "befreien",
+  mount: "befreien", side: "befreien", schutz: "befreien",
   guard: "guardstand", stand: "guardstand",
   keile: "kontrolle", aufgabe: "kontrolle", ruecken: "kontrolle",
 };
@@ -29,7 +29,7 @@ export const AREA_LABEL: Record<Area, string> = {
 export const TOPIC_LABEL: Record<Topic, string> = {
   positionen: "Positionen", abklopfen: "Abklopfen", mount: "Mount-Befreiung", side: "Side-Befreiung",
   guard: "Guard", stand: "Stand & Hand Fighting", keile: "Keile & Passieren", aufgabe: "Aufgabe & Verteidigung",
-  ruecken: "Rücken & Front Headlock",
+  ruecken: "Rücken & Front Headlock", schutz: "Schutzhaltung",
 };
 
 export interface Question {
@@ -467,6 +467,29 @@ export const QUESTIONS: Question[] = [
     options: ["Zur Seite, notfalls in Side Control unten", "Nach vorn auf den Bauch", "Gar nicht – still halten"],
     answer: 0, scene: { pos: "back", top: "o" }, src: "Karte bb_escape_side (BJJ Atlas Back Escapes)",
     why: "Erst die Hände, dann raus zur Seite. Side Control unten ist besser, als den Rücken abzugeben.",
+  },
+
+  // ---------- Grundkonzept Schutzhaltung (Tag 2, src/program/concepts.ts) ----------
+  {
+    id: "q-schutz-elbows", day: 2, topic: "schutz",
+    q: "Unten unter Druck: Wo gehören deine Ellbogen hin?",
+    options: ["Eng an deinen Körper", "Weit weg, Arme gestreckt", "Hinter deinen Kopf"],
+    answer: 0, scene: { pos: "side", top: "o" }, src: "Cursa (Ellbogen an die Rippen); KB 4.5",
+    why: "Eng am Körper kann er deinen Arm nicht isolieren. Gestreckte Arme laden zum Armhebel ein.",
+  },
+  {
+    id: "q-schutz-neck", day: 2, topic: "schutz",
+    q: "Er sucht deinen Hals. Was machen Kinn und Hände?",
+    options: ["Kinn runter, Hände vorn am Hals", "Kinn hoch, Hände auf die Matte", "Kopf wegdrehen, Arme weit auf"],
+    answer: 0, src: "Cursa (Hände schützen den Raum am Hals); KB 4.5 (RNC: Kinn runter)",
+    why: "Kinn und Hände schützen den Raum am Hals. So kommt kein Würger durch. Kinn runter, aber nicht verkrampfen.",
+  },
+  {
+    id: "q-schutz-back", day: 2, topic: "schutz",
+    q: "Es wird eng unter ihm. Drehst du dich weg und zeigst ihm den Rücken?",
+    options: ["Nein – Rücken nie zeigen, zu ihm drehen", "Ja, so kommst du am schnellsten weg", "Ja, auf dem Bauch bist du sicher"],
+    answer: 0, scene: { pos: "mount", top: "o" }, src: "Cursa (nicht wegdrehen, Rücken nicht geben); KB 3.2",
+    why: "Wer sich wegdreht, gibt den Rücken frei. Von dort kontrolliert er dich am stärksten.",
   },
 ];
 
