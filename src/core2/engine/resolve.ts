@@ -15,12 +15,14 @@ export const BALANCE = {
   unframedSubSteps: 2,
   /** B3 Gewicht: Aufbauen gegen Aufbauen in derselben Zone – der Obere setzt sich durch (+1); im Stand hebt es sich auf. */
   topWinsBuildTie: true,
-  /** B4 Griff hält fest: sitzt ein Aufgabegriff gegen den Unteren (auch in derselben Runde), scheitert seine Flucht. */
+  /** B4 Griff hält fest: sitzt ein Aufgabegriff gegen den Unteren (Leiste ab Schritt 2, auch in derselben Runde), scheitert seine Flucht.
+   *  Bei Schritt 1 (nur isoliert) bleibt Weggehen erlaubt – und löscht die Leiste. Schwelle: HOLD_STEP in legal.ts. */
   gripStopsEscape: true,
   /** B5 Schwung: nach einem Positionswechsel steht die Zone, die ihn trug, auf +1 für den Gewinner. */
   momentum: true,
-  /** B6 Gerangel: Angriff gegen Angriff ohne Vorsprung in der Zone – Vorteil auf der Körperkarte, dann mehr Kraft gewinnt. */
-  kraftWinsScramble: true,
+  /** B6 Gerangel: Angriff gegen Angriff ohne Vorsprung in der Zone – Vorteil auf der Körperkarte, sonst am Boden der Obere
+   *  (er hat die Basis). Nie der Atem. Im Stand/Clinch bleibt es Gerangel. */
+  boardThenTopWinsScramble: true,
 };
 
 export function cloneState(s: State2): State2 {
@@ -171,20 +173,19 @@ function resolveMoves(ctx: Ctx): void {
   // Beide Angriffe mit Positionswechsel erfolgreich (nur in verschiedenen Zonen möglich):
   // wer in seiner Zone weiter vorne liegt, setzt sich durch; Gleichstand = Gerangel.
   const v = mv.map((m) => ctx.start.board[m.card.zone] * sign(m.side));
-  const kw = kraftWinner(ctx);
+  const kw = scrambleWinner(ctx);
   if (v[0] === v[1] && !kw) { scramble(ctx, null); return; }
   const w = v[0] > v[1] ? mv[0] : v[1] > v[0] ? mv[1] : mv.find((m) => m.side === kw)!;
   applyMove(ctx, w.side, w.card);
 }
 
-/** Balance „Gerangel“: bei Gleichstand in der Zone setzt sich durch, wer auf der ganzen Körperkarte vorne liegt
- *  (Vorteil), sonst wer zu Rundenbeginn mehr Kraft hatte. null = echtes Gerangel. */
-function kraftWinner(ctx: Ctx): Side | null {
-  if (!BALANCE.kraftWinsScramble) return null;
+/** Balance „Gerangel“ (B6): bei Gleichstand in der Zone setzt sich durch, wer auf der ganzen Körperkarte vorne liegt
+ *  (Vorteil), sonst am Boden der Obere (Basis auf der Matte). Atem entscheidet nie. null = echtes Gerangel (Stand/Clinch). */
+function scrambleWinner(ctx: Ctx): Side | null {
+  if (!BALANCE.boardThenTopWinsScramble) return null;
   const sum = ZONES.reduce((a, z) => a + ctx.start.board[z], 0);
   if (sum !== 0) return sum > 0 ? "p" : "o";
-  const a = ctx.start.p.kraft, b = ctx.start.o.kraft;
-  return a > b ? "p" : b > a ? "o" : null;
+  return ctx.start.top;
 }
 
 function scramble(ctx: Ctx, zone: Zone | null): void {
@@ -192,7 +193,7 @@ function scramble(ctx: Ctx, zone: Zone | null): void {
   changeKraft(ctx, "o", -1);
   ctx.notes.push({
     prio: 30, side: null,
-    headline: "Gerangel: beide hängen fest, beide verlieren Kraft.",
+    headline: "Gerangel: beide hängen fest, beide verlieren Atem.",
     why: "Gleich starke Angriffe blockieren sich. Wer die Zone vorher gewinnt, setzt sich durch.",
     zone,
   });
@@ -228,7 +229,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
   const s = cloneState(s0);
   const ctx: Ctx = { s, start: s0, events: [], notes: [], acted: new Set(), pendingMoves: [] };
 
-  // Kraft bezahlen.
+  // Atem bezahlen (internes Feld: kraft).
   for (const side of ["p", "o"] as Side[]) { const c = cards[side]; if (c?.kraft) changeKraft(ctx, side, -c.kraft); }
 
   const P = cards.p, O = cards.o;
@@ -243,7 +244,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       if (P.kind === "angriff") {
         rule = "angriff=angriff";
         const vp = s0.board[z]; // >0: p vorne
-        const kw = kraftWinner(ctx);
+        const kw = scrambleWinner(ctx);
         if (vp === 0 && !kw) { scramble(ctx, z); triWinner = "none"; }
         else {
           const w: Side = vp > 0 ? "p" : vp < 0 ? "o" : kw!;
@@ -347,7 +348,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
   }
   if (!s.result) resolveMoves(ctx);
 
-  // Rundenende: Sperren, Kraft, Rundenzähler, Ziel/Punkte.
+  // Rundenende: Sperren, Atem, Rundenzähler, Ziel/Punkte.
   s.p.locked = P ? [P.id] : [];
   s.o.locked = O ? [O.id] : [];
   if (!s.result && s.goal && s.goal.some((g) => g.pos === s.pos && g.role === roleOf(s, "p"))) {

@@ -45,7 +45,7 @@ export interface Card2 {
   to?: Transition;
   /** angriff: Aufgabegriff – Erfolg schiebt die Aufgabe-Leiste dieses Griffs um 1 (3 = Tap). */
   submission?: { id: string; name: string };
-  /** Kosten in Kraft (Abschluss-Schritte, große Befreiungen). */
+  /** Kosten in Atem (sichtbar „Atem“, internes Feld `kraft`): Abschluss-Schritte, große Befreiungen. */
   kraft?: number;
   /** Dilemma: verteidigt der Gegner in dieser Zone, öffnet sich diese andere Zone (Bonus +1 dort für dich). */
   dilemmaOpens?: Zone;
@@ -60,6 +60,7 @@ export interface Card2 {
 
 export interface SubTrack { id: string; name: string; owner: Side; step: 0 | 1 | 2 | 3; zone: Zone }
 
+/** kraft = Atem (sichtbar immer „Atem“: BJJ ist Hebel statt Kraft). */
 export interface Fighter2 { pts: number; kraft: number; locked: string[] }
 
 export interface State2 {

@@ -15,6 +15,8 @@ export interface BoardProps {
   threats?: { zone: Zone; cardIds: string[] }[];
   /** Aus wessen Sicht gezeigt wird (Standard "p"): diese Seite ist "du" (blau, links). */
   perspective?: Side;
+  /** Zonen, die in dieser Lektion noch nicht aktiv sind: grau, "kommt später". */
+  hidden?: Zone[];
   /** Tippen auf eine Zeile (z. B. für Erklärung). */
   onZoneTap?: (z: Zone) => void;
   className?: string;
@@ -32,7 +34,7 @@ function ownerWord(v: number): string {
  * Körperkarte: vier Tauzieh-Leisten (Kopf/Nacken, Arme, Hüfte, Beine), je −2…+2.
  * Links = du (blau), rechts = er (rot). Der Puck rutscht zu dem, der die Zone kontrolliert.
  */
-export function Board({ board, focus = null, lastDeltas = null, threats = [], perspective = "p", onZoneTap, className }: BoardProps) {
+export function Board({ board, focus = null, lastDeltas = null, threats = [], perspective = "p", hidden = [], onZoneTap, className }: BoardProps) {
   const reduced = !!useReducedMotion();
   const sign = perspective === "p" ? 1 : -1;
   const threatZones = new Set(threats.filter((t) => t.cardIds.length > 0).map((t) => t.zone));
@@ -60,6 +62,18 @@ export function Board({ board, focus = null, lastDeltas = null, threats = [], pe
       {ZONES.map((z) => {
         const v = Math.max(-2, Math.min(2, (board[z] ?? 0) * sign));
         const d = lastDeltas?.[z] ? (lastDeltas[z] as number) * sign : 0;
+        if (hidden.includes(z)) {
+          return (
+            <div key={z} className="k2-row is-later" aria-label={`${ZONE_LABEL[z]}: kommt später`}>
+              <div className="k2-row-label">
+                <ZoneIcon zone={z} size={15} />
+                <span>{ZONE_LABEL[z]}</span>
+              </div>
+              <div className="k2-track k2-track-later"><span>kommt später</span></div>
+              <span className="k2-row-val" />
+            </div>
+          );
+        }
         const isFocus = focus === z;
         const threat = threatZones.has(z);
         // +2 → Puck ganz links (bei dir), −2 → ganz rechts (bei ihm).

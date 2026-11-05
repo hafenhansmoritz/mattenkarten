@@ -32,6 +32,7 @@ const K2 = {
   halfTop: s("JitsuIQ – Half Guard Top", "https://jitsuiq.com/positions/guard/half-guard-top.html"),
   halfBot: s("JitsuIQ – Half Guard", "https://jitsuiq.com/positions/guard/half-guard.html"),
   armDrags: s("Evolve MMA – 38 Arm Drag Techniques for BJJ", "https://evolve-mma.com/blog/38-arm-drag-techniques-for-bjj/"),
+  armTri: s("BJJ Atlas – Arm Triangle", "https://bjj-atlas.pages.dev/submissions/arm-triangle"),
   fulcrum: s("BJJ Fanatics – Danaher: Overlooked Part of a Submission (Fulcrum)", "https://bjjfanatics.com/blogs/news/john-danaher-says-this-is-one-of-the-most-overlooked-parts-of-a-successful-submission"),
 } satisfies Record<string, Src>;
 
@@ -537,21 +538,13 @@ const sideTop: Card2[] = [
     source: K2.pinEsc,
   },
   {
-    id: "sct_near_hip", plain: "Nahe Hüfte blocken", term: "Near-Hip Wedge",
-    plainDo: "Knie oder Hand blockt seine nahe Hüfte.",
-    kind: "aufbauen", zone: "huefte", slots: [SIDE_T],
-    why: "Ein Keil an seiner nahen Hüfte (Near-Hip Wedge) stoppt sein Wegrutschen zur Guard.",
-    keys: ["Knie an seine Hüfte", "Kein Abstand"],
-    mistakes: ["Hüfte frei lassen"],
-    source: K2.pinEsc,
-  },
-  {
-    id: "sct_far_hip", plain: "Ferne Hüfte blocken", term: "Far-Hip Wedge",
-    plainDo: "Du blockst seine ferne Hüfte – er dreht nicht weg.",
+    // B11: nahe und ferne Hüfte sind eine Karte (Platz für den Kopf-Arm-Würger; max. 8 Karten je Slot).
+    id: "sct_far_hip", plain: "Beide Hüften keilen", term: "Hip Wedges",
+    plainDo: "Knie an seine nahe, Hand an seine ferne Hüfte.",
     kind: "aufbauen", zone: "huefte", slots: [SIDE_T],
     why: "Fernes und nahes Hüftbein plus Nacken gekeilt (Wedges): so hältst du ihn fast ohne Gewicht.",
-    keys: ["Drei Keile: ferne Hüfte, nahe Hüfte, Nacken"],
-    mistakes: ["Gewicht statt Keile"],
+    keys: ["Drei Keile: ferne Hüfte, nahe Hüfte, Nacken", "Kein Abstand an der nahen Hüfte"],
+    mistakes: ["Gewicht statt Keile", "Hüfte frei lassen"],
     source: K2.gff,
   },
   {
@@ -585,6 +578,18 @@ const sideTop: Card2[] = [
     source: SRC.kimura,
   },
   {
+    // B11: zweiter Abschluss aus der Seitkontrolle (No-Gi), wirkt am Kopf statt an den Armen.
+    id: "sct_arm_triangle", plain: "Kopf und Arm einschließen", term: "Arm Triangle (Kata Gatame)",
+    plainDo: "Sein Arm liegt an seinem Hals, deine Schulter drückt dagegen.",
+    kind: "angriff", zone: "kopf", slots: [SIDE_T], requires: { kopf: 1, arme: 1 }, kraft: 1,
+    submission: { id: "arm_triangle", name: "Kopf-Arm-Würger" }, dilemmaOpens: "arme",
+    why: "Sein eigener Arm und deine Schulter schließen den Hals ein (Kopf-Arm-Würger); zieht er den Arm raus, bleibt die Kimura.",
+    keys: ["Erst seinen fernen Arm über seinen Hals schieben", "Hände verbinden, Schulter an sein Ohr", "Quer zu ihm laufen, langsam zudrücken"],
+    mistakes: ["Gerade auf ihm bleiben", "Nur mit den Armen quetschen"],
+    safety: SAFETY_CHOKE,
+    source: K2.armTri,
+  },
+  {
     id: "sct_hip_block", plain: "Hüfte zumachen", term: "Hip Block",
     plainDo: "Du folgst seiner Hüfte und blockst das Wegrutschen.",
     kind: "rahmen", zone: "huefte", slots: [SIDE_T],
@@ -609,8 +614,10 @@ const elbowKnee: Card2 = {
   id: "bot_elbow_knee", plain: "Ellbogen an Knie", term: "Elbow-Knee Connection",
   plainDo: "Ellbogen und Knie bilden eine Wand an seiner Hüfte.",
   kind: "aufbauen", zone: "huefte", slots: [SIDE_B, HALF_B],
+  // B10: Grundlage zahlt sich aus – der Ellbogen kommt dabei nach innen (Inside Position), Arme +1.
+  alsoGain: { arme: 1 },
   why: "Ellbogen und Knie verbunden (Elbow-Knee) tragen sein Gewicht; trennen sie sich, kommt er Brust auf Brust.",
-  keys: ["Knie in seine Hüfttasche", "Ellbogen nah am Knie"],
+  keys: ["Knie in seine Hüfttasche", "Ellbogen innen, nah am Knie"],
   mistakes: ["Ellbogen weit vom Körper"],
   source: K2.gff,
 };
@@ -625,15 +632,7 @@ const sideBottom: Card2[] = [
     mistakes: ["Arme ausstrecken (Armbar)", "Drücken ohne Struktur"],
     source: K2.gff,
   },
-  {
-    id: "scb_inside", plain: "Ellbogen nach innen", term: "Inside Position",
-    plainDo: "Du schiebst deinen Ellbogen innen an seine Hüfte.",
-    kind: "aufbauen", zone: "arme", slots: [SIDE_B],
-    why: "Wer innen ist, gewinnt (Inside Position): Gliedmaße für Gliedmaße, erst Ellbogen, dann Knie.",
-    keys: ["Ellbogen innen an seine Hüfte", "Unter und innen, bevor du hochkommst"],
-    mistakes: ["Außen gegen ihn drücken"],
-    source: K2.gff,
-  },
+
   {
     id: "scb_shrimp", plain: "Wegrutschen, Beine davor", term: "Shrimp to Guard",
     plainDo: "Stütze, Brücke, seitlich weg – Knie rein, Guard zurück.",
@@ -672,6 +671,17 @@ const sideBottom: Card2[] = [
     keys: ["Knie hoch an seine Hüfte", "Ellbogen ans Knie"],
     mistakes: ["Bein flach liegen lassen"],
     source: K2.sideDan,
+  },
+  {
+    // B11: Verteidigung gegen den Kopf-Arm-Würger (ersetzt „Ellbogen nach innen“, das jetzt in Ellbogen an Knie steckt).
+    id: "scb_head_arm_def", plain: "Arm nicht rüberlassen", term: "Arm-Triangle Defense",
+    plainDo: "Dein Arm bleibt vor deinem Gesicht – nicht über deinem Hals.",
+    kind: "rahmen", zone: "kopf", slots: [SIDE_B],
+    why: "Kommt dein Arm nicht über dein Gesicht, fehlt ihm die Hälfte des Kopf-Arm-Würgers.",
+    keys: ["Ellbogen innen", "Zu ihm drehen, Hand an dein Ohr"],
+    mistakes: ["Arm über seinen Kopf strecken", "Flach weggedreht liegen"],
+    source: K2.armTri,
+    check: true,
   },
   {
     id: "scb_protect_arms", plain: "Arme eng halten", term: "Protect Arms",
@@ -937,7 +947,8 @@ const backBottom: Card2[] = [
   {
     id: "bb_shrimp", plain: "Rausrutschen zur Guard", term: "Shrimp Back Escape",
     plainDo: "Hände hoch, Hüfte weg, du drehst dich vor ihn.",
-    kind: "angriff", zone: "huefte", slots: [BACK_B], requires: { arme: 0, huefte: 0 },
+    // B10: die Hüfte trägt den Shrimp – die Hände dürfen noch kämpfen (Arme −1 reicht).
+    kind: "angriff", zone: "huefte", slots: [BACK_B], requires: { arme: -1, huefte: 0 },
     to: { pos: "guard", role: "bottom", escape: "guard" },
     why: "Hände schützen den Hals, die Hüfte rutscht weg (Shrimp Escape) – du landest vor ihm.",
     keys: ["Hände in Gebetshaltung am Hals", "Schultern auf die Matte"],

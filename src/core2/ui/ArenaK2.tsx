@@ -11,6 +11,8 @@ import { Board, deltasOf } from "./Board";
 import { SubTracks } from "./SubTracks";
 import { Hand2 } from "./Hand2";
 import type { TutorialK2Def, TutorialK2Step } from "./tutorialTypes";
+import { filterHandByZones, hiddenZones } from "./disclosure";
+import { PREDICTIONS, PREDICTION_LABEL, outcomeOf, predictionFeedback, shouldPredict, type Prediction } from "./predict";
 import { KIND_LABEL, KraftIcon, LockIcon, POS_LABEL, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
 import { Stamp, FloatText, useHitStop, Confetti, ImpactBurst, type StampTone } from "../../components/fx";
 import { CoachAvatar } from "../../components/learn";
@@ -29,7 +31,7 @@ export interface ArenaK2Props {
   seed?: number;
 }
 
-type Phase = "pick" | "flip" | "impact" | "result" | "tap" | "release" | "end";
+type Phase = "pick" | "predict" | "flip" | "impact" | "result" | "tap" | "release" | "end";
 
 interface StampInfo { text: string; tone: StampTone; sub?: string; key: number }
 interface FloatInfo { text: string; color: string; key: number; x: string }
@@ -133,6 +135,10 @@ export function ArenaK2(props: ArenaK2Props) {
   const [more, setMore] = useState(false);
   const [bubbleDone, setBubbleDone] = useState<number[]>([]);
   const [tapOk, setTapOk] = useState<boolean | null>(null);
+  // Vorhersage: Runde ist schon berechnet, wird aber erst nach dem Tipp aufgedeckt.
+  const [pending, setPending] = useState<{ pId: string; oId: string; next: State2; r: Round2 } | null>(null);
+  const [guess, setGuess] = useState<Prediction | null>(null);
+  const [predStats, setPredStats] = useState({ n: 0, ok: 0 });
   const [frozen, hitStop] = useHitStop();
   const [fx, setFx] = useState<{ shake: "x" | "y" | null; flash: Side | null; zoom: boolean; slowmo: boolean; windup: Side | null }>({ shake: null, flash: null, zoom: false, slowmo: false, windup: null });
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -158,13 +164,45 @@ export function ArenaK2(props: ArenaK2Props) {
   const requireCard = pickStep?.requireCard ?? startBubble?.requireCard;
   const hlZone = (startBubble ? startBubble.highlightZone : pickStep?.highlightZone) ?? null;
 
+  // Schrittweises Aufdecken: nur Zonen der Lektion aktiv (reiner UI-Filter).
+  const hidZones = useMemo(() => hiddenZones(tut?.zones), [tut]);
+  const handShown = useMemo(() => filterHandByZones(hand, legal, tut?.zones, requireCard), [hand, legal, tut, requireCard]);
+
   // ---------- Aufdecken ----------
-  const reveal = useCallback(() => {
+  const reveal = () => {
     if (phase !== "pick") return;
     const pId = sel ?? (anyLegal ? null : PASS);
     if (!pId) return;
+    // Erst die KI-Karte, dann das Ergebnis auf dem (unveränderten) Zustand berechnen.
     const oId = aiChoose(s, "o", aiLevel, rng);
     const { state: next, round: r } = playRound(s, pId, oId);
+    if (shouldPredict(tut, s.round)) {
+      setPending({ pId, oId, next, r });
+      setGuess(null);
+      setPhase("predict");
+      sfx.select();
+      return;
+    }
+    runReveal(pId, oId, next, r);
+  };
+
+  const makeGuess = (g: Prediction) => {
+    if (!pending || guess) return;
+    setGuess(g);
+    const ok = outcomeOf(pending.r) === g;
+    setPredStats((st) => ({ n: st.n + 1, ok: st.ok + (ok ? 1 : 0) }));
+    if (ok) sfx.points(); else sfx.counter();
+  };
+
+  const revealPending = () => {
+    if (!pending) return;
+    const { pId, oId, next, r } = pending;
+    setPending(null);
+    setGuess(null);
+    runReveal(pId, oId, next, r);
+  };
+
+  function runReveal(pId: string, oId: string, next: State2, r: Round2) {
     setCards({ p: cardById(pId) ?? null, o: cardById(oId) ?? null });
     setRound(r);
     setMore(false);
@@ -204,7 +242,7 @@ export function ArenaK2(props: ArenaK2Props) {
         } else setPhase("result");
       });
     });
-  }, [phase, sel, anyLegal, s, aiLevel, rng]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   // Weiter nach Tippen irgendwo
   const advance = useCallback(() => {
@@ -238,6 +276,7 @@ export function ArenaK2(props: ArenaK2Props) {
     setMatchNo(n);
     const ns = props.initialState ?? startState({ ...props, initialState: undefined }, (tut?.seed ?? props.seed ?? Date.now() % 100000) + n * 7919);
     setS(ns); setShown(ns); setPhase("pick"); setSel(null); setRound(null); setTapOk(null); setBubbleDone([]);
+    setPending(null); setGuess(null); setPredStats({ n: 0, ok: 0 });
     setCards({ p: null, o: null });
   };
 
@@ -293,7 +332,7 @@ export function ArenaK2(props: ArenaK2Props) {
 
       {/* Brett + Aufdeck-Ebene */}
       <section className="k2-board-wrap">
-        <Board board={s.board} focus={focus} lastDeltas={deltas} threats={shownThreats} />
+        <Board board={s.board} focus={focus} lastDeltas={deltas} threats={shownThreats} hidden={hidZones} />
         <AnimatePresence>
           {showCards && (
             <RevealLayer key={`rv-${round?.round}`} p={cards.p} o={cards.o} same={sameZone} impact={phase === "impact"} reduced={reduced} />
@@ -340,12 +379,17 @@ export function ArenaK2(props: ArenaK2Props) {
               {hisLocked.length > 0 && <span className="k2-hislock"><LockIcon size={10} /> {hisLocked.map((c) => c.plain).join(", ")}</span>}
             </div>
           )}
-          <Hand2 cards={hand} legal={legal} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.select(); }}
+          <Hand2 cards={handShown} legal={legal} hiddenZones={hidZones} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.select(); }}
             myBoard={myBoard} locked={s.p.locked} kraft={s.p.kraft} requireCard={requireCard} highlightZone={hlZone} />
           <button type="button" className="btn primary big k2-go" disabled={anyLegal ? !sel || (!!requireCard && sel !== requireCard) : false} onClick={reveal}>
             {!anyLegal ? "Passen" : sel ? "Aufdecken!" : "Wähle eine Karte"}
           </button>
         </section>
+      )}
+
+      {/* Vorhersage: „Was passiert jetzt?“ */}
+      {phase === "predict" && pending && (
+        <PredictPanel pending={pending} guess={guess} onGuess={makeGuess} onReveal={revealPending} />
       )}
 
       {/* Coach-Blase (Tutorial-Start) */}
@@ -390,6 +434,10 @@ export function ArenaK2(props: ArenaK2Props) {
                   : (s.result.winner === "p" ? "Zu spät losgelassen – im Training sofort lösen!" : "Zu spät geklopft – früh tappen schützt dich.")}
               </p>
             )}
+            {predStats.n > 0 && (
+              <p className="k2-end-pred">Vorhersagen: <b className="num">{predStats.ok} von {predStats.n}</b> richtig.
+                {predStats.ok === predStats.n ? " Du liest die Lage schon gut." : " Falsche Tipps sind okay – genau daraus lernst du."}</p>
+            )}
             <ol className="k2-end-why">
               {topWhys(s.history).map((w) => (
                 <li key={w.round}><span className="k2-end-r">R{w.round}</span><span><b>{w.headline}</b> {w.why}</span></li>
@@ -403,6 +451,41 @@ export function ArenaK2(props: ArenaK2Props) {
         </motion.div>
       )}
     </div>
+  );
+}
+
+function PredictPanel({ pending, guess, onGuess, onReveal }: {
+  pending: { pId: string; r: Round2 };
+  guess: Prediction | null;
+  onGuess: (g: Prediction) => void;
+  onReveal: () => void;
+}) {
+  const truth = outcomeOf(pending.r);
+  const mine = cardById(pending.pId);
+  const fb = guess ? predictionFeedback(guess, pending.r) : null;
+  return (
+    <motion.section className="k2-pick k2-predict" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} aria-live="polite">
+      <div className="k2-predict-q"><CoachAvatar size={26} /><span>Was passiert jetzt?</span></div>
+      <p className="k2-predict-sub">Du spielst <b>{mine?.plain ?? "nichts"}</b>. Seine Karte liegt verdeckt.</p>
+      <div className="k2-predict-opts">
+        {PREDICTIONS.map((g) => {
+          const cls = !guess ? "" : g === truth ? "right" : g === guess ? "wrong" : "dim";
+          return (
+            <button key={g} type="button" className={`k2-predict-opt ${cls}`} disabled={!!guess} onClick={() => onGuess(g)}>
+              <span>{PREDICTION_LABEL[g]}</span>
+              {guess && g === truth && <span aria-label="richtig">✓</span>}
+              {guess && g === guess && g !== truth && <span aria-label="falsch">✗</span>}
+            </button>
+          );
+        })}
+      </div>
+      {fb && (
+        <motion.p className={`k2-predict-fb ${fb.ok ? "ok" : "no"}`} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}>
+          <b>{fb.ok ? "✓ " : "✗ "}{fb.title}</b> {pending.r.why}
+        </motion.p>
+      )}
+      {guess && <button type="button" className="btn primary big k2-go" onClick={onReveal} autoFocus>Aufdecken!</button>}
+    </motion.section>
   );
 }
 

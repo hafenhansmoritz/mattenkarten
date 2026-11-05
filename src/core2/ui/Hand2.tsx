@@ -22,13 +22,15 @@ export interface Hand2Props {
   requireCard?: string;
   /** Tutorial: diese Zone hervorheben. */
   highlightZone?: Zone | null;
+  /** Zonen, die in dieser Lektion noch nicht aktiv sind (Spalte grau, "später"). */
+  hiddenZones?: Zone[];
   /** Max. sichtbare Karten (Standard 8), Rest hinter "+N". */
   max?: number;
   className?: string;
 }
 
 /** Hand für Kern 2: Karten nach Zone gruppiert (vier Spalten), Farbe = Art. */
-export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, max = 8, className }: Hand2Props) {
+export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, hiddenZones = [], max = 8, className }: Hand2Props) {
   const reduced = !!useReducedMotion();
   const [showAll, setShowAll] = useState(false);
   const lmap = useMemo(() => new Map(legal.map((l) => [l.id, l])), [legal]);
@@ -49,10 +51,12 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
       <div className="k2-hand-cols">
         {ZONES.map((z) => {
           const col = cards.filter((c) => c.zone === z && visibleSet.has(c.id));
+          const later = hiddenZones.includes(z) && col.length === 0;
           return (
-            <div key={z} className={`k2-hcol${highlightZone === z ? " is-hl" : ""}`}>
+            <div key={z} className={`k2-hcol${highlightZone === z ? " is-hl" : ""}${later ? " is-later" : ""}`}>
               <div className="k2-hcol-head" title={ZONE_LABEL[z]}><ZoneIcon zone={z} size={13} /><span>{ZONE_SHORT[z]}</span></div>
-              {col.length === 0 && <div className="k2-hcol-empty" aria-hidden>–</div>}
+              {later && <div className="k2-hcol-empty k2-hcol-later">später</div>}
+              {col.length === 0 && !later && <div className="k2-hcol-empty" aria-hidden>–</div>}
               {col.map((c, i) => {
                 const l = lmap.get(c.id);
                 const ok = l?.ok ?? true;

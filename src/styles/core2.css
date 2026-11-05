@@ -247,3 +247,27 @@
   .k2-row.is-focus .k2-track-fill { animation: none; }
   .k2-hcard, .k2-row, .k2-pips i { transition: none; }
 }
+
+/* ---------- Schrittweises Aufdecken (Lektionen): Zonen "kommt später" ---------- */
+.k2-row.is-later { opacity: 0.42; filter: grayscale(1); }
+.k2-row.is-later .k2-row-label { color: var(--text-3); }
+.k2-track-later { display: flex; align-items: center; justify-content: center; border: 1px dashed var(--line-strong); background: transparent; }
+.k2-track-later span { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); line-height: 1; }
+.k2-hcol.is-later { opacity: 0.45; filter: grayscale(1); border-style: dashed; border-color: var(--line); }
+.k2-hcol-later { opacity: 1; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ---------- Vorhersage vor dem Aufdecken ---------- */
+.k2-predict { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px 12px; margin: 0 8px; border-radius: 12px; background: var(--surface-2, #1b2440); border: 1px solid var(--line-strong); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+.k2-predict-q { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; }
+.k2-predict-sub { font-size: 12px; color: var(--text-2); margin: -4px 0 0; }
+.k2-predict-opts { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.k2-predict-opt { font: inherit; font-weight: 700; text-align: left; min-height: 44px; padding: 8px 12px; border-radius: 10px; color: var(--text); background: var(--surface, #141b30); border: 1px solid var(--line-strong); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.k2-predict-opt.right { border-color: #4cd18a; background: rgba(76, 209, 138, 0.14); }
+.k2-predict-opt.wrong { border-color: #ff6b6b; background: rgba(255, 107, 107, 0.14); }
+.k2-predict-opt.dim { opacity: 0.5; }
+.k2-predict-fb { font-size: 13px; line-height: 1.35; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.04); }
+.k2-predict-fb.ok b { color: #4cd18a; }
+.k2-predict-fb.no { background: rgba(255, 209, 102, 0.10); border: 1px solid rgba(255, 209, 102, 0.45); }
+.k2-predict-fb.no b { color: var(--k2-focus, #ffd166); }
+.k2-end-pred { font-size: 13px; margin: 0; color: var(--text-2); }
+.k2-end-pred b { color: var(--text); }

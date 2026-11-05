@@ -29,13 +29,14 @@ export function continuesHold(s: State2, side: Side, c: Card2): boolean {
   return !!c.submission && s.subs.some((t) => t.owner === side && t.id === c.submission!.id && t.step > 0);
 }
 
-/** Balance „Erst den Griff lösen“: läuft eine Aufgabe-Leiste gegen den Unteren, sind seine Fluchten gesperrt. */
+/** Balance „Erst den Griff lösen“ (B4): sitzt ein Griff gegen den Unteren (Leiste ab HOLD_STEP), sind seine Fluchten gesperrt.
+ *  Bei Schritt 1 (er isoliert nur) ist Weggehen die beste Verteidigung und bleibt erlaubt. */
 export function heldInSub(s: State2, side: Side): boolean {
   if (roleOf(s, side) !== "bottom") return false; // gilt für den Unteren (Flucht), nicht für Pässe von oben
   return s.subs.some((t) => t.owner !== side && t.step >= HOLD_STEP);
 }
-/** Ab dieser Stufe der gegnerischen Leiste ist Wegrutschen gesperrt. */
-export const HOLD_STEP = 1;
+/** Ab dieser Stufe der gegnerischen Leiste ist Wegrutschen gesperrt (2 = Griff sitzt). */
+export const HOLD_STEP = 2;
 
 export function checkCard(s: State2, side: Side, c: Card2): Legal {
   if (c.to && heldInSub(s, side)) return { id: c.id, ok: false, reason: "Erst den Griff lösen (Rahmen in seiner Zone)" };
@@ -43,7 +44,7 @@ export function checkCard(s: State2, side: Side, c: Card2): Legal {
   const unmet = unmetRequires(s, side, c);
   if (unmet.length) return { id: c.id, ok: false, reason: `Braucht ${unmet.join(", ")}` };
   const k = c.kraft ?? 0;
-  if (k > s[side].kraft) return { id: c.id, ok: false, reason: `Braucht ${k} Kraft` };
+  if (k > s[side].kraft) return { id: c.id, ok: false, reason: `Braucht ${k} Atem` };
   return { id: c.id, ok: true };
 }
 

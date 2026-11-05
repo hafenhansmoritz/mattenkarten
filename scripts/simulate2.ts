@@ -60,9 +60,11 @@ interface Agg {
   pos: Map<string, number>; zone: Map<number, number>; rules: Map<string, number>;
   decisive: Map<string, number>; played: Map<string, number>; taps: Map<string, number>; zeroAction: number;
   reach: Map<string, number>; domRoundSum: number; domMatches: number; vorteil: number;
+  /** Slot-Entscheidungen: "pos/role" → Anzahl, und "pos/role|karte" → Anzahl. */
+  slotDec: Map<string, number>; slotPick: Map<string, number>;
 }
 const inc = <K>(m: Map<K, number>, k: K, n = 1) => m.set(k, (m.get(k) ?? 0) + n);
-const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0 });
+const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map() });
 const total = newAgg();
 
 function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
@@ -80,6 +82,8 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
     for (const side of ["p", "o"] as Side[]) {
       const lv = side === "p" ? lp : lo;
       ids[side] = aiChoose(s, side, lv, rng);
+      const sk = `${s.pos}/${roleOf(s, side)}`;
+      rec((a) => { inc(a.slotDec, sk); inc(a.slotPick, `${sk}|${ids[side]}`); });
       if (ids[side] === PASS) {
         rec((a) => a.pass++);
         const all = legalCards(s, side);
@@ -146,7 +150,7 @@ const never = POS.filter((p) => !reached.has(p));
 if (never.length) anomalies.push(`Nie erreicht: ${never.map((p) => POS_LABEL[p]).join(", ")}`);
 const zTot = [...total.zone.values()].reduce((a, b) => a + b, 0);
 console.log("\nZonenwerte (alle Zonen, Rundenende):"); for (const v of [-2, -1, 0, 1, 2]) console.log(`  ${String(v).padStart(2)}  ${pct(total.zone.get(v) ?? 0, zTot)}`);
-console.log("\nAufgaben (Taps):"); for (const [k, v] of top(total.taps, 15)) console.log(`  ${k.padEnd(24)} ${v}`);
+console.log("\nAufgaben (Taps):"); { const tt = [...total.taps.values()].reduce((a, b) => a + b, 0); for (const [k, v] of top(total.taps, 15)) console.log(`  ${k.padEnd(24)} ${String(v).padStart(4)}  ${pct(v, tt)}`); }
 console.log("\nEntscheidende Karten (Tap-Karte bzw. letzter Positionswechsel des Punktsiegers):"); for (const [k, v] of top(total.decisive, 12)) console.log(`  ${k.padEnd(24)} ${v}`);
 console.log("\nMeistgespielt:"); for (const [k, v] of top(total.played, 10)) console.log(`  ${k.padEnd(24)} ${v}`);
 const playedIds = new Set(total.played.keys());
@@ -156,6 +160,23 @@ for (const [k, v] of top(total.noOk, 10)) anomalies.push(`PASS (keine ok-Karte) 
 for (const [id, cs] of subCards) if (!total.taps.has(CARDS.find((c) => c.submission?.id === id)!.submission!.name)) anomalies.push(`Aufgabe ${id} nie beendet (Karten: ${cs.join(", ")})`);
 if (total.draw / M > 0.4) anomalies.push(`Hohe Remisquote ${pct(total.draw, M)} – Patt-Gefahr.`);
 console.log("\nPositionen erreicht (Anteil Matches):"); for (const p of POS) console.log(`  ${p.padEnd(8)} ${pct(total.reach.get(p) ?? 0, M)}`);
+// Befreiungen unten: Anteil der Slot-Entscheidungen, in denen die Karte gespielt wurde.
+const ESC_SLOTS: [Pos2, Role2][] = [["side", "bottom"], ["mount", "bottom"], ["back", "bottom"], ["half", "bottom"]];
+const ESC_TARGET: Set<string> = new Set(["side/bottom", "mount/bottom"]);
+const escLow: string[] = [];
+console.log("\nBefreiungen unten (Anteil der Slot-Entscheidungen):");
+for (const [pos, role] of ESC_SLOTS) {
+  const sk = `${pos}/${role}`;
+  const dec = total.slotDec.get(sk) ?? 0;
+  const parts = slotCards(pos, role).filter((c) => c.to).map((c) => {
+    const n = total.slotPick.get(`${sk}|${c.id}`) ?? 0;
+    if (ESC_TARGET.has(sk) && n / Math.max(1, dec) < 0.02) escLow.push(`${c.id} ${pct(n, dec)}`);
+    return `${c.id} ${pct(n, dec)}`;
+  });
+  console.log(`  ${sk.padEnd(13)} (${dec} Entsch.)  ${parts.join(", ")}`);
+}
+const tapTot = [...total.taps.values()].reduce((a, b) => a + b, 0);
+const topTap = top(total.taps, 1)[0];
 const domAvg = total.domMatches ? total.domRoundSum / total.domMatches : Infinity;
 const l33 = byPair.get("33")!;
 const checks: [string, boolean, string][] = [
@@ -163,6 +184,8 @@ const checks: [string, boolean, string][] = [
   ["Taps gesamt 10–30%", total.tap / M >= 0.1 && total.tap / M <= 0.3, pct(total.tap, M)],
   ["jede Position in ≥ 3% der Matches", POS.every((p) => (total.reach.get(p) ?? 0) / M >= 0.03), POS.filter((p) => (total.reach.get(p) ?? 0) / M < 0.03).join(",") || "alle"],
   ["Dominanz Ø bis Runde ≤ 5", domAvg <= 5, `${domAvg.toFixed(2)} (in ${pct(total.domMatches, M)} der Matches)`],
+  ["kein Griff > 35% der Taps", !topTap || topTap[1] / Math.max(1, tapTot) <= 0.35, topTap ? `${topTap[0]} ${pct(topTap[1], tapTot)}` : "–"],
+  ["jede Befreiung aus Side/Mount unten ≥ 2% der Slot-Entscheidungen", escLow.length === 0, escLow.join(", ") || "alle"],
 ];
 console.log("\nZiele:"); for (const [n, ok, v] of checks) console.log(`  [${ok ? "ok" : "--"}] ${n}: ${v}`);
 console.log("\nAuffälligkeiten:"); if (!anomalies.length) console.log("  keine"); for (const a of [...new Set(anomalies)].slice(0, 60)) console.log(`  - ${a}`);

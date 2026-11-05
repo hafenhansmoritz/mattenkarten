@@ -16,6 +16,8 @@ export interface TutorialK2Step {
   requireCard?: string;
   /** Diese Zone leuchtet auf dem Brett und in der Hand. */
   highlightZone?: Zone;
+  /** Vor dem Aufdecken fragen: „Was passiert jetzt?“ (gilt für diese Runde). */
+  predict?: boolean;
 }
 
 export interface TutorialK2Def {
@@ -33,4 +35,12 @@ export interface TutorialK2Def {
   /** Optional: fester Seed, damit die Lektion reproduzierbar ist. */
   seed?: number;
   steps: TutorialK2Step[];
+  /**
+   * Schrittweises Aufdecken des Bretts: nur diese Zonen sind in der Lektion aktiv.
+   * Andere Zonen erscheinen grau mit „kommt später“, ihre Karten fehlen in der Hand (nur UI).
+   * Fehlt das Feld: alle Zonen.
+   */
+  zones?: Zone[];
+  /** In jeder Runde vor dem Aufdecken eine Vorhersage abfragen. */
+  predictAll?: boolean;
 }

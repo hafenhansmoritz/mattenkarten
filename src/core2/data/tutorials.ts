@@ -21,6 +21,8 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     ],
     aiLevel: 1,
     maxRounds: 8,
+    // Schrittweises Aufdecken: erst nur Beine und Hüfte.
+    zones: ["beine", "huefte"],
     steps: [
       {
         round: 1, when: "start", highlightZone: "beine",
@@ -57,6 +59,8 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     goal: [{ pos: "side", role: "top" }],
     aiLevel: 1,
     maxRounds: 8,
+    // Schrittweises Aufdecken: Hüfte, Beine, dazu die Arme.
+    zones: ["huefte", "beine", "arme"],
     steps: [
       {
         round: 1, when: "start", highlightZone: "huefte",
@@ -100,7 +104,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
       },
       {
         round: 1, when: "pick", requireCard: "mt_americana", highlightZone: "arme",
-        text: "Schritt 1: Dreh seinen gebeugten Arm langsam Richtung Matte (Americana). Das kostet 1 Kraft.",
+        text: "Schritt 1: Dreh seinen gebeugten Arm langsam Richtung Matte (Americana). Das kostet 1 Atem.",
       },
       {
         round: 1, when: "after", highlightZone: "arme",

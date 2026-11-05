@@ -101,7 +101,7 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
       if (b[c.zone] > 0) v += 0.8;
       if (c.dilemmaOpens) v += 0.8;
     }
-    // Kraft-Haushalt: teure Karten nur, wenn es sich lohnt.
+    // Atem-Haushalt: teure Karten nur, wenn es sich lohnt.
     if ((c.kraft ?? 0) > 0 && !(c.submission && mySubs.some((x) => x.id === c.submission!.id && x.step === 2))) v -= (c.kraft ?? 0) * 0.3;
   }
   return v + rng() * 0.6; // leichte Streuung, deterministisch
