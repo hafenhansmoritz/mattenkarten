@@ -1,4 +1,4 @@
-// 7-Tage-Startprogramm – neue Kern-2-Lektionen für Tag 3, 4 und 5.
+// 7-Tage-Startprogramm – neue Kern-2-Lektionen für Tag 3, 4, 5 und 6 (No-Gi-Reihenfolge, KB 8.12).
 // Nur bestehende Karten aus src/core2/data/cards.ts. Lösbarkeit: lessons.test.ts (≥ 90 % über 30 Seeds).
 // Quellen: research_notes/7 Tage Startprogramm/notes.md, docs/knowledge-base.md (Danaher: erst Pin-Escapes).
 import type { TutorialK2Def } from "../core2/ui/tutorialTypes";
@@ -88,8 +88,9 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
     id: "p-shot-sprawl",
     title: "Shot oder Sprawl",
     idea: "Im Stand: tief gehen, dann schießen – schießt er, Beine weg.",
-    // Kopf +1: du stehst gut (Auslage, Blick nach vorn) – Fokus liegt auf Tiefe und Beinen.
-    start: { pos: "stand", top: null, board: { kopf: 1 } },
+    // Kopf +1: du stehst gut (Auslage, Blick nach vorn). Beine +1: du stehst tief, Hände vorn (No-Gi-Hand-Fighting) –
+    // sein Shot ist nicht sofort spielbar. Fokus liegt auf Tiefe und Beinen (Test: ≥ 90 % über 30 Seeds).
+    start: { pos: "stand", top: null, board: { kopf: 1, beine: 1 } },
     goal: [
       { pos: "guard", role: "top" },
       { pos: "half", role: "top" },
@@ -120,6 +121,44 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
       {
         round: 3, when: "start",
         text: "Jetzt du allein. Bring ihn runter und lande oben. Rot zeigt, wo er schießen kann.",
+      },
+    ],
+  },
+  {
+    id: "p-back-protect",
+    title: "Rücken schützen",
+    idea: "Er ist an deinem Rücken: erst die Hände, dann raus zur Seite.",
+    // Kopf −1: sein Würgearm ist nah. Arme +1: deine Hände sind schon an seinen – sein RNC (braucht seine Arme +1) ist gesperrt.
+    // Quellen: Grapplearts RNC (Hände zuerst), BJJ Atlas Back Escapes (Seitkontrolle unten ist ein Erfolg).
+    start: { pos: "back", top: "o", board: { kopf: -1, arme: 1, huefte: 0, beine: 0 } },
+    goal: [
+      { pos: "side", role: "bottom" },
+      { pos: "guard", role: "bottom" },
+      { pos: "half", role: "bottom" },
+      { pos: "stand", role: "neutral" },
+    ],
+    aiLevel: 1,
+    maxRounds: 8,
+    steps: [
+      {
+        round: 1, when: "start", highlightZone: "kopf",
+        text: "Er ist hinter dir, Arme um deinen Oberkörper. Ohne Gi droht vor allem der Würger von hinten (RNC).",
+      },
+      {
+        round: 1, when: "pick", requireCard: "bb_hand_fight", highlightZone: "arme",
+        text: "Beide Hände an seine Würgehand (Hand Fighting). Zwei gegen eine: So verbindet er die Hände nicht.",
+      },
+      {
+        round: 1, when: "after",
+        text: "Deine Hände halten seine. Kinn bleibt unten. Jetzt kannst du dich befreien.",
+      },
+      {
+        round: 2, when: "pick", highlightZone: "beine", predict: true,
+        text: "Steig über seinen oberen Haken und dreh dich zu ihm (Rausdrehen zur Seite). Seitkontrolle unten ist schon ein Erfolg.",
+      },
+      {
+        round: 3, when: "start",
+        text: "Jetzt du allein: Hände am Hals verteidigen, dann raus. Rot zeigt, wo er angreifen kann.",
       },
     ],
   },

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { CARD, DECK_CARD_IDS, BANNED_LESSONS } from "../data/cards";
+import { CARD, DECK_CARD_IDS, BANNED_LESSONS, GI_ONLY } from "../data/cards";
 import { Card } from "../components/Card";
 import { CardArt } from "../components/CardArt";
 import { useGame } from "../store";
@@ -204,6 +204,7 @@ export function Library() {
   const [train, setTrain] = useState<string[] | null>(null);
   const [phase, setPhase] = useState<PhaseId>("alle");
   const [mistakeRun, setMistakeRun] = useState(false);
+  const [hideGi, setHideGi] = useState(false);
   if (train) return <Lesson ids={train} onDone={() => setTrain(null)} />;
   if (mistakeRun) return <MistakeTraining onDone={() => setMistakeRun(false)} />;
   const nMistakes = g.mistakes.length;
@@ -234,8 +235,15 @@ export function Library() {
       </motion.div>
       <p className="muted small">Tippe eine Karte an: Du siehst, was sie im Alltag bedeutet. Beim Üben wirst du gefragt – so bleibt es hängen.</p>
       <PhaseChips value={phase} onChange={setPhase} />
+      <div className="chips" role="toolbar" aria-label="Gi-Karten">
+        <button className={`chip ${hideGi ? "on" : ""}`} aria-pressed={hideGi} onClick={() => setHideGi(!hideGi)}
+          title="Mattenkarten setzt auf No-Gi. Gi-Karten brauchen Kragen- oder Ärmelgriffe.">
+          {hideGi && <span className="chip-bg" />}
+          Nur No-Gi <span className="chip-n num">{GI_ONLY.size} Gi</span>
+        </button>
+      </div>
       {ORDER.map((p) => {
-        const ids = DECK_CARD_IDS.filter((id) => CARD[id].slots[0].pos === p && test(CARD[id]));
+        const ids = DECK_CARD_IDS.filter((id) => CARD[id].slots[0].pos === p && test(CARD[id]) && !(hideGi && GI_ONLY.has(id)));
         if (!ids.length) return null;
         const guide = POSITION_GUIDE[p];
         return (
@@ -247,7 +255,8 @@ export function Library() {
                   {g.collection.includes(id)
                     ? <>
                         <Card card={CARD[id]} size="hand" art={<CardArt card={CARD[id]} size={96} />} onClick={() => setDetail(id)} />
-                        <span className="lib-name">{CARD[id].plain ?? CARD[id].name}</span>
+                        <span className="lib-name">{CARD[id].plain ?? CARD[id].name}
+                          {GI_ONLY.has(id) && <> <span className="label" title="Nur mit Gi (Kragen/Ärmel)">Gi</span></>}</span>
                       </>
                     : <div className="locked-card"><Card card={CARD[id]} size="hand" faceDown /><span className="label">Noch gesperrt</span></div>}
                 </Stagger>

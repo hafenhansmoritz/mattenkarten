@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EXPANSION_CARDS, EXPANSION_REWARDS } from "./expansion";
 import { BASIC_CARDS } from "./basics";
 import { DECK_CARDS } from "./deckCards";
-import { CARD, CARDS, DECK_CARD_IDS, BANNED_LESSONS } from "./cards";
+import { CARD, CARDS, DECK_CARD_IDS, BANNED_LESSONS, GI_ONLY } from "./cards";
 import { ARCHETYPES } from "./campaign";
 import { TAG_DE } from "../engine/text";
 import type { PositionId, Role, Slot, Tag } from "../engine/types";
@@ -160,5 +160,16 @@ describe("Content-Paket 2", () => {
     expect(unlockIndex("shrimp_back_escape")).toBeLessThan(unlockIndex("back_armbar"));
     expect(unlockIndex("knee_shield")).toBeLessThan(unlockIndex("toreando"));
     expect(unlockIndex("wrist_control")).toBeLessThan(unlockIndex("cage_press"));
+  });
+});
+
+describe("No-Gi-Fokus: Gi-Karten der alten Kampagne", () => {
+  it("GI_ONLY nennt nur Bibliothekskarten, die Kragen oder Ärmel brauchen", () => {
+    expect(GI_ONLY.size).toBeGreaterThan(0);
+    for (const id of GI_ONLY) {
+      expect(DECK_CARD_IDS, id).toContain(id);
+      const c = CARD[id];
+      expect([c.desc, c.de, c.plain, ...(c.keys ?? [])].join(" "), id).toMatch(/Kragen|Ärmel|Gi/);
+    }
   });
 });

@@ -1,11 +1,13 @@
 // 7-Tage-Startprogramm – Fragenbank (Multiple Choice, 2–4 Optionen, je ein Warum-Satz).
 // Inhalte nach docs/knowledge-base.md (KB) und research_notes/7 Tage Startprogramm/notes.md.
 // check: true = keine direkte Quelle in KB/Recherche → Trainer prüfen.
+// No-Gi-Fokus (KB 8.12, docs/research/no-gi-fokus.md): Griffe an Körperteilen, Rücken/Front Headlock an Tag 6,
+// Beinhebel nur als Sicherheitswissen (IBJJF Weißgurt = strengste Regel).
 import type { Pos2, Side } from "../core2/types";
 import type { BodyPart } from "../components/fighters";
 
 export type Topic =
-  | "positionen" | "abklopfen" | "mount" | "side" | "guard" | "stand" | "keile" | "aufgabe";
+  | "positionen" | "abklopfen" | "mount" | "side" | "guard" | "stand" | "keile" | "aufgabe" | "ruecken";
 
 /** Prüfungsbereiche für Tag 7 (je ≥ 80 %). */
 export type Area = "basis" | "befreien" | "guardstand" | "kontrolle";
@@ -14,19 +16,20 @@ export const TOPIC_AREA: Record<Topic, Area> = {
   positionen: "basis", abklopfen: "basis",
   mount: "befreien", side: "befreien",
   guard: "guardstand", stand: "guardstand",
-  keile: "kontrolle", aufgabe: "kontrolle",
+  keile: "kontrolle", aufgabe: "kontrolle", ruecken: "kontrolle",
 };
 
 export const AREA_LABEL: Record<Area, string> = {
   basis: "Positionen & Abklopfen",
   befreien: "Befreien aus Mount & Side",
   guardstand: "Guard & Stand",
-  kontrolle: "Keile & Aufgaben",
+  kontrolle: "Rücken, Keile & Aufgaben",
 };
 
 export const TOPIC_LABEL: Record<Topic, string> = {
   positionen: "Positionen", abklopfen: "Abklopfen", mount: "Mount-Befreiung", side: "Side-Befreiung",
-  guard: "Guard", stand: "Stand & Sprawl", keile: "Keile & Passieren", aufgabe: "Aufgabe & Verteidigung",
+  guard: "Guard", stand: "Stand & Hand Fighting", keile: "Keile & Passieren", aufgabe: "Aufgabe & Verteidigung",
+  ruecken: "Rücken & Front Headlock",
 };
 
 export interface Question {
@@ -265,6 +268,27 @@ export const QUESTIONS: Question[] = [
     answer: 0, src: "KB 3.2",
     why: "In der Guard hältst du ihn mit den Beinen auf Abstand. Dort kannst du sogar angreifen.",
   },
+  {
+    id: "q-guard-nogi-grip", day: 4, topic: "guard",
+    q: "Ohne Gi (No-Gi) liegst du unten in der Guard. Was greifst du?",
+    options: ["Nacken und Arm (Collar Tie, Overhook)", "Kragen und Ärmel", "Seinen Gürtel"],
+    answer: 0, scene: { pos: "guard", top: "o" }, src: "KB 8.12 (Evolve MMA No-Gi Grip Fighting)",
+    why: "Ohne Gi gibt es keinen Stoff. Du greifst Körperteile: Nacken, Handgelenk oder den Arm von oben.",
+  },
+  {
+    id: "q-guard-guillotine-top", day: 4, topic: "guard",
+    q: "Du bist oben in seiner Guard. Er umfasst deinen Hals von vorn (Guillotine). Was hilft?",
+    options: ["Kopf hoch, Hüfte gerade, am Handgelenk drücken", "Am Ellbogen drücken", "Den Kopf noch tiefer stecken"],
+    answer: 0, scene: { pos: "guard", top: "p" }, src: "BJJ More – How to Escape a Guillotine; Karte gt_both_arms",
+    why: "Am Ellbogen drücken zieht den Würger enger. Drück am Handgelenk und halte die Hüfte gerade.",
+  },
+  {
+    id: "q-guard-butterfly", day: 4, topic: "guard",
+    q: "Du sitzt vor ihm, deine Füße haken innen an seinen Oberschenkeln. Wie heißt das?",
+    options: ["Butterfly Guard", "Mount", "Side Control"],
+    answer: 0, src: "KB 8.12 (Gymdesk), BJJ Atlas Butterfly Sweep",
+    why: "Deine Füße sind Haken (Butterfly). Ohne Gi funktioniert sie besser als viele andere offene Guards.",
+  },
 
   // ---------- Tag 5: Stand, Distanz, Sprawl ----------
   {
@@ -315,6 +339,27 @@ export const QUESTIONS: Question[] = [
     options: ["2", "4", "10"],
     answer: 0, src: "KB 3.3",
     why: "Ein Takedown bringt 2 Punkte, wenn du die Lage 3 Sekunden hältst.",
+  },
+  {
+    id: "q-stand-wrist", day: 5, topic: "stand",
+    q: "Im Stand greift er nach deinen Händen. Was machst du?",
+    options: ["Sein Handgelenk kontrollieren oder den Griff lösen", "Ihn einfach greifen lassen", "Mit aller Kraft festklammern"],
+    answer: 0, scene: { pos: "stand", top: null }, src: "KB 8.12 (Evolve MMA, Grapplearts No-Gi Gripfighting)",
+    why: "Schenk ihm nicht den ersten Griff. Halt sein Handgelenk an der schmalsten Stelle, aber ohne Todesgriff.",
+  },
+  {
+    id: "q-stand-underhook", day: 5, topic: "stand",
+    q: "Im Clinch: Welcher Griff hilft dir als Anfänger am meisten?",
+    options: ["Arm unter seiner Achsel (Underhook)", "Seine Finger festhalten", "Beide Hände auf seinen Kopf"],
+    answer: 0, src: "KB 8.12 (Evolve MMA No-Gi Grip Fighting, Pummeling)",
+    why: "Mit dem Underhook kommst du an seine Beine und bremst seinen Shot. Verlierst du ihn, schwimm innen zurück.",
+  },
+  {
+    id: "q-stand-snap", day: 5, topic: "stand",
+    q: "Er drückt mit gesenktem Kopf nach vorn. Was passt?",
+    options: ["Kopf runterziehen (Snap Down), dann vorn halten", "Rückwärts weglaufen", "Ihn hochheben"],
+    answer: 0, src: "Karte cl_snap_down (JitsuIQ Snap-Down)",
+    why: "Gegen Vorwärtsdruck ziehst du den Kopf runter. Er landet vor dir, du hältst seinen Kopf (Front Headlock).",
   },
 
   // ---------- Tag 6: Keile & Passieren ----------
@@ -381,6 +426,42 @@ export const QUESTIONS: Question[] = [
     options: ["Heel Hook (Fersendreher)", "Armbar", "Triangle"],
     answer: 0, src: "KB 5.3",
     why: "Heel Hooks sind für Weißgurte verboten. Armbar und Triangle sind erlaubt.",
+  },
+  {
+    id: "q-sub-leglock", day: 6, topic: "aufgabe",
+    q: "Er hat dein Bein in einem Beinhebel. Was tust du?",
+    options: ["Früh abklopfen, nicht rausdrehen", "Schnell rausdrehen", "Warten, bis es weh tut"],
+    answer: 0, src: "KB 8.12 (Gracie Barra Leg Locks in Training, Lachlan Giles/FloGrappling)",
+    why: "Heel Hook für Weißgurte verboten; bei Beinhebel früh abklopfen, nie rausdrehen. Der Schaden kommt oft vor dem Schmerz.",
+  },
+  // ---------- Tag 6: Rücken & Front Headlock (No-Gi) ----------
+  {
+    id: "q-back-seatbelt", day: 6, topic: "ruecken",
+    q: "Du kommst an seinen Rücken. Was zuerst?",
+    options: ["Gurtgriff (Seatbelt), dann die Haken", "Erst die Füße kreuzen", "Sofort würgen"],
+    answer: 0, scene: { pos: "back", top: "p" }, src: "Karten bt_seatbelt, bt_hooks (BJJ More Back Attacks, Gymdesk Punkte)",
+    why: "Kontrolle vor Aufgabe: Der Gurtgriff hält ihn an deiner Brust. Dann die Haken, Füße nie kreuzen.",
+  },
+  {
+    id: "q-back-headlock", day: 6, topic: "ruecken",
+    q: "Du bist auf allen vieren (Turtle), er hält deinen Kopf vorn. Was tust du?",
+    options: ["Am Handgelenk drücken und den Kopf rausziehen", "Am Ellbogen ziehen", "Kinn hoch und abwarten"],
+    answer: 0, scene: { pos: "turtle", top: "o" }, src: "Karte tb_guillotine_def (BJJ More Guillotine Escape)",
+    why: "Vorn am Kopf droht die Guillotine. Drück am Handgelenk, nicht am Ellbogen, und zieh den Kopf raus.",
+  },
+  {
+    id: "q-back-turtle-fast", day: 6, topic: "ruecken",
+    q: "Du landest auf allen vieren (Turtle). Wie lange bleibst du dort?",
+    options: ["Kurz – nach etwa zwei Sekunden raus oder aufstehen", "So lange wie möglich", "Bis er aufgibt"],
+    answer: 0, src: "Karte tb_base (BJJ Atlas Turtle Escapes)",
+    why: "Wer in der Turtle wartet, gibt den Rücken ab. Hände frei machen, dann aufstehen oder rausdrehen.",
+  },
+  {
+    id: "q-back-escape-side", day: 6, topic: "ruecken",
+    q: "Er ist an deinem Rücken. Wohin befreist du dich?",
+    options: ["Zur Seite, notfalls in Side Control unten", "Nach vorn auf den Bauch", "Gar nicht – still halten"],
+    answer: 0, scene: { pos: "back", top: "o" }, src: "Karte bb_escape_side (BJJ Atlas Back Escapes)",
+    why: "Erst die Hände, dann raus zur Seite. Side Control unten ist besser, als den Rücken abzugeben.",
   },
 ];
 

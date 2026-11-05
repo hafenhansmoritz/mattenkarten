@@ -1,5 +1,7 @@
 // 7-Tage-Startprogramm – Tagesplan (Spec: docs/superpowers/specs/2026-11-05-7-tage-startprogramm-design.md).
 // Abruf nach 1, 2 und 4 Tagen (Cepeda 2008, Recherche 2). Tag 1–3 geblockt, ab Tag 4 gemischt.
+// No-Gi-Reihenfolge (KB 8.12, research_notes/No-Gi Fokus/notes.md): 4 Guard No-Gi, 5 Stand & Hand Fighting,
+// 6 Rücken & Front Headlock (plus Aufgabe als Prozess). Passieren mit Keilen bleibt als Kern-2-Lektion im Menü.
 
 export type LessonRef =
   | { kind: "map" }                 // Tag 1: Positions-Landkarte (kein Match)
@@ -120,12 +122,12 @@ export const DAYS: ProgramDay[] = [
     },
   },
   {
-    n: 4, title: "Guard oben & unten",
-    goal: "Oben: Haltung halten. Unten: Haltung brechen.",
-    why: "In der Guard landest du ständig. Oben und unten zählt etwas anderes.",
+    n: 4, title: "Guard in No-Gi",
+    goal: "Oben: Haltung, Kopf hoch. Unten: Nacken und Arm greifen, Butterfly, aufstehen.",
+    why: "Ohne Gi greifst du Körper statt Stoff. Und oben schützt du deinen Hals.",
     lessons: [{ kind: "k2", id: "p-guard-posture" }],
     warmup: ["q-side-frame", "q-mount-progress", "q-side-shrimp"],
-    puzzle: ["q-guard-top-posture", "q-guard-bottom-break", "q-guard-hipbump"],
+    puzzle: ["q-guard-nogi-grip", "q-guard-top-posture", "q-guard-guillotine-top"],
     pics: ["qi-guard-posture", "qi-guard-flat"],
     drill: {
       title: "Guard-Haltung + Technical Stand-up",
@@ -147,12 +149,12 @@ export const DAYS: ProgramDay[] = [
     },
   },
   {
-    n: 5, title: "Stand: Auslage, Distanz, Sprawl",
-    goal: "Du kennst deine Auslage, gehst tief zum Shot und sprawlst gegen einen Shot.",
-    why: "Jeder Kampf beginnt im Stand. Heute lernst du, oben zu landen statt unten.",
+    n: 5, title: "Stand & Hand Fighting",
+    goal: "Handgelenk, Nacken, Underhook gewinnen – Snap Down und Sprawl. Shots nur solo.",
+    why: "Jeder Kampf beginnt im Stand. Wer die Hände gewinnt, bestimmt, wo es hingeht.",
     lessons: [{ kind: "k2", id: "p-shot-sprawl" }],
     warmup: ["q-guard-elbows", "q-side-drill", "q-pos-goal-top", "q-guard-best-bottom"],
-    puzzle: ["q-stand-sprawl", "q-stand-level", "q-stand-head"],
+    puzzle: ["q-stand-wrist", "q-stand-underhook", "q-stand-sprawl"],
     drill: {
       title: "Sprawl solo + Fallen aus dem Sitz",
       steps: [
@@ -172,12 +174,12 @@ export const DAYS: ProgramDay[] = [
     },
   },
   {
-    n: 6, title: "Keile, Passieren, Aufgabe",
-    goal: "Mit Keilen festhalten, vorbeigehen – und eine Aufgabe sicher ansetzen und abwehren.",
-    why: "Du kennst jetzt die Wege raus. Heute lernst du festhalten und sicher beenden.",
-    lessons: [{ kind: "k2", id: "k2-keile-vorbeigehen" }, { kind: "k2", id: "k2-erst-griff-dann-beenden" }],
+    n: 6, title: "Rücken & Front Headlock",
+    goal: "Rücken schützen, Hals verteidigen – und eine Aufgabe sicher ansetzen.",
+    why: "In No-Gi sind Rücken und Front Headlock zentral. Erst den Hals schützen, dann selbst beenden.",
+    lessons: [{ kind: "k2", id: "p-back-protect" }, { kind: "k2", id: "k2-erst-griff-dann-beenden" }],
     warmup: ["q-stand-orthodox", "q-stand-breakfall", "q-guard-standup", "q-mount-switch"],
-    puzzle: ["q-wedge-before-pass", "q-sub-order", "q-sub-rnc-def"],
+    puzzle: ["q-sub-rnc-def", "q-back-headlock", "q-back-seatbelt"],
     drill: {
       title: "Stand-up + Shrimp-Flow",
       steps: [
@@ -234,6 +236,7 @@ export const READY_CHECKLIST: { id: string; text: string; check?: boolean }[] = 
   { id: "sauber", text: "Geduscht, saubere Kleidung, Badelatschen, Wasser" },
   { id: "neu", text: "Dem Partner sagen: „Ich bin neu“ – und Verletzungen nennen" },
   { id: "tap", text: "Früh und deutlich abklopfen (Hand, Fuß oder Wort)" },
+  { id: "bein", text: "Beinhebel: früh abklopfen, nie rausdrehen – Heel Hooks sind für Weißgurte verboten" },
   { id: "kraft", text: "Mit 60–70 % Kraft arbeiten" },
   { id: "fragen", text: "Vor dem Drillen fragen" },
   { id: "frage", text: "Eine Frage pro Stunde an den Trainer mitbringen" },
@@ -246,6 +249,6 @@ export const NOT_ALONE = [
   "Rollen über Kopf oder Nacken",
   "Aufgaben bis zum Druck",
   "Freies Sparring",
-  "Beinhebel",
+  "Beinhebel (Heel Hook für Weißgurte verboten; früh abklopfen, nie rausdrehen)",
   "Fallen aus dem Stand",
 ];

@@ -84,6 +84,17 @@ describe("Kern 2 – Karten", () => {
     }
   });
 
+  it("No-Gi: keine Kragen-, Ärmel-, Hosen- oder Gürtelgriffe, keine Beinhebel-Karten", () => {
+    const GI = [/kragen/i, /ärmel/i, /hose/i, /gürtel/i, /\bcollar choke\b/i, /\bsleeve\b/i, /\blapel\b/i];
+    const LEG = [/ankle lock/i, /fußhebel/i, /calf slicer/i, /beinhebel/i];
+    for (const c of CARDS2) {
+      const text = [c.plain, c.term, c.plainDo, c.why, ...c.keys, ...c.mistakes].join(" ");
+      for (const g of GI) expect(g.test(text), `${c.id}: ${g}`).toBe(false);
+      // Beinhebel nur als Warnung (z. B. „Fußhebel-Gefahr“ bei gekreuzten Füßen), nie als Technik der Karte.
+      for (const g of LEG) expect(g.test([c.plain, c.term, c.plainDo].join(" ")), `${c.id}: ${g}`).toBe(false);
+    }
+  });
+
   it("keine verbotenen Techniken", () => {
     for (const c of CARDS2) {
       const text = [c.id, c.plain, c.term, c.plainDo, c.why, ...c.keys, ...c.mistakes].join(" ");
@@ -126,7 +137,7 @@ describe("Kern 2 – Karten", () => {
   });
 
   it("Hauptgriffe haben einen Aufbau-Schritt in derselben Zone und Slot", () => {
-    for (const id of ["gb_armbar", "gb_kimura", "gb_triangle", "mt_armbar", "mt_americana", "sct_kimura", "sct_arm_triangle", "bt_rnc", "bt_armbar", "tt_guillotine"]) {
+    for (const id of ["gb_armbar", "gb_guillotine", "gb_triangle", "mt_armbar", "mt_americana", "sct_kimura", "sct_arm_triangle", "bt_rnc", "bt_armbar", "tt_guillotine"]) {
       const c = CARD2[id];
       const s = c.slots[0];
       const setup = cardsFor(s.pos, s.role).some((o) => o.kind === "aufbauen" && o.zone === c.zone);

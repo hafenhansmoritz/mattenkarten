@@ -77,8 +77,17 @@ describe("Startprogramm – Tagesplan", () => {
     }
   });
 
+  it("No-Gi-Reihenfolge: Tag 4 Guard, Tag 5 Stand & Hand Fighting, Tag 6 Rücken & Front Headlock", () => {
+    expect(DAYS[3].title).toMatch(/No-Gi/);
+    expect(DAYS[4].title).toMatch(/Hand Fighting/);
+    expect(DAYS[5].title).toMatch(/Rücken/);
+    expect(DAYS[5].lessons).toContainEqual({ kind: "k2", id: "p-back-protect" });
+    expect(Q_BY_ID["q-sub-leglock"].why).toMatch(/Heel Hook für Weißgurte verboten; bei Beinhebel früh abklopfen, nie rausdrehen/);
+  });
+
   it("Checkliste aus der Spec, ungeprüfter Punkt markiert", () => {
-    expect(READY_CHECKLIST.length).toBe(10);
+    expect(READY_CHECKLIST.length).toBe(11);
+    expect(READY_CHECKLIST.find((c) => c.id === "bein")?.text).toMatch(/Heel Hook/);
     expect(READY_CHECKLIST.find((c) => c.id === "haut")?.check).toBe(true);
   });
 
