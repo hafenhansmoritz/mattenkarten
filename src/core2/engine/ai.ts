@@ -3,7 +3,7 @@
 import type { Card2, Side, State2, Zone } from "../types";
 import { ZONES } from "../types";
 import { boardFor, other, posValue, roleOf } from "./board";
-import { cardsOfSlot, checkCard, okCards, PASS, threats } from "./legal";
+import { cardsOfSlot, checkCard, okCards, PASS, threats, unmetRequires } from "./legal";
 import { cardById } from "./registry";
 import { resolveRound } from "./resolve";
 
@@ -44,6 +44,9 @@ const OPEN_DOOR = 3;
 const HOLD_BONUS = 1.5;
 /** B15 Stufe 2 „Keile“: Aufbauen, das einem gegnerischen Positionsangriff die Voraussetzung nimmt. */
 const WEDGE_BONUS = 2;
+/** B16 Stufe 2 „Konter-Wechsel“: Rahmen mit onStop (Sprawl) gegen drohende Shots aufwerten, Shots in einen solchen Rahmen abwerten. */
+const COUNTER_BONUS = 3;
+const COUNTER_RISK = 1;
 
 /** progress: Stufe-2-Regeln für Positionsfortschritt (B15). Das Gegnermodell von Stufe 3 bleibt bei der alten Heuristik. */
 function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => number, progress = level === 2): number {
@@ -77,6 +80,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     }
     // Läuft der Gegner bei mir in dieselbe Zone mit Rahmen? Stufe 2: pauschales Risiko.
     v -= 0.8;
+    // B16 Konter-Wechsel: hat er dort einen Rahmen mit Positionswechsel (Sprawl → Front Headlock), kostet ein gestoppter Shot die Position.
+    if (progress && c.to && foeOk.some((x) => x.kind === "rahmen" && x.zone === c.zone && x.onStop && !unmetRequires(s, other(side), { ...x, requires: x.onStopRequires }).length)) v -= COUNTER_RISK;
     // Gerangel droht: er kann in derselben Zone angreifen und keiner liegt vorne.
     if (thrZones.has(c.zone) && b[c.zone] === 0) v -= 2;
   } else if (c.kind === "aufbauen") {
@@ -104,6 +109,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     if (t) v += 1 + (rng() < 0.4 ? 3 : 0) + (b[c.zone] < 0 ? 1 : 0) + (t.cardIds.some((id) => cardById(id)?.to?.points) ? 0.5 : 0);
     // B15 Position halten: oben in einer Kontrollposition wiegt eine drohende Flucht schwerer.
     if (progress && t && role === "top" && posValue(s.pos, role) >= 4 && t.cardIds.some((id) => cardById(id)?.to)) v += HOLD_BONUS;
+    // B16 Konter-Wechsel: ein Sprawl gegen einen drohenden Shot bringt zusätzlich die Position.
+    if (progress && t && c.onStop && !unmetRequires(s, side, { ...c, requires: c.onStopRequires }).length && t.cardIds.some((id) => cardById(id)?.to)) v += COUNTER_BONUS;
     if (!t) v -= 4; // Rahmen ins Leere
     v += (c.gain ?? 1) * 0.3;
   }

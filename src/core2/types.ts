@@ -7,6 +7,7 @@
 export type Side = "p" | "o";
 export type Pos2 = "stand" | "clinch" | "headlock" | "guard" | "half" | "turtle" | "side" | "mount" | "back";
 export type Role2 = "neutral" | "top" | "bottom";
+/** Front Headlock (Kopfklammer): Oben ist, wer den Kopf kontrolliert. Neutrale Gerangel-Position zwischen Stand und Boden. */
 /** Die vier Zonen der Körperkarte. */
 export type Zone = "kopf" | "arme" | "huefte" | "beine";
 export const ZONES: Zone[] = ["kopf", "arme", "huefte", "beine"];
@@ -18,6 +19,9 @@ export type Board = Record<Zone, number>;
 
 /** Bedingung an die Zonen, aus Sicht des Kartenspielers (z. B. { huefte: 1, beine: 1 } = mind. +1). */
 export type ZoneReq = Partial<Record<Zone, number>>;
+
+/** MMA-Tauglichkeit einer Karte (B18): ok = auch mit Schlägen sinnvoll, riskant = mit Vorsicht, nein = im MMA vermeiden. */
+export type MmaFlag = "ok" | "riskant" | "nein";
 
 export interface Transition {
   pos: Pos2;
@@ -54,6 +58,13 @@ export interface Card2 {
   keys: string[];
   mistakes: string[];
   safety?: string;
+  /** rahmen: stoppt diese Karte einen gegnerischen Positionsangriff (Shot), wechselt die Position (Sprawl → Front Headlock). */
+  onStop?: Transition;
+  /** Bedingung für onStop aus Sicht des Rahmenden (z. B. Sprawl braucht Kopf ≥ 0, um seinen Kopf zu fassen). */
+  onStopRequires?: ZoneReq;
+  /** MMA-Hinweis (B18): Einstufung + ein Satz (≤ 12 Wörter). */
+  mma?: MmaFlag;
+  mmaNote?: string;
   source?: { title: string; url: string };
   check?: boolean;        // ohne Primärquelle → Trainer prüfen
 }

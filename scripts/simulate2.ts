@@ -1,5 +1,5 @@
 // Kern 2 „Körperkarte“ – KI-gegen-KI-Simulation auf echten Karten (CARDS2).
-// Ausführen: npx vite-node scripts/simulate2.ts [matchesProPaarung=500] [--fixtures]
+// Ausführen: npx tsx scripts/simulate2.ts [matchesProPaarung=500] [--fixtures]
 import { CARDS2 } from "../src/core2/data/cards";
 import { FIX } from "../src/core2/engine/fixtures";
 import {
@@ -19,7 +19,7 @@ const CARDS = allCards();
 console.log(`Karten: ${CARDS.length}${useFix ? " (Fixtures)" : ""} · ${N} Matches je Paarung\n`);
 
 // ---- Statische Prüfung: Slots ----
-const POS: Pos2[] = ["stand", "clinch", "guard", "half", "turtle", "side", "mount", "back"];
+const POS: Pos2[] = ["stand", "clinch", "headlock", "guard", "half", "turtle", "side", "mount", "back"];
 const slots: { pos: Pos2; role: Role2 }[] = [];
 for (const pos of POS) for (const role of (pos === "stand" || pos === "clinch" ? ["neutral"] : ["top", "bottom"]) as Role2[]) slots.push({ pos, role });
 const anomalies: string[] = [];
@@ -161,7 +161,7 @@ for (const [id, cs] of subCards) if (!total.taps.has(CARDS.find((c) => c.submiss
 if (total.draw / M > 0.4) anomalies.push(`Hohe Remisquote ${pct(total.draw, M)} – Patt-Gefahr.`);
 console.log("\nPositionen erreicht (Anteil Matches):"); for (const p of POS) console.log(`  ${p.padEnd(8)} ${pct(total.reach.get(p) ?? 0, M)}`);
 // Befreiungen unten: Anteil der Slot-Entscheidungen, in denen die Karte gespielt wurde.
-const ESC_SLOTS: [Pos2, Role2][] = [["side", "bottom"], ["mount", "bottom"], ["back", "bottom"], ["half", "bottom"]];
+const ESC_SLOTS: [Pos2, Role2][] = [["side", "bottom"], ["mount", "bottom"], ["back", "bottom"], ["half", "bottom"], ["turtle", "bottom"], ["headlock", "bottom"]];
 const ESC_TARGET: Set<string> = new Set(["side/bottom", "mount/bottom"]);
 const escLow: string[] = [];
 console.log("\nBefreiungen unten (Anteil der Slot-Entscheidungen):");
@@ -179,6 +179,16 @@ const tapTot = [...total.taps.values()].reduce((a, b) => a + b, 0);
 const topTap = top(total.taps, 1)[0];
 const domAvg = total.domMatches ? total.domRoundSum / total.domMatches : Infinity;
 const l33 = byPair.get("33")!;
+// L1 < L2 < L3: Siegquote der stärkeren Stufe über beide Seiten gemittelt (entschiedene Matches).
+const ladder = (() => {
+  const share = (hi: Lv, lo: Lv) => {
+    const a = byPair.get(`${hi}${lo}`)!, b = byPair.get(`${lo}${hi}`)!;
+    const w = a.pWins + b.oWins, l = a.oWins + b.pWins;
+    return w / Math.max(1, w + l);
+  };
+  const s21 = share(2, 1), s32 = share(3, 2), s31 = share(3, 1);
+  return { ok: s21 > 0.5 && s32 > 0.5 && s31 > 0.5, txt: `L2>L1 ${(100 * s21).toFixed(1)}%, L3>L2 ${(100 * s32).toFixed(1)}%, L3>L1 ${(100 * s31).toFixed(1)}%` };
+})();
 const checks: [string, boolean, string][] = [
   ["L3 vs L3 Remis < 15%", l33.draw / N < 0.15, pct(l33.draw, N)],
   ["Taps gesamt 10–30%", total.tap / M >= 0.1 && total.tap / M <= 0.3, pct(total.tap, M)],
@@ -186,6 +196,7 @@ const checks: [string, boolean, string][] = [
   ["Dominanz Ø bis Runde ≤ 5", domAvg <= 5, `${domAvg.toFixed(2)} (in ${pct(total.domMatches, M)} der Matches)`],
   ["kein Griff > 35% der Taps", !topTap || topTap[1] / Math.max(1, tapTot) <= 0.35, topTap ? `${topTap[0]} ${pct(topTap[1], tapTot)}` : "–"],
   ["jede Befreiung aus Side/Mount unten ≥ 2% der Slot-Entscheidungen", escLow.length === 0, escLow.join(", ") || "alle"],
+  ["Stufen gestaffelt: L2 schlägt L1, L3 schlägt L2 (je > 50% der entschiedenen Matches)", ladder.ok, ladder.txt],
 ];
 console.log("\nZiele:"); for (const [n, ok, v] of checks) console.log(`  [${ok ? "ok" : "--"}] ${n}: ${v}`);
 console.log("\nAuffälligkeiten:"); if (!anomalies.length) console.log("  keine"); for (const a of [...new Set(anomalies)].slice(0, 60)) console.log(`  - ${a}`);

@@ -22,8 +22,10 @@ export function rarityOf(c: Pick<Card2, "kind" | "submission" | "to">): Rarity {
 
 /** MMA-Hinweis einer Karte: eigenes Feld (falls vorhanden) oder Schlüssel „MMA: …“. */
 export function mmaNote(c: Card2): string | null {
+  // Kern 2 B18: Einstufung in `mma` ("ok" | "riskant" | "nein"), der Satz steht in `mmaNote`.
+  if (c.mmaNote?.trim()) return c.mmaNote.trim();
   const own = (c as Card2 & { mma?: unknown }).mma;
-  if (typeof own === "string" && own.trim()) return own.trim();
+  if (typeof own === "string" && own.trim() && !["ok", "riskant", "nein"].includes(own)) return own.trim();
   const k = c.keys.find((x) => /^MMA:/i.test(x.trim()));
   return k ? k.trim().replace(/^MMA:\s*/i, "") : null;
 }

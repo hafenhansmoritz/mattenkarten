@@ -29,6 +29,6 @@ describe("Seltenheit nach Lernwert", () => {
   it("MMA-Hinweis aus Schlüssel „MMA: …“ oder eigenem Feld", () => {
     expect(mmaNote(base({ keys: ["A", "MMA: zählt wegen der Schläge"] }))).toBe("zählt wegen der Schläge");
     expect(mmaNote(base({ keys: ["A"] }))).toBeNull();
-    expect(mmaNote({ ...base({}), mma: "Kopf weg von den Schlägen" } as Card2)).toBe("Kopf weg von den Schlägen");
+    expect(mmaNote({ ...base({}), mma: "ok", mmaNote: "Kopf weg von den Schlägen" } as Card2)).toBe("Kopf weg von den Schlägen");
   });
 });

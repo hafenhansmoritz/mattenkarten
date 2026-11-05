@@ -11,8 +11,10 @@
 // Nicht aufgenommen: Cross Collar (nur Gi), alle für Weißgurte verbotenen Techniken.
 // No-Gi-Fokus (KB 8.12, docs/research/no-gi-fokus.md): keine Kragen-, Ärmel-, Hosen- oder Gürtelgriffe.
 // Griffe sind Handgelenk, Trizeps, Nacken, Underhook/Overhook, Body Lock, Seatbelt. MMA-Hinweise stehen als Schlüssel „MMA: …“.
+// Front Headlock (Kopfklammer, B16): eigene Position „headlock“, oben = wer den Kopf kontrolliert.
+// Jede Karte trägt einen MMA-Hinweis (mma + mmaNote, B18) und Alltagstitel + No-Gi-Fachbegriff (Glossar TERMS2, B19).
 // Keine Beinhebel als spielbare Karte (Heel Hook, Kneebar, Toe Hold, Calf Slicer verboten; Straight Ankle Lock erst später mit Trainer).
-import type { Card2, Pos2, Role2 } from "../types";
+import type { Card2, MmaFlag, Pos2, Role2 } from "../types";
 import { SRC } from "../../data/sources";
 
 type Src = { title: string; url: string };
@@ -42,11 +44,22 @@ const K2 = {
   techStand: s("JitsuIQ – Technical Stand-Up", "https://jitsuiq.com/movement-mechanics/technical-stand-up.html"),
   wrestleUp: s("Evolve MMA – Improving Your BJJ With Wrestle-Ups", "https://evolve-mma.com/blog/improving-your-bjj-with-wrestle-ups/"),
   pummel: s("Evolve MMA – What Is Pummeling", "https://evolve-mma.com/blog/what-is-pummeling-and-how-to-do-it-correctly-for-mma-training/"),
+  fhlAttacks: s("Evolve MMA – 3 Attacks From The Front Headlock In BJJ", "https://evolve-mma.com/blog/3-ways-to-use-the-front-headlock-in-bjj/"),
+  snapDown: s("Evolve MMA – BJJ Takedown 101: The Snap Down", "https://evolve-mma.com/blog/bjj-takedown-101-the-snap-down/"),
+  goBehind: s("FanaticWrestling – Snap and Go Behind Drills (Dan Vallimont)", "https://fanaticwrestling.com/blogs/news/master-snap-and-go-behind-drills-with-dan-vallimont"),
+  southpaw: s("Evolve MMA – A Guide To The Southpaw Stance In MMA", "https://evolve-mma.com/blog/a-guide-to-the-southpaw-stance-in-mma/"),
+  penStep: s("Evolve MMA – Mastering The Penetration Step", "https://evolve-mma.com/blog/mastering-the-penetration-step-for-better-takedowns-in-mma-and-bjj/"),
+  counters: s("Evolve MMA – 5 Ways To Counter Takedowns In No-Gi BJJ", "https://evolve-mma.com/blog/5-ways-to-counter-takedowns-in-no-gi-bjj/"),
+  wrMoves: s("FanaticWrestling – Wrestling Moves", "https://fanaticwrestling.com/blogs/news/wrestling-moves"),
+  standGuill: s("Grapplearts – Standing Guillotine Choke Escapes", "https://www.grapplearts.com/standing-guillotine-choke-escapes/"),
+  singleDef: s("FanaticWrestling – Single Leg Defense with Henry Cejudo", "https://fanaticwrestling.com/blogs/news/single-leg-defense-with-henry-cejudo"),
   fulcrum: s("BJJ Fanatics – Danaher: Overlooked Part of a Submission (Fulcrum)", "https://bjjfanatics.com/blogs/news/john-danaher-says-this-is-one-of-the-most-overlooked-parts-of-a-successful-submission"),
 } satisfies Record<string, Src>;
 
 const SAFETY_SUB = "Im Training langsam ansetzen, früh abklopfen, beim Tap sofort loslassen.";
 const SAFETY_THROW = "Ukemi (Fallschule) zuerst. Partner kontrolliert ablegen – kein Slam.";
+/** B17: jeder Takedown, Wurf und Shot – Partnerübung nur unter Aufsicht. */
+const SAFETY_TD = "Nur mit Trainer üben. Partner kontrolliert ablegen – kein Slam.";
 const SAFETY_CHOKE = "Schwindel oder Sternchen = sofort abklopfen. " + SAFETY_SUB;
 
 type Slot = { pos: Pos2; role: Role2 };
@@ -59,57 +72,49 @@ const TURTLE_T = at("turtle", "top"), TURTLE_B = at("turtle", "bottom");
 const SIDE_T = at("side", "top"), SIDE_B = at("side", "bottom");
 const MOUNT_T = at("mount", "top"), MOUNT_B = at("mount", "bottom");
 const BACK_T = at("back", "top"), BACK_B = at("back", "bottom");
+const HL_T = at("headlock", "top"), HL_B = at("headlock", "bottom");
 
-/** Alle 14 Slots (für Tests und UI). */
+/** Alle 16 Slots (für Tests und UI). */
 export const SLOTS2: Slot[] = [
-  STAND, CLINCH, GUARD_T, GUARD_B, HALF_T, HALF_B, TURTLE_T, TURTLE_B,
+  STAND, CLINCH, HL_T, HL_B, GUARD_T, GUARD_B, HALF_T, HALF_B, TURTLE_T, TURTLE_B,
   SIDE_T, SIDE_B, MOUNT_T, MOUNT_B, BACK_T, BACK_B,
 ];
 
 // ---------------- Stand ----------------
 const stand: Card2[] = [
   {
-    id: "nd_outside_foot", plain: "Vorderfuß nach außen", term: "Lead Foot Outside",
-    plainDo: "Du stellst deinen vorderen Fuß außen neben seinen.",
+    // B17: didaktische Auslage-Karte. Gleich vs. gegengleich ohne Primärquelle für Grappling → Trainer prüfen.
+    id: "nd_outside_foot", plain: "Auslage, Vorderfuß außen", term: "Stance (Orthodox/Southpaw) & Lead Foot Outside",
+    plainDo: "Du wählst deine Auslage und stellst den Vorderfuß außen.",
     kind: "aufbauen", zone: "kopf", slots: [STAND],
-    why: "Wer den vorderen Fuß außen hat, schlägt besser (Außenposition, offene Auslage Orthodox gegen Southpaw).",
-    keys: ["Gilt bei offener Auslage: Orthodox gegen Southpaw", "Kleine Schritte, Füße nie kreuzen",
-      "MMA: zählt wegen der Schläge. Im reinen No-Gi eher tiefer stehen, Hände vorn"],
-    mistakes: ["Füße auf einer Linie", "Große, schwerfällige Schritte"],
-    // No-Gi-Hinweis (tiefe Auslage) ohne Primärquelle → Trainer prüfen.
-    source: SRC.stance, check: true,
+    why: "Gegengleiche Auslage (Orthodox gegen Southpaw): wessen Vorderfuß außen steht, hat den besseren Winkel.",
+    keys: ["Orthodox: linker Fuß vorn. Southpaw: rechter Fuß vorn",
+      "Gegengleich: eure Vorderfüße stehen sich gegenüber – kämpf um außen",
+      "Gleiche Auslage (beide Orthodox): Vorderfüße stehen schräg, kein Kampf um außen",
+      "Im Grappling tiefer stehen, Hände vorn"],
+    mistakes: ["Füße auf einer Linie", "Große, schwerfällige Schritte", "Füße kreuzen beim Seitschritt"],
+    source: K2.southpaw, check: true,
   },
   {
-    // No-Gi: ersetzt „Antippen und antäuschen“ (Jab & Feint, MMA-Schlag). Finte steckt weiter im Level Change.
-    id: "nd_arm_drag", plain: "Arm ziehen, dahinter", term: "2-on-1 & Arm Drag",
-    plainDo: "Beide Hände an seinem Arm, quer vorbeiziehen, dahinter.",
-    kind: "angriff", zone: "arme", slots: [STAND], requires: { arme: 1 }, kraft: 1,
-    // Spiel-Vereinfachung: der Arm Drag öffnet den Rücken, im Spiel landest du direkt hinten (ohne Punkte, keine Hooks).
-    to: { pos: "back", role: "top" },
-    why: "Zwei Hände gegen einen Arm (2-on-1): am Trizeps quer vorbeiziehen öffnet seinen Rücken.",
-    keys: ["Handgelenk, dann Trizeps greifen", "Quer über seinen Körper ziehen, nicht nach unten", "Tief nachsteigen, Arm um seine Hüfte"],
-    mistakes: ["Nach unten statt quer ziehen", "Nur am Handgelenk ziehen"],
-    safety: "Zu Boden bringen nur mit Trainer und kontrolliert ablegen.",
-    source: K2.armDrags, check: true,
-  },
-  {
-    id: "nd_level_change", plain: "In die Knie gehen", term: "Level Change",
-    plainDo: "Du gehst aus den Knien tief, Rücken gerade.",
+    // B17: Level Change und Penetration Step sind eine Karte (Aufbauen vor jedem Beinangriff).
+    id: "nd_level_change", plain: "Tief gehen, Schritt rein", term: "Level Change & Penetration Step",
+    plainDo: "Aus den Knien tief, dann ein Schritt zwischen seine Füße.",
     kind: "aufbauen", zone: "beine", slots: [STAND],
-    why: "Aus den Knien tief gehen (Level Change) bringt dich auf Höhe seiner Hüfte – Pflicht vor jedem Beinangriff.",
-    keys: ["Aus den Knien senken, nicht bücken", "Brust hoch", "Hinter Jab oder Finte"],
-    mistakes: ["Aus der Taille bücken", "Den Shot ankündigen"],
-    source: SRC.doubleLeg,
+    why: "Erst die Hüfte senken (Level Change), dann der tiefe Schritt (Penetration Step) – Brust hoch, Rücken gerade.",
+    keys: ["Aus den Knien senken, nicht aus der Taille", "Schritt zwischen seine Füße, hinteres Knie fast auf der Matte",
+      "Hinteres Bein nachziehen", "Erst solo drillen, hinter einer Finte"],
+    mistakes: ["Aus der Taille bücken", "Zu weiter Schritt", "Kopf nach unten (Guillotine)"],
+    source: K2.penStep,
   },
   {
     id: "nd_double_leg", plain: "Beide Beine schnappen", term: "Double Leg",
     plainDo: "Du tauchst ab, packst beide Beine und bringst ihn runter.",
     kind: "angriff", zone: "beine", slots: [STAND], requires: { beine: 0 }, kraft: 1,
     to: { pos: "guard", role: "top", points: 2 },
-    why: "Beide Beine gefasst (Double Leg): er kann nicht auf einem Bein hüpfen oder leicht wegspringen.",
-    keys: ["Kopf hoch, Rücken gerade", "Tiefer Schritt zwischen seine Füße", "Hände in die Kniekehlen"],
+    why: "Nach Level Change und Schritt beide Beine gefasst (Double Leg): er kann nicht auf einem Bein hüpfen.",
+    keys: ["Erst tief gehen und Schritt rein (Level Change)", "Kopf hoch, Rücken gerade", "Tiefer Schritt zwischen seine Füße", "Hände in die Kniekehlen"],
     mistakes: ["Aus zu großer Distanz schießen", "Kopf unten – Guillotine-Gefahr"],
-    safety: "Langsam drillen, damit der Partner abfallen kann. Kontrolliert ablegen.",
+    safety: SAFETY_TD,
     source: SRC.doubleLeg,
   },
   {
@@ -118,9 +123,9 @@ const stand: Card2[] = [
     kind: "angriff", zone: "beine", slots: [STAND], requires: { beine: 0, kopf: 0 },
     to: { pos: "half", role: "top", points: 2 },
     why: "Ein Bein gefasst, Kopf außen (Single Leg): du landest oft direkt oben in seiner Half Guard.",
-    keys: ["Erst Inside Position gewinnen", "Kopf außen und eng", "Brust hoch, Nacken gerade"],
+    keys: ["Gegengleiche Auslage: sein Vorderbein steht direkt vor dir", "Erst Inside Position gewinnen", "Kopf außen und eng", "Brust hoch, Nacken gerade"],
     mistakes: ["Kopf innen (Guillotine-Gefahr)", "Hüftknick statt Kniebeuge"],
-    safety: "Kein ungebremstes Fallenlassen.",
+    safety: SAFETY_TD,
     source: K2.halfTop,
   },
   {
@@ -134,24 +139,25 @@ const stand: Card2[] = [
     source: SRC.guClinch,
   },
   {
+    // B16: stoppt der Sprawl einen Shot, hältst du seinen Kopf – Wechsel in den Front Headlock (oben).
     id: "nd_sprawl", plain: "Beine weg, Hüfte drauf", term: "Sprawl",
-    plainDo: "Beine zurück, Hüfte runter – sein Beinangriff verpufft.",
-    kind: "rahmen", zone: "beine", slots: [STAND],
-    why: "Beine zurückwerfen, Hüfte schwer auf ihn (Sprawl): der Beinangriff findet kein Ziel.",
-    keys: ["Früh reagieren", "Hüfte schwer auf seine Schultern"],
-    mistakes: ["Zu spät", "Hochspringen statt zurück"],
+    plainDo: "Beine zurück, Hüfte drauf – danach hältst du seinen Kopf.",
+    kind: "rahmen", zone: "beine", slots: [STAND], onStop: { pos: "headlock", role: "top" }, onStopRequires: { kopf: 0 },
+    why: "Beine zurück, Hüfte schwer auf seinen Kopf (Sprawl): der Shot verpufft, du hältst seinen Kopf vorn.",
+    keys: ["Früh reagieren", "Hüfte schwer auf Kopf und Schultern", "Kein Ruheplatz: sofort Kopf fassen (Front Headlock)"],
+    mistakes: ["Zu spät", "Hochspringen statt zurück", "Liegen bleiben statt Kopf zu fassen"],
     safety: "Auf den Zehen landen, nicht auf den Knien.",
-    source: SRC.jiqSprawl,
+    source: K2.counters,
   },
   {
-    // No-Gi: „Abstand halten“ steckt jetzt im Hand Fighting (Hände vorn, Griffe lösen).
-    id: "nd_hand_fight", plain: "Hände kämpfen", term: "Hand Fighting & Wrist Control",
-    plainDo: "Du hältst sein Handgelenk und löst seine Griffe.",
-    kind: "rahmen", zone: "arme", slots: [STAND],
-    why: "Schenk ihm nicht den ersten Griff (Hand Fighting): wer das Handgelenk hält, weiß, wo seine Hand ist.",
-    keys: ["Am schmalsten Teil des Handgelenks greifen", "Griffe lösen, Hände kreisen", "Hände vorn, notfalls Schritt zurück"],
-    mistakes: ["Todesgriff – du ermüdest, er reißt sich los", "Ihm den ersten Griff schenken"],
-    source: K2.noGiGrips,
+    // B17: Hand Fighting und Kopfposition sind eine Karte (Stand und Clinch) – der Rahmen gegen den Snap Down.
+    id: "nd_hand_fight", plain: "Hände kämpfen, Kopf hoch", term: "Hand Fighting & Head Position",
+    plainDo: "Du löst seinen Nackengriff, Hände vorn, Kopf hoch.",
+    kind: "rahmen", zone: "kopf", slots: [STAND, CLINCH],
+    why: "Griffe lösen, Kopf hoch (Head Position): der Körper folgt dem Kopf – ohne Kopf kein Runterziehen.",
+    keys: ["Am schmalsten Teil des Handgelenks greifen", "Nackengriff früh lösen, wegkreisen", "Kopf hoch, Blick zu ihm, Rücken gerade"],
+    mistakes: ["Todesgriff – du ermüdest, er reißt sich los", "Aus der Taille vorgebeugt stehen", "Ihm den ersten Griff schenken"],
+    source: K2.standGuill,
   },
 ];
 
@@ -177,37 +183,41 @@ const clinch: Card2[] = [
     source: K2.pummel,
   },
   {
+    // B16: Snap Down aus Stand und Clinch führt in die Kopfklammer (Front Headlock) statt direkt in die Turtle.
     id: "cl_snap_down", plain: "Kopf runterziehen", term: "Snap Down",
-    plainDo: "Du ziehst seinen Kopf runter und hältst ihn vorn fest.",
-    kind: "angriff", zone: "kopf", slots: [CLINCH], requires: { kopf: 1 },
-    to: { pos: "turtle", role: "top" },
-    why: "Kopf runterziehen (Snap Down) wirkt gegen Vorwärtsdruck – er landet vor dir auf allen vieren.",
-    keys: ["Timing statt Kraft", "Kopf unter seinen Schwerpunkt", "Dann Winkel"],
+    plainDo: "Hand im Nacken, Kopf runter – er landet vor dir.",
+    kind: "angriff", zone: "kopf", slots: [STAND, CLINCH], requires: { kopf: 1 },
+    to: { pos: "headlock", role: "top" },
+    why: "Kopf runter, bis er auf die Hände fällt (Snap Down): du landest in der Kopfklammer (Front Headlock).",
+    keys: ["Erst Nackengriff (Collar Tie)", "Timing statt Kraft: wenn er nach vorn drückt", "Sofort Kinn fassen (Chin Strap)"],
     mistakes: ["Am Nacken reißen", "Überkommitten"],
-    safety: "Nacken nicht reißen, kontrolliert zur Matte führen.",
-    source: SRC.snap,
+    safety: "Nur mit Trainer üben. Nacken nicht reißen, kontrolliert zur Matte führen.",
+    source: K2.snapDown,
   },
   {
-    id: "cl_body_lock", plain: "Umklammern und umkippen", term: "Body Lock Trip",
+    // B17: aus dem Stand in den Clinch (2-on-1 ist ein Clinch-Griff), Platz im Stand für den Snap Down.
+    id: "nd_arm_drag", plain: "Arm ziehen, dahinter", term: "2-on-1 & Arm Drag",
+    plainDo: "Beide Hände an seinem Arm, quer vorbeiziehen, dahinter.",
+    kind: "angriff", zone: "arme", slots: [CLINCH], requires: { arme: 1 }, kraft: 1,
+    // Spiel-Vereinfachung (B17): der Arm Drag bringt dich hinter ihn, er geht auf die Knie (Turtle oben, ohne Punkte).
+    // Den Rücken mit Haken nimmst du danach (Back Take, 4 Punkte).
+    to: { pos: "turtle", role: "top" },
+    why: "Zwei Hände gegen einen Arm (2-on-1): am Trizeps quer vorbeiziehen öffnet seinen Rücken.",
+    keys: ["Handgelenk, dann Trizeps greifen", "Quer über seinen Körper ziehen, nicht nach unten", "Tief nachsteigen, Arm um seine Hüfte"],
+    mistakes: ["Nach unten statt quer ziehen", "Nur am Handgelenk ziehen"],
+    safety: SAFETY_TD,
+    source: K2.armDrags, check: true,
+  },
+  {
+    id: "cl_body_lock", plain: "Umklammern und umkippen", term: "Body Lock Takedown (Trip)",
     plainDo: "Hände hinter seinem Rücken, Bein dahinter – er kippt um.",
     kind: "angriff", zone: "huefte", slots: [CLINCH], requires: { arme: 1 },
     to: { pos: "half", role: "top", points: 2 },
     why: "Hände hinter seinem Rücken (Body Lock), Bein dahinter: kippen statt heben, Brust drauf in seine Half Guard.",
     keys: ["Hüfte nah, Brust an Brust", "Erst Haltung brechen, dann Winkel", "Trip statt Lift"],
     mistakes: ["Nur Armkraft", "Zu weit vorlehnen (lädt zum Hüftwurf ein)"],
-    safety: "Kein Hochheben und Fallenlassen: Slams sind auf allen Stufen verboten.",
+    safety: "Nur mit Trainer üben. Kein Hochheben und Fallenlassen: Slams sind verboten.",
     source: K2.halfTop,
-  },
-  {
-    id: "cl_o_goshi", plain: "Über die Hüfte werfen", term: "O-Goshi",
-    plainDo: "Du drehst ihn über deine Hüfte und landest oben.",
-    kind: "angriff", zone: "huefte", slots: [CLINCH], requires: { arme: 1, huefte: 0 },
-    to: { pos: "side", role: "top", points: 2 },
-    why: "Deine Hüfte tiefer als seine (O-Goshi, große Hüfte): drehen statt heben, er rollt darüber.",
-    keys: ["Arm um seine Taille", "Füße innerhalb seiner Füße", "Drehen statt heben"],
-    mistakes: ["Lücke zwischen den Hüften", "Stemmen"],
-    safety: SAFETY_THROW,
-    source: SRC.judoThrows,
   },
   {
     id: "cl_pull_guard", plain: "Guard ziehen", term: "Pull Guard",
@@ -215,31 +225,21 @@ const clinch: Card2[] = [
     kind: "angriff", zone: "beine", slots: [CLINCH], requires: { arme: 0 },
     to: { pos: "guard", role: "bottom" },
     why: "Mit Griffen in die Guard setzen (Pull Guard) bringt dich zu Boden – Punkte gibt es dafür nicht.",
-    keys: ["Erst Griffe (Nacken, Arm), dann hinsetzen", "Sofort die Beine schließen",
-      "MMA: lieber nicht – unten wirst du geschlagen"],
+    keys: ["Erst Griffe (Nacken, Arm), dann hinsetzen", "Sofort die Beine schließen"],
     mistakes: ["Ohne Griff hinsetzen – er passiert sofort"],
-    safety: "Sitzend ziehen, nicht in die Guard springen.",
+    safety: "Nur mit Trainer üben. Sitzend ziehen, nicht in die Guard springen.",
     source: SRC.beginnerGuide, check: true,
   },
   {
-    id: "cl_head_up", plain: "Kopf hoch bleiben", term: "Head Up & Posture",
-    plainDo: "Kopf hoch, Rücken gerade – sein Ziehen verpufft.",
-    kind: "rahmen", zone: "kopf", slots: [CLINCH],
-    why: "Kopf hoch und Rücken gerade (Posture) nehmen dem Runterziehen den Hebel.",
-    keys: ["Collar Tie früh lösen", "Wegkreisen"],
-    mistakes: ["Aus der Taille vorgebeugt stehen"],
-    source: SRC.snap,
-  },
-  {
     // No-Gi: Overhook/Whizzer steckt in dieser Karte (Hüfte zurück gegen Wurf und Body Lock).
-    id: "cl_hips_back", plain: "Überhaken, Hüfte zurück", term: "Whizzer & Hips Back",
+    id: "cl_hips_back", plain: "Überhaken, Hüfte zurück", term: "Whizzer (Overhook) & Hips Back",
     plainDo: "Du klemmst seinen Underhook-Arm von oben, Hüfte weit zurück.",
     kind: "rahmen", zone: "huefte", slots: [CLINCH],
     why: "Arm von oben geklemmt (Whizzer), Hüfte weg: ohne Hüftkontakt klappt weder Wurf noch Umklammerung.",
     keys: ["Über seinem Ellbogen einklemmen", "Hüfte zurück, tief bleiben", "Griff an den Fingern lösen"],
     mistakes: ["Brust an Brust stehen bleiben", "Passiv am Arm hängen"],
     safety: "Schulter nicht reißen.",
-    source: K2.noGiGrips,
+    source: K2.singleDef,
   },
 ];
 
@@ -295,10 +295,10 @@ const guardTop: Card2[] = [
     source: SRC.toreando,
   },
   {
-    id: "gt_elbows_in", plain: "Ellbogen eng", term: "Elbows In",
+    id: "gt_elbows_in", plain: "Ellbogen eng", term: "Elbows Tight",
     plainDo: "Ellbogen an deinen Körper – kein Arm zum Hebeln.",
     kind: "rahmen", zone: "arme", slots: [GUARD_T],
-    why: "Enge Ellbogen (Elbows In) geben ihm keinen Arm für Armstreck- oder Schulterhebel.",
+    why: "Enge Ellbogen (Elbows Tight) geben ihm keinen Arm für Armstreck- oder Schulterhebel.",
     keys: ["Ellbogen an die Rippen", "Hände nicht auf seine Brust"],
     mistakes: ["Arm gestreckt auf der Matte stehen lassen"],
     source: SRC.beginnerGuide,
@@ -1023,13 +1023,14 @@ const backBottom: Card2[] = [
 // ---------------- Turtle oben ----------------
 const turtleTop: Card2[] = [
   {
-    id: "tt_front_headlock", plain: "Kopf vorne halten", term: "Front Headlock",
-    plainDo: "Dein Arm umfasst seinen Kopf, Brust auf seinem Nacken.",
-    kind: "aufbauen", zone: "kopf", slots: [TURTLE_T],
-    why: "Kontrolle vor Aufgabe (Front Headlock): vom Kopf aus gehst du zum Würger oder hinter ihn.",
-    keys: ["Brust auf seinem Nacken", "Ellbogen eng an seinem Kopf"],
+    // B16: geteilt mit dem Front Headlock oben (Kinngriff = Chin Strap).
+    id: "tt_front_headlock", plain: "Kopf vorne halten", term: "Front Headlock & Chin Strap",
+    plainDo: "Hand am Kinn, Schulter auf seinem Nacken.",
+    kind: "aufbauen", zone: "kopf", slots: [TURTLE_T, HL_T],
+    why: "Hand am Kinn, Schulter am Nacken (Chin Strap): vom Kopf aus gehst du zum Würger oder hinter ihn.",
+    keys: ["Schulter auf seinem Nacken", "Hand greift sein Kinn", "Ellbogen eng an seinem Kopf"],
     mistakes: ["Kopf loslassen, bevor du hinten bist"],
-    source: SRC.fhl,
+    source: K2.fhlAttacks,
   },
   {
     id: "tt_seatbelt", plain: "Oberkörper umklammern", term: "Seatbelt (Turtle)",
@@ -1043,7 +1044,7 @@ const turtleTop: Card2[] = [
   {
     id: "tt_hip_pressure", plain: "Gewicht auf den Rücken", term: "Sprawl Pressure",
     plainDo: "Deine Hüfte drückt schwer auf seine Schultern.",
-    kind: "aufbauen", zone: "huefte", slots: [TURTLE_T],
+    kind: "aufbauen", zone: "huefte", slots: [TURTLE_T, HL_T],
     why: "Deine Hüfte schwer auf seinen Schultern (Sprawl-Druck) hält ihn unten.",
     keys: ["Hüfte tief", "Auf den Zehen"],
     mistakes: ["Knie auf der Matte, Gewicht weg"],
@@ -1052,7 +1053,7 @@ const turtleTop: Card2[] = [
   {
     id: "tt_back_take", plain: "Hinter ihn, Haken rein", term: "Back Take",
     plainDo: "Du gehst hinter ihn, Gurtgriff fest, beide Haken rein.",
-    kind: "angriff", zone: "beine", slots: [TURTLE_T], requires: { kopf: 1, arme: 1 },
+    kind: "angriff", zone: "beine", slots: [TURTLE_T], requires: { kopf: 0, arme: 1 },
     to: { pos: "back", role: "top", points: 4 }, dilemmaOpens: "kopf",
     why: "Schützt er den Hals, öffnet sich sein Rücken (Back Take) – Gurtgriff vor den Haken.",
     keys: ["Ellbogen wegziehen", "Seatbelt vor den Hooks", "Füße nicht kreuzen"],
@@ -1060,20 +1061,20 @@ const turtleTop: Card2[] = [
     source: SRC.fhl,
   },
   {
-    id: "tt_guillotine", plain: "Würger von vorne", term: "Guillotine",
-    plainDo: "Dein Unterarm unter seinem Hals, Hüfte vor – langsam.",
-    kind: "angriff", zone: "kopf", slots: [TURTLE_T], requires: { kopf: 1 }, kraft: 1,
-    submission: { id: "guillotine", name: "Guillotine" }, dilemmaOpens: "beine",
-    why: "Unterarm unter dem Hals (Guillotine); schützt er den Hals, gehst du hinter ihn.",
-    keys: ["Tief einhaken", "Unterarm hoch, Hüfte vor", "Würgen, nicht kurbeln"],
-    mistakes: ["Zu flach greifen", "Nur nach oben ziehen"],
-    safety: SAFETY_CHOKE,
-    source: SRC.fhl,
+    // B16: Eingang aus der Turtle in den Front Headlock – dort wartet die Guillotine.
+    id: "tt_to_headlock", plain: "Nach vorn, Kopf fassen", term: "Spin to Front Headlock",
+    plainDo: "Du gehst vor seinen Kopf und klemmst ihn ein.",
+    kind: "angriff", zone: "kopf", slots: [TURTLE_T], requires: { kopf: 1 },
+    to: { pos: "headlock", role: "top" },
+    why: "Hält er seinen Rücken dicht, geh nach vorn an den Kopf (Front Headlock) – dort wartet die Guillotine.",
+    keys: ["Brustkontakt halten beim Rumgehen", "Kinn fassen, sobald du vorn bist"],
+    mistakes: ["Abstand lassen – er steht auf"],
+    source: K2.turtleGuide, check: true,
   },
   {
     id: "tt_sprawl_hold", plain: "Sprawl halten", term: "Sprawl Hold",
     plainDo: "Beine zurück, Hüfte schwer – er kommt nicht hoch.",
-    kind: "rahmen", zone: "beine", slots: [TURTLE_T],
+    kind: "rahmen", zone: "beine", slots: [TURTLE_T, HL_T],
     why: "Hüfte schwer, Beine zurück (Sprawl): unter dir kann er nicht aufstehen.",
     keys: ["Beine weit zurück", "Hüfte bleibt auf ihm"],
     mistakes: ["Auf die Knie fallen"],
@@ -1082,20 +1083,11 @@ const turtleTop: Card2[] = [
   {
     id: "tt_follow", plain: "Seiner Hüfte folgen", term: "Follow the Hips",
     plainDo: "Dreht er sich raus, bleibst du an seiner Hüfte.",
-    kind: "rahmen", zone: "huefte", slots: [TURTLE_T],
+    kind: "rahmen", zone: "huefte", slots: [TURTLE_T, HL_T],
     why: "Bleibst du an seiner Hüfte (Mitgehen), wird sein Aussitzen nur ein Platzwechsel.",
     keys: ["Brustkontakt halten"],
     mistakes: ["Zurückweichen, wenn er sich bewegt"],
     source: K2.turtleGuide, check: true,
-  },
-  {
-    id: "tt_roll_block", plain: "Rolle blockieren", term: "Block the Roll",
-    plainDo: "Gurtgriff fest, Brust drauf – seine Schulterrolle stockt.",
-    kind: "rahmen", zone: "kopf", slots: [TURTLE_T],
-    why: "Gegen festen Gurtgriff ist eine Schulterrolle laut Danaher ein Fehler (Rolle blockieren).",
-    keys: ["Seatbelt fest", "Gewicht auf seine Rollseite"],
-    mistakes: ["Lose Arme"],
-    source: K2.pinEsc, check: true,
   },
 ];
 
@@ -1113,7 +1105,7 @@ const turtleBottom: Card2[] = [
   {
     id: "tb_base", plain: "Hüfte unter dich", term: "Base Up",
     plainDo: "Hüfte unter den Körper, Füße bereit zum Aufstehen.",
-    kind: "aufbauen", zone: "huefte", slots: [TURTLE_B],
+    kind: "aufbauen", zone: "huefte", slots: [TURTLE_B, HL_B],
     why: "Starte die Flucht in etwa zwei Sekunden (Base) – wer wartet, gibt den Rücken ab.",
     keys: ["Füße aufstellen", "Kopf hoch"],
     mistakes: ["Flach auf dem Bauch liegen"],
@@ -1135,25 +1127,14 @@ const turtleBottom: Card2[] = [
     kind: "angriff", zone: "huefte", slots: [TURTLE_B], requires: { huefte: 0 },
     to: { pos: "stand", role: "neutral", escape: "neutral" },
     why: "Bein unter dir durchkicken und zu ihm drehen (Sit-out) – dein Rücken ist wieder weg von ihm.",
-    keys: ["Gleichseitige Hand stützt", "Hüfte drehen, Gesicht zu ihm"],
+    keys: ["Gleichseitige Hand stützt", "Hüfte drehen, Gesicht zu ihm", "Rücken nie zeigen: am Ende schaust du ihn an", "Über die Schulter rollen (Granby) nur mit Trainer"],
     mistakes: ["Halb drehen und hängen bleiben"],
-    source: K2.turtleEsc,
-  },
-  {
-    id: "tb_granby", plain: "Über die Schulter rollen", term: "Granby Roll",
-    plainDo: "Schulter ablegen, durchrollen, Beine zurück vor ihn.",
-    kind: "angriff", zone: "kopf", slots: [TURTLE_B], requires: { huefte: -1 }, kraft: 1,
-    to: { pos: "guard", role: "bottom", escape: "guard" },
-    why: "Ganz oder gar nicht (Granby Roll): durchrollen und die Beine zurück vor ihn bringen.",
-    keys: ["Kopf in Rollrichtung", "Schulter ablegen", "Voll durchziehen"],
-    mistakes: ["Halbherzig rollen"],
-    safety: "Über die Schulter rollen, nicht über den Nacken. Erst langsam mit Trainer üben.",
     source: K2.turtleEsc,
   },
   {
     id: "tb_guillotine_def", plain: "Kopf rausziehen", term: "Guillotine Defense",
     plainDo: "Am Handgelenk drücken, Kopf auf die andere Seite.",
-    kind: "rahmen", zone: "kopf", slots: [TURTLE_B],
+    kind: "rahmen", zone: "kopf", slots: [TURTLE_B, HL_B],
     why: "Drück am Handgelenk, nicht am Ellbogen (Guillotine-Abwehr), und schieb den Kopf zur anderen Seite.",
     keys: ["Am Handgelenk drücken", "Hüfte gerade halten"],
     mistakes: ["Am Ellbogen ziehen"],
@@ -1168,13 +1149,274 @@ const turtleBottom: Card2[] = [
     mistakes: ["Hände weit auf der Matte"],
     source: K2.turtleGuide, check: true,
   },
+  {
+    // B16/B20: geteilt mit dem Front Headlock unten – ein tiefer Kopf lädt zu Guillotine und Kopfklammer ein.
+    id: "tb_head_up", plain: "Kopf hoch, Blick vor", term: "Head Up",
+    plainDo: "Nacken zurück, Blick nach vorn – dein Hals bleibt frei.",
+    kind: "aufbauen", zone: "kopf", slots: [TURTLE_B, HL_B],
+    why: "Ein tiefer Kopf lädt zu Guillotine und Kopfklammer ein (Head Up): Blick hoch, der Körper folgt.",
+    keys: ["Nacken zurück, Gesicht nach vorn", "Hüfte unter die Schultern"],
+    mistakes: ["Stirn auf der Matte", "Kinn auf der Brust beim Aufstehen"],
+    source: K2.standGuill,
+  },
+];
+
+// ---------------- Front Headlock oben (B16) ----------------
+// Geteilt: tt_front_headlock (Chin Strap), tt_hip_pressure, tt_sprawl_hold, tt_follow.
+const headlockTop: Card2[] = [
+  {
+    id: "hl_elbow_pull", plain: "Ellbogen wegziehen", term: "Elbow Pull (Front Headlock)",
+    plainDo: "Freie Hand zieht seinen Ellbogen weg von seinem Knie.",
+    kind: "aufbauen", zone: "arme", slots: [HL_T],
+    why: "Ellbogen weg vom Knie: die Lücke öffnet den Weg hinter ihn (Go-Behind).",
+    keys: ["Am Ellbogen greifen, nicht am Handgelenk", "Nach vorn und weg vom Körper ziehen"],
+    mistakes: ["Kopf dabei loslassen"],
+    source: K2.fhlAttacks,
+  },
+  {
+    id: "hl_guillotine", plain: "Würger von vorne", term: "Guillotine (Front Headlock)",
+    plainDo: "Handgelenk unters Kinn, Ellbogen eng, Hüfte vor – langsam.",
+    kind: "angriff", zone: "kopf", slots: [HL_T], requires: { kopf: 1, arme: 0 }, kraft: 1,
+    submission: { id: "guillotine", name: "Guillotine" }, dilemmaOpens: "arme",
+    why: "Aus der Kopfklammer der häufigste Würger (Guillotine); schützt er den Hals, öffnet sich sein Rücken.",
+    keys: ["Eigenes Handgelenk unter seinem Kinn greifen", "Beide Ellbogen eng", "Würgen, nicht kurbeln"],
+    mistakes: ["Zu flach greifen", "Nur nach oben ziehen (Nacken!)"],
+    safety: SAFETY_CHOKE,
+    source: K2.fhlAttacks,
+  },
+  {
+    id: "hl_go_behind", plain: "Rumgehen, dahinter", term: "Go-Behind",
+    plainDo: "Ellbogen weg, um ihn herum, Brust an seinen Rücken.",
+    kind: "angriff", zone: "arme", slots: [HL_T], requires: { arme: 1 },
+    to: { pos: "turtle", role: "top" },
+    why: "Ziehst du ihn vor und blockst seine Achsel, kommst du hinter ihn (Go-Behind) – er kann nicht mitdrehen.",
+    keys: ["Erst ziehen, dann rumgehen", "Arm blockt seine Achsel", "Knie in die Lücke"],
+    mistakes: ["Kopf zu früh loslassen", "Weit außen rumlaufen"],
+    source: K2.goBehind,
+  },
+  {
+    id: "hl_head_block", plain: "Brust auf den Kopf", term: "Head Pressure",
+    plainDo: "Deine Brust drückt seinen Kopf runter – er zieht nicht raus.",
+    kind: "rahmen", zone: "kopf", slots: [HL_T],
+    why: "Bleibt deine Brust schwer auf seinem Kopf (Kopfdruck), kommt sein Kopf nicht hoch und raus.",
+    keys: ["Schulter auf seinem Nacken", "Knie weg von der Matte, Gewicht auf ihn"],
+    mistakes: ["Auf den Knien hoch sitzen"],
+    source: K2.fhlAttacks,
+  },
+];
+
+// ---------------- Front Headlock unten (B16) ----------------
+// Geteilt: tb_head_up, tb_base, tb_guillotine_def.
+const headlockBottom: Card2[] = [
+  {
+    id: "hlb_hands", plain: "Würgehand kontrollieren", term: "2-on-1 Wrist Control",
+    plainDo: "Beide Hände an sein Handgelenk am Kinn.",
+    kind: "aufbauen", zone: "arme", slots: [HL_B],
+    why: "Zwei Hände an seiner Würgehand (2-on-1): ohne Griff am Kinn wird aus der Kopfklammer kein Würger.",
+    keys: ["Am Handgelenk ziehen, nicht am Ellbogen", "Hand vom Kinn wegziehen"],
+    mistakes: ["Am Ellbogen drücken – das zieht den Würger zu"],
+    source: K2.guillEsc,
+  },
+  {
+    id: "hlb_head_out", plain: "Kopf raus, aufrichten", term: "Head Out (Pop the Head)",
+    plainDo: "Hände am Handgelenk, Kopf zur Seite raus, aufrichten.",
+    kind: "angriff", zone: "kopf", slots: [HL_B], requires: { kopf: 0 },
+    to: { pos: "stand", role: "neutral", escape: "neutral" },
+    why: "Löst du die Würgehand, zieht der Kopf zur Seite raus (Head Out) – dann stehst du wieder.",
+    keys: ["Erst die Hand, dann der Kopf", "Kopf zur Seite seines freien Arms", "Danach sofort Abstand oder Griff"],
+    mistakes: ["Kopf gerade nach hinten reißen", "Ohne Handkontrolle ziehen"],
+    source: K2.standGuill, check: true,
+  },
+  {
+    id: "hlb_stand_up", plain: "Hände halten, aufstehen", term: "Stand-Up (Wrestle-up)",
+    plainDo: "Seine Hände kontrollieren, Füße unter dich, aufstehen.",
+    kind: "angriff", zone: "huefte", slots: [HL_B], requires: { huefte: 0, arme: 0 },
+    to: { pos: "stand", role: "neutral", escape: "neutral" },
+    why: "Aufstehen, während du seine Hände hältst (Stand-Up): im No-Gi und MMA ist der Stand sicherer als unten.",
+    keys: ["Erst Hände kontrollieren", "Ein Fuß nach dem anderen", "Kopf hoch beim Aufstehen"],
+    mistakes: ["Mit gefangenem Kopf aufstehen"],
+    source: K2.wrMoves,
+  },
+  {
+    id: "hlb_shot_through", plain: "Durchschießen an die Beine", term: "Shot Through (Re-Shot)",
+    plainDo: "Kopf frei, du schießt unter ihm an seine Beine.",
+    kind: "angriff", zone: "beine", slots: [HL_B], requires: { beine: 0, kopf: 0 }, kraft: 1,
+    to: { pos: "half", role: "top", escape: "reversal" },
+    why: "Hängt er schwer über dir, schieß durch an seine Beine (Re-Shot) – er fällt auf den Rücken.",
+    keys: ["Erst Kopf frei, dann schießen", "Hüfte unter dich, dann vor"],
+    mistakes: ["Mit gefangenem Kopf schießen (Guillotine)"],
+    safety: SAFETY_TD,
+    check: true,
+  },
+  {
+    id: "hlb_elbow_in", plain: "Mitdrehen, Gesicht zu ihm", term: "Block the Go-Behind",
+    plainDo: "Ellbogen am Knie, du drehst mit – er kommt nicht dahinter.",
+    kind: "rahmen", zone: "arme", slots: [HL_B],
+    why: "Rücken nie zeigen: Ellbogen am Knie und mitdrehen (Go-Behind blocken) – Gesicht bleibt zu ihm.",
+    keys: ["Ellbogen und Knie zusammen", "In seine Richtung drehen"],
+    mistakes: ["Ellbogen weit weg vom Knie", "Wegdrehen – er ist sofort hinten"],
+    source: K2.goBehind, check: true,
+  },
+];
+
+
+// ---------------- MMA-Hinweise (B18) ----------------
+// Einstufung je Karte: ok = auch mit Schlägen sinnvoll, riskant = mit Vorsicht, nein = im MMA vermeiden.
+// Grundlage: KB 8.12 (No-Gi/MMA), Evolve MMA (Wrestle-ups, Takedown-Konter). Einstufung didaktisch, Trainer prüfen.
+const MMA: Record<string, [MmaFlag, string]> = {
+  nd_outside_foot: ["ok", "Außen stehen gibt dir im MMA den Winkel für Schläge."],
+  nd_level_change: ["ok", "Hinter einer Finte tief gehen, sonst kommt das Knie."],
+  nd_double_leg: ["ok", "Klassischer MMA-Takedown: Kopf eng an seinem Körper."],
+  nd_single_leg: ["ok", "Im MMA oft am Käfig fertig gemacht."],
+  nd_clinch_entry: ["ok", "Kopf bewegen beim Reingehen, sonst kommt der Schlag."],
+  nd_sprawl: ["ok", "Pflicht im MMA: wer nicht sprawlt, liegt unten."],
+  nd_hand_fight: ["ok", "Hände vorn, Kopf hoch: schützt vor Schlägen und Guillotine."],
+  cl_collar_tie: ["ok", "Der Nackengriff steuert den Kopf – im MMA auch für Knie."],
+  cl_underhook: ["ok", "Der Underhook-Kampf entscheidet den Clinch am Käfig."],
+  cl_snap_down: ["ok", "Stark gegen Shots; danach drohen Guillotine und Knie."],
+  nd_arm_drag: ["ok", "2-on-1 bindet seinen Schlagarm."],
+  cl_body_lock: ["ok", "Body Lock hält dich nah – wenig Platz für Schläge."],
+  cl_pull_guard: ["nein", "Unten wirst du geschlagen: im MMA keine Guard ziehen."],
+  cl_hips_back: ["ok", "Whizzer und Hüfte zurück stoppen Takedowns am Käfig."],
+  gt_posture: ["ok", "Aufrecht sitzen gibt dir Platz für Schläge."],
+  gt_body_lock: ["ok", "Enger Druck lässt ihm wenig Raum für Ellbogen."],
+  gt_open_guard: ["riskant", "Beim Öffnen auf Tritte und Ellbogen von unten achten."],
+  gt_knee_slice: ["ok", "Mit Crossface auch im MMA sicher."],
+  gt_toreando: ["riskant", "Im Stehen passieren: auf Tritte von unten achten."],
+  gt_elbows_in: ["ok", "Enge Ellbogen schützen vor Hebeln und Treffern."],
+  gt_both_arms: ["ok", "Guillotine und Triangle sind im MMA häufig."],
+  gt_base_post: ["ok", "Breite Basis hält dich oben, wo du schlagen kannst."],
+  gb_break_posture: ["ok", "Runterziehen nimmt seinen Schlägen die Wucht."],
+  gb_wrist_control: ["ok", "Wer die Handgelenke hält, wird weniger getroffen."],
+  gb_hip_frame: ["ok", "Rahmen und Hüfte raus schaffen Platz zum Aufstehen."],
+  gb_butterfly_sweep: ["riskant", "Sitzend gut; flach auf dem Rücken kassierst du Schläge."],
+  gb_armbar: ["ok", "Klappt im MMA, wenn seine Haltung gebrochen ist."],
+  gb_triangle: ["ok", "Ein MMA-Klassiker: Kopf runterziehen, Winkel suchen."],
+  gb_guillotine: ["ok", "Gegen Shots im MMA häufig – Hüfte vor."],
+  gb_wrestle_up: ["ok", "Unten im MMA das Wichtigste: aufstehen."],
+  ht_crossface: ["ok", "Crossface nimmt ihm Sicht und Gegenwehr."],
+  ht_underhook: ["ok", "Mit Underhook kommt er nicht hoch und nicht raus."],
+  ht_flatten: ["ok", "Flach liegend kann er sich schlecht schützen."],
+  ht_pass: ["ok", "Vorbei an den Beinen: im MMA mehr Kontrolle."],
+  ht_knee_slide: ["ok", "Mit Underhook auch im MMA sicher."],
+  ht_whizzer: ["ok", "Whizzer stoppt seinen Weg nach oben."],
+  ht_knee_block: ["ok", "Hüfte blockiert: er holt die Guard nicht zurück."],
+  ht_base: ["ok", "Breite Basis hält dich oben."],
+  hb_face_free: ["ok", "Kopf frei heißt auch: weniger Treffer."],
+  hb_underhook: ["ok", "Der Underhook ist dein Weg nach oben und raus."],
+  hb_knee_shield: ["ok", "Das Knie-Schild hält Schläge auf Abstand."],
+  hb_come_up: ["ok", "Hochkommen ist im MMA besser als unten liegen."],
+  hb_recover: ["riskant", "Volle Guard unten ist im MMA nur Zwischenstation."],
+  hb_back_take: ["ok", "Vom Rücken aus trifft er dich nicht."],
+  hb_old_school: ["ok", "Umkippen bringt dich oben an."],
+  bot_elbow_knee: ["ok", "Ellbogen an Knie schützt auch gegen Schläge zum Körper."],
+  sct_crossface: ["ok", "Crossface nimmt ihm Sicht und Platz."],
+  sct_far_hip: ["ok", "Gekeilt kann er nicht aufstehen."],
+  sct_underhook: ["ok", "Grundkontrolle – auch im MMA."],
+  sct_to_mount: ["ok", "Im Mount sitzt du für Schläge am besten."],
+  sct_kimura: ["ok", "Auch im MMA ein häufiger Abschluss."],
+  sct_arm_triangle: ["ok", "Im MMA häufig aus der Seitkontrolle."],
+  sct_americana: ["ok", "Auch im MMA aus der Seitkontrolle."],
+  sct_hip_block: ["ok", "Hüfte blocken verhindert, dass er aufsteht."],
+  scb_frame: ["ok", "Kurze Stützen schützen auch dein Gesicht."],
+  scb_shrimp: ["ok", "Platz schaffen, dann Guard oder aufstehen."],
+  scb_underhook: ["ok", "Auf die Knie, dann im MMA sofort aufstehen."],
+  scb_knee_in: ["riskant", "Half Guard unten ist im MMA nur Zwischenstation."],
+  scb_v_frame: ["ok", "Knie davor hält ihn aus dem Mount."],
+  scb_head_arm_def: ["ok", "Arm eng am Kopf schützt auch vor Schlägen."],
+  scb_protect_arms: ["ok", "Enge Arme decken auch den Kopf."],
+  mt_heavy_hips: ["ok", "Schwere Hüfte hält ihn unten, während du schlägst."],
+  mt_isolate: ["ok", "Einen Arm festhalten öffnet seine Deckung."],
+  mt_armbar: ["riskant", "Du gibst den Mount auf – bleib lieber oben."],
+  mt_americana: ["ok", "Aus dem Mount auch im MMA sicher."],
+  mt_to_back: ["ok", "Dreht er weg, nimm den Rücken."],
+  mt_knee_pinch: ["ok", "Enge Knie halten den Mount."],
+  mt_post: ["ok", "Breit posten: seine Brücke kippt dich nicht."],
+  mb_knee_inside: ["ok", "Ellbogen an Knie schützt auch gegen Schläge."],
+  mb_bridge: ["ok", "Brücke stört seine Basis für Schläge."],
+  mb_trap: ["ok", "Fängst du seinen Arm, schlägt er damit nicht."],
+  mb_upa: ["ok", "Im MMA eine der sichersten Mount-Befreiungen."],
+  mb_elbow_escape: ["ok", "Knie rein, dann Guard oder aufstehen."],
+  mb_elbows_tight: ["ok", "Enge Ellbogen decken auch dein Gesicht."],
+  mb_no_back: ["ok", "Rücken zeigen heißt im MMA: Würger von hinten."],
+  bt_seatbelt: ["ok", "Gurtgriff hält ihn, auch wenn er aufsteht."],
+  bt_hooks: ["ok", "Haken halten ihn – Füße nie kreuzen."],
+  bt_clear_hands: ["ok", "Seine Hände wegziehen öffnet den Hals."],
+  bt_rnc: ["ok", "Im MMA der häufigste Würger."],
+  bt_armbar: ["ok", "Streckt er die Arme, nimm einen."],
+  bt_hook_retention: ["ok", "Haken drin, sonst dreht er sich raus."],
+  bt_follow: ["ok", "Folgen hält ihn am Rücken."],
+  bb_hand_fight: ["ok", "Hände am Hals schützen vor Würger und Schlägen."],
+  bb_hook_off: ["ok", "Haken lösen ist der erste Schritt raus."],
+  bb_shoulders: ["ok", "Schultern auf die Matte nehmen ihm den Rücken."],
+  bb_shrimp: ["ok", "Vor ihn drehen beendet den Rücken."],
+  bb_escape_side: ["ok", "Seitkontrolle unten ist besser als Rücken."],
+  bb_chin_tuck: ["ok", "Kinn runter – im MMA Pflicht."],
+  bb_elbows_tight: ["ok", "Enge Ellbogen decken Hals und Gesicht."],
+  tt_front_headlock: ["ok", "Kopf kontrollieren – im MMA auch für Knie."],
+  tt_seatbelt: ["ok", "Gurtgriff vor den Haken, auch im MMA."],
+  tt_hip_pressure: ["ok", "Gewicht hält ihn unten."],
+  tt_back_take: ["ok", "Vom Rücken aus ist er wehrlos."],
+  tt_to_headlock: ["ok", "Vorn am Kopf drohen Guillotine und Knie."],
+  tt_sprawl_hold: ["ok", "Sprawl hält ihn unten."],
+  tt_follow: ["ok", "Folgen verhindert, dass er aufsteht."],
+  tb_hands: ["ok", "Hände frei machen, dann sofort aufstehen."],
+  tb_base: ["ok", "Hüfte unter dich – das Aufstehen beginnt."],
+  tb_stand_up: ["ok", "Im MMA das Beste aus der Turtle: aufstehen."],
+  tb_sit_out: ["ok", "Rausdrehen bringt dein Gesicht zu ihm."],
+  tb_guillotine_def: ["ok", "Am Handgelenk drücken, Kopf raus."],
+  tb_shell: ["riskant", "Turtle im MMA: Schläge zum Kopf – schnell raus."],
+  tb_head_up: ["ok", "Kopf hoch: kein Knie, keine Guillotine."],
+  hl_elbow_pull: ["ok", "Ellbogen wegziehen öffnet den Weg hinter ihn."],
+  hl_guillotine: ["ok", "Gegen Shots im MMA einer der häufigsten Würger."],
+  hl_go_behind: ["ok", "Hinter ihm bist du sicher vor Schlägen."],
+  hl_head_block: ["ok", "Kopfdruck hält ihn vorn – im MMA auch für Knie."],
+  hlb_hands: ["ok", "Seine Würgehand kontrollieren, dann raus."],
+  hlb_head_out: ["ok", "Kopf raus, sonst drohen Knie und Guillotine."],
+  hlb_stand_up: ["ok", "Aufstehen ist im MMA immer gut."],
+  hlb_shot_through: ["riskant", "Mit gesenktem Kopf drohen Knie und Guillotine."],
+  hlb_elbow_in: ["ok", "Rücken nie zeigen – im MMA erst recht."],
+};
+
+function withMma(c: Card2): Card2 {
+  const m = MMA[c.id];
+  return m ? { ...c, mma: c.mma ?? m[0], mmaNote: c.mmaNote ?? m[1] } : c;
+}
+
+// ---------------- Glossar (B19) ----------------
+// Einheitliche Begriffe: Alltagswort (Titel/Erklärung) ↔ No-Gi-Fachbegriff (Feld term). Varianten sind verboten (cards.test.ts).
+export const TERMS2: { de: string; nogi: string; avoid: string[] }[] = [
+  { de: "Auslage (Orthodox: links vorn, Southpaw: rechts vorn)", nogi: "Stance", avoid: [] },
+  { de: "Tief gehen", nogi: "Level Change", avoid: ["Level-Change"] },
+  { de: "Schritt rein", nogi: "Penetration Step", avoid: ["Pen Step"] },
+  { de: "Beide Beine schnappen", nogi: "Double Leg", avoid: ["Double-Leg"] },
+  { de: "Ein Bein schnappen", nogi: "Single Leg", avoid: ["Single-Leg"] },
+  { de: "Beine weg, Hüfte drauf", nogi: "Sprawl", avoid: [] },
+  { de: "Kopf runterziehen", nogi: "Snap Down", avoid: ["Snapdown", "Snap-Down"] },
+  { de: "Kopfklammer", nogi: "Front Headlock", avoid: ["Front Head Lock", "Front-Headlock"] },
+  { de: "Kinngriff", nogi: "Chin Strap", avoid: ["Chinstrap"] },
+  { de: "Rumgehen, dahinter", nogi: "Go-Behind", avoid: ["Go Behind"] },
+  { de: "Nackengriff", nogi: "Collar Tie", avoid: ["Collar-Tie"] },
+  { de: "Unterhaken (Arm unter seine Achsel)", nogi: "Underhook", avoid: ["Under Hook", "Under-Hook"] },
+  { de: "Überhaken (Arm von oben klemmen)", nogi: "Whizzer", avoid: [] },
+  { de: "Zwei Hände an einem Arm", nogi: "2-on-1", avoid: ["Two-on-One", "2 on 1"] },
+  { de: "Handgelenk kontrollieren", nogi: "Wrist Control", avoid: [] },
+  { de: "Umklammern", nogi: "Body Lock", avoid: ["Bodylock", "Body-Lock"] },
+  { de: "Gurtgriff", nogi: "Seatbelt", avoid: ["Seat Belt", "Seat-Belt"] },
+  { de: "Füße einhaken", nogi: "Hooks", avoid: [] },
+  { de: "Nacken-Keil, Kopf wegdrehen", nogi: "Crossface", avoid: ["Cross Face", "Cross-Face"] },
+  { de: "Ellbogen an Knie", nogi: "Elbow-Knee", avoid: ["Elbow Knee"] },
+  { de: "Ellbogen eng", nogi: "Elbows Tight", avoid: ["Elbows In"] },
+  { de: "Unterarm als Stütze / Rahmen", nogi: "Frame", avoid: [] },
+  { de: "Wegrutschen", nogi: "Shrimp", avoid: [] },
+  { de: "Aufsitzen und aufstehen", nogi: "Wrestle-up", avoid: ["Wrestle up", "Wrestleup"] },
 ];
 
 export const CARDS2: Card2[] = [
   ...stand, ...clinch, ...guardTop, ...guardBottom, ...halfTop, ...halfBottom, elbowKnee,
   ...sideTop, ...sideBottom, ...mountTop, ...mountBottom, ...backTop, ...backBottom,
-  ...turtleTop, ...turtleBottom,
-];
+  ...turtleTop, ...turtleBottom, ...headlockTop, ...headlockBottom,
+].map(withMma);
 export const CARD2: Record<string, Card2> = Object.fromEntries(CARDS2.map((c) => [c.id, c]));
 export function cardsFor(pos: Pos2, role: Role2): Card2[] {
   return CARDS2.filter((c) => c.slots.some((s) => s.pos === pos && s.role === role));

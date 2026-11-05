@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import type { Board, Card2, Zone } from "../types";
+import type { Board, Card2, MmaFlag, Zone } from "../types";
 import { ZONES } from "../types";
 import { KIND_LABEL, KraftIcon, LockIcon, ZONE_LABEL, ZONE_SHORT, ZoneIcon, fmtSigned, reqList } from "./meta";
 import { Pulse } from "../../components/fx";
@@ -115,6 +115,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
           <motion.div key={sel.id} className={`k2-hand-info kind-${sel.kind}`}
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             <b>{sel.plain}</b><RarityGem rarity={rarityOf(sel)} size={10} /><span className="k2-rar-t">{RARITY_LABEL[rarityOf(sel)]}</span> <span className="k2-term">{sel.term}</span>
+            {sel.mma && <MmaChip mma={sel.mma} note={sel.mmaNote} />}
             <p>{sel.plainDo}</p>
           </motion.div>
         ) : (
@@ -124,5 +125,22 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/** B18: kleiner MMA-Hinweis im Karten-Detail (Einstufung als Chip, Satz als Tooltip/Screenreader-Text). */
+const MMA_CHIP: Record<MmaFlag, { t: string; c: string }> = {
+  ok: { t: "MMA ok", c: "var(--good, #3fb97a)" },
+  riskant: { t: "MMA riskant", c: "var(--warn, #e0a33a)" },
+  nein: { t: "MMA nein", c: "var(--bad, #e05a5a)" },
+};
+function MmaChip({ mma, note }: { mma: MmaFlag; note?: string }) {
+  const m = MMA_CHIP[mma];
+  return (
+    <span className={`k2-mma k2-mma-${mma}`} title={note} aria-label={note ? `${m.t}: ${note}` : m.t}
+      style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: 0.2,
+        color: m.c, border: `1px solid ${m.c}`, whiteSpace: "nowrap", verticalAlign: "middle" }}>
+      {m.t}
+    </span>
   );
 }

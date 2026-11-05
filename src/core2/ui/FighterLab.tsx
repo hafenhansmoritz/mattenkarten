@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { FightersK2 } from "./FightersK2";
-import type { Pos2, Side, Zone } from "../types";
+import { Hand2 } from "./Hand2";
+import { cardsFor } from "../data/cards";
+import type { Pos2, Role2, Side, Zone } from "../types";
+import "../../styles/core2.css";
 import type { TapState } from "../../components/fighters/choreo";
 
 /**
  * Entwickler-Labor für die Kämpfer-Szenen (?figlab&pos=mount&top=p …).
- * Parameter: pos, top, from, fromTop, delay, zone, zside, sub, owner, step, subzone, tap, tapseq, slow, label
+ * Parameter: pos, top, from, fromTop, delay, zone, zside, sub, owner, step, subzone, tap, tapseq, slow, label,
+ * hand (Rolle des Spielers: neutral/top/bottom → zeigt die Hand des Slots), sel (gewählte Karte, z. B. für den MMA-Chip)
  * Wird nur über den URL-Parameter `figlab` geladen (Screenshots, visuelle Prüfung).
  */
 export default function FighterLab() {
@@ -26,6 +30,8 @@ export default function FighterLab() {
   const tapQ = q.get("tap") as TapState;
   const tapSeq = q.has("tapseq");
   const slow = q.has("slow");
+  const handRole = q.get("hand") as Role2 | null;
+  const [sel, setSel] = useState<string | null>(q.get("sel"));
 
   const [cur, setCur] = useState<{ pos: Pos2; top: Side | null }>(from ? { pos: from, top: fromTop } : { pos, top });
   const [tap, setTap] = useState<TapState>(tapSeq ? "hold" : tapQ);
@@ -52,6 +58,11 @@ export default function FighterLab() {
           sub={subId ? { owner, id: subId, zone: subZone, step } : null}
           tap={tap} />
       </div>
+      {handRole && (
+        <div style={{ marginTop: 12 }}>
+          <Hand2 cards={cardsFor(pos, handRole)} legal={[]} selected={sel} onSelect={setSel} />
+        </div>
+      )}
     </div>
   );
 }

@@ -72,6 +72,8 @@ export function stampFor(r: Round2): Omit<StampInfo, "key"> | null {
     if (mv.escape) return { text: "BEFREIT!", tone, sub: `${mover === "p" ? "Du" : "Er"}: ${POS_LABEL[mv.pos]}` };
     const guardish = r.posBefore === "guard" || r.posBefore === "half" || r.posBefore === "turtle";
     if (guardish && r.topBefore === mover && mv.top === mover) return { text: "PASSIERT!", tone, sub: POS_LABEL[mv.pos] };
+    // B16: Snap Down oder Sprawl in den Front Headlock ist kein Takedown – du hast seinen Kopf.
+    if ((r.posBefore === "stand" || r.posBefore === "clinch") && mv.pos === "headlock") return { text: "KOPF GEFASST!", tone, sub: POS_LABEL[mv.pos] };
     if ((r.posBefore === "stand" || r.posBefore === "clinch") && mv.top) return { text: "TAKEDOWN!", tone, sub: POS_LABEL[mv.pos] };
     return { text: mv.top === mover ? "POSITION!" : "UMGEDREHT!", tone, sub: POS_LABEL[mv.pos] };
   }

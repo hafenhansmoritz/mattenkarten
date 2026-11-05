@@ -352,3 +352,26 @@ describe("threats & KI", () => {
     }
   });
 });
+
+describe("B16 Konter-Wechsel (echte Karten): Sprawl → Front Headlock", () => {
+  beforeEach(() => setCardRegistry(null));
+  const st = (board: Partial<State2["board"]> = {}) => newMatch({ seed: 1, start: { pos: "stand", top: null, board } });
+  it("stoppt der Sprawl den Double Leg, ist der Sprawlende oben im Front Headlock", () => {
+    const { state, round } = playRound(st(), "nd_sprawl", "nd_double_leg");
+    expect(round.rule).toBe("rahmen>angriff");
+    expect(state.pos).toBe("headlock");
+    expect(state.top).toBe("p");
+    expect(state.p.pts).toBe(0);
+  });
+  it("ohne Kopf (Kopf −1) stoppt der Sprawl nur, kein Positionswechsel", () => {
+    const { state } = playRound(st({ kopf: -1 }), "nd_sprawl", "nd_double_leg");
+    expect(state.pos).toBe("stand");
+  });
+  it("Snap Down aus dem Stand führt oben in den Front Headlock; unten gibt es drei Ausgänge", () => {
+    const { state } = playRound(st({ kopf: 1 }), "cl_snap_down", "nd_level_change");
+    expect(state.pos).toBe("headlock");
+    expect(roleOf(state, "p")).toBe("top");
+    const outs = legalCards(state, "o").map((l) => l.id);
+    expect(outs).toEqual(expect.arrayContaining(["hlb_head_out", "hlb_stand_up", "hlb_shot_through"]));
+  });
+});

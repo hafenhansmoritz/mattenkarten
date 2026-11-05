@@ -157,19 +157,20 @@ function clinch(): ScenePair {
 }
 
 function fhl(): ScenePair {
-  // B kniet (Turtle), Blick nach links, Kopf tief unter A's Brust; A sprawlt mit tiefer Hüfte, Beine weit nach hinten.
+  // Front Headlock (Kern 2 „headlock“, No-Gi): B kniet auf Knien und Händen, Blick nach links, Kopf tief vor A.
+  // A sprawlt: Hüfte tief, Knie weg von der Matte, Beine weit nach hinten; Brust auf B's Kopf, A's Kopf über B's Schultern.
+  // Nahe Hand = Kinngriff (Chin Strap) unter B's Kinn, ferne Hand kontrolliert B's Ellbogen (Evolve MMA, Front Headlock).
   const b = build({
-    hip: { x: 268, y: 146 }, torso: 160, headAng: 140, face: -1, z: 0,
-    handF: { x: 206, y: ON_MAT }, handB: { x: 214, y: ON_MAT }, elbowBendF: -1, elbowBendB: -1,
+    hip: { x: 272, y: 140 }, torso: 163, headAng: 145, face: -1, z: 0,
+    handF: { x: 204, y: ON_MAT }, handB: { x: 214, y: ON_MAT }, elbowBendF: -1, elbowBendB: -1,
     legF: { kneel: -1, shinDir: 0 },
     legB: { kneel: -1, shinDir: 0 },
   });
   const a = build({
-    hip: { x: 148, y: 166 }, torso: -10, headAng: 30, face: 1, z: 1,
-    // Arme umschließen B's Kopf/Hals (Front Headlock, Hand unter dem Kinn)
-    handF: { x: 204, y: 182 }, handB: { x: 214, y: 178 }, elbowBendF: 1, elbowBendB: 1,
-    legF: { foot: { x: 78, y: ON_MAT }, bend: 1 },
-    legB: { foot: { x: 90, y: ON_MAT }, bend: 1 },
+    hip: { x: 156, y: 160 }, torso: -16, headAng: 0, face: 1, z: 1,
+    handF: { x: 206, y: 171 }, handB: { x: 219, y: 166 }, elbowBendF: -1, elbowBendB: 1,
+    legF: { foot: { x: 84, y: ON_MAT }, bend: 1 },
+    legB: { foot: { x: 96, y: ON_MAT }, bend: 1 },
   });
   return { a, b };
 }

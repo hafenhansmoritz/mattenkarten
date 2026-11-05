@@ -17,11 +17,11 @@ type Hand = "F" | "B";
 // ---------- Griffe ----------
 export type Grip =
   | "collar" | "underhook" | "overhook" | "wrist" | "seatbelt" | "headlock"
-  | "crossface" | "post" | "hips" | "frame" | "bodylock";
+  | "crossface" | "post" | "hips" | "frame" | "bodylock" | "chinstrap" | "elbow";
 
 /** Grob: welche Körperkarten-Zone ein Griff bedient (für die Glow-Marker). */
 export const GRIP_ZONE: Record<Grip, "kopf" | "arme" | "huefte" | "beine"> = {
-  collar: "kopf", headlock: "kopf", crossface: "kopf", seatbelt: "kopf",
+  collar: "kopf", headlock: "kopf", crossface: "kopf", seatbelt: "kopf", chinstrap: "kopf", elbow: "arme",
   underhook: "arme", overhook: "arme", wrist: "arme", frame: "arme",
   post: "huefte", hips: "huefte", bodylock: "huefte",
 };
@@ -30,6 +30,7 @@ export const GRIP_LABEL: Record<Grip, string> = {
   collar: "Collar Tie", headlock: "Front Headlock", crossface: "Crossface", seatbelt: "Seatbelt",
   underhook: "Underhook", overhook: "Overhook", wrist: "Handgelenk", frame: "Rahmen",
   post: "Hände gestützt", hips: "Hände an der Hüfte", bodylock: "Body Lock",
+  chinstrap: "Chin Strap (Kinngriff)", elbow: "Ellbogen-Kontrolle",
 };
 
 type HandGrips = Partial<Record<Hand, Grip>>;
@@ -37,7 +38,7 @@ type HandGrips = Partial<Record<Hand, Grip>>;
 const SCENE_GRIPS: Record<SceneId, { a: HandGrips; b: HandGrips }> = {
   dist: { a: {}, b: {} },
   clinch: { a: { F: "collar", B: "underhook" }, b: { F: "underhook", B: "collar" } },
-  fhl: { a: { F: "headlock", B: "headlock" }, b: { F: "post", B: "post" } },
+  fhl: { a: { F: "chinstrap", B: "elbow" }, b: { F: "post", B: "post" } },
   guard: { a: { F: "hips", B: "hips" }, b: { F: "wrist", B: "wrist" } },
   half: { a: { F: "crossface", B: "underhook" }, b: { F: "frame", B: "underhook" } },
   side: { a: { F: "crossface", B: "underhook" }, b: { F: "frame", B: "frame" } },
@@ -109,7 +110,7 @@ function mapPair(s: ScenePair, top: Side | null): Pair {
 }
 
 // ---------- Positionswechsel ----------
-export type MoveKind = "takedown" | "pass" | "shrimp" | "bridge" | "standup";
+export type MoveKind = "takedown" | "pass" | "shrimp" | "bridge" | "standup" | "snapdown";
 const GUARDISH: readonly SceneId[] = ["guard", "half"];
 const DOMINANT: readonly SceneId[] = ["side", "mount", "back"];
 
@@ -117,6 +118,7 @@ export function classifyMove(from: SceneId, fromTop: Side | null, to: SceneId, t
   if (from === to && fromTop === toTop) return null;
   const nf = isNeutral(from), nt = isNeutral(to);
   if (nf && nt) return null;
+  if (nf && to === "fhl" && toTop) return { kind: "snapdown", frameTop: toTop };
   if (nf && !nt && toTop) return { kind: "takedown", frameTop: toTop };
   if (!nf && nt && fromTop) return { kind: "standup", frameTop: fromTop };
   if (!fromTop || !toTop) return null;
@@ -229,6 +231,20 @@ const RAW_KEYS: Record<MoveKind, () => ScenePair[]> = {
         hip: { x: 224, y: 166 }, torso: -58, headAng: -70, face: -1, z: 1,
         handF: { x: 190, y: 138 }, handB: { x: 196, y: 132 }, elbowBendF: -1, elbowBendB: -1,
         legF: { kneel: -1, shinDir: 0 }, legB: { foot: { x: 262, y: ON_MAT }, bend: -1 },
+      }),
+    },
+  ],
+  snapdown: () => [
+    { // Snap Down: A zieht mit Nackengriff B's Kopf nach unten, B kippt nach vorn und fängt sich mit den Händen
+      a: build({
+        hip: { x: 160, y: 136 }, torso: -55, headAng: -50, face: 1, z: 1,
+        handF: { x: 200, y: 134 }, handB: { x: 206, y: 130 }, elbowBendF: 1, elbowBendB: 1,
+        legF: { foot: { x: 184, y: ON_MAT }, bend: 1 }, legB: { foot: { x: 120, y: ON_MAT }, bend: 1 },
+      }),
+      b: build({
+        hip: { x: 250, y: 124 }, torso: 165, headAng: 150, face: -1, z: 0,
+        handF: { x: 190, y: 170 }, handB: { x: 198, y: 174 }, elbowBendF: -1, elbowBendB: -1,
+        legF: { foot: { x: 240, y: ON_MAT }, bend: -1 }, legB: { foot: { x: 272, y: ON_MAT }, bend: -1 },
       }),
     },
   ],

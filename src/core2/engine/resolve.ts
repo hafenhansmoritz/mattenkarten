@@ -291,6 +291,10 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       const rc = cards[r]!, ac = cards[a]!;
       if (!(ac.dilemmaOpens && BALANCE.dilemmaNoFrameGain)) gainWith(ctx, r, rc);
       frameSubs(ctx, r, rc, ac);
+      // B16 Konter-Wechsel: stoppt ein Rahmen mit onStop einen Positionsangriff (Sprawl gegen den Shot), wechselt die Position.
+      if (rc.onStop && ac.to && !unmetRequires(ctx.start, r, { ...rc, requires: rc.onStopRequires }).length) {
+        ctx.pendingMoves.push({ side: r, card: { ...rc, to: rc.onStop } });
+      }
       ctx.acted.add(r);
       triWinner = r;
       let why = rc.why;

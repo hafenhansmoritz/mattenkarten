@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ZONES, type Pos2, type Role2 } from "../types";
-import { CARD2, CARDS2, SLOTS2, cardsFor } from "./cards";
+import { CARD2, CARDS2, SLOTS2, TERMS2, cardsFor } from "./cards";
 
 const words = (s: string) => s.trim().split(/\s+/).filter((w) => w !== "–" && w !== "-").length;
 const VALID_SLOT = new Set(SLOTS2.map((s) => `${s.pos}:${s.role}`));
@@ -8,8 +8,8 @@ const BANNED = [/heel hook/i, /kneebar/i, /knee bar/i, /toe hold/i, /wrist ?lock
 const NEUTRAL: Pos2[] = ["stand", "clinch"];
 
 describe("Kern 2 – Karten", () => {
-  it("hat 14 Slots und eindeutige IDs", () => {
-    expect(SLOTS2).toHaveLength(14);
+  it("hat 16 Slots (inkl. Front Headlock) und eindeutige IDs", () => {
+    expect(SLOTS2).toHaveLength(16);
     const ids = CARDS2.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(Object.keys(CARD2)).toHaveLength(ids.length);
@@ -119,7 +119,7 @@ describe("Kern 2 – Karten", () => {
     expect(CARD2.gt_knee_slice.requires).toMatchObject({ beine: 1, huefte: 0 });
     expect(CARD2.gt_toreando.requires).toMatchObject({ beine: 1, huefte: 0 });
     expect(CARD2.sct_to_mount.requires).toEqual({ huefte: 1 }); // B14
-    expect(CARD2.tt_back_take.requires).toMatchObject({ kopf: 1, arme: 1 });
+    expect(CARD2.tt_back_take.requires).toEqual({ kopf: 0, arme: 1 }); // B20: Kopf nicht verloren reicht
     expect(CARD2.nd_double_leg.to).toMatchObject({ points: 2 });
     expect(CARD2.sct_to_mount.to).toMatchObject({ pos: "mount", points: 4 });
   });
@@ -137,7 +137,7 @@ describe("Kern 2 – Karten", () => {
   });
 
   it("Hauptgriffe haben einen Aufbau-Schritt in derselben Zone und Slot", () => {
-    for (const id of ["gb_armbar", "gb_guillotine", "gb_triangle", "mt_armbar", "mt_americana", "sct_kimura", "sct_arm_triangle", "bt_rnc", "bt_armbar", "tt_guillotine"]) {
+    for (const id of ["gb_armbar", "gb_guillotine", "gb_triangle", "mt_armbar", "mt_americana", "sct_kimura", "sct_arm_triangle", "bt_rnc", "bt_armbar", "hl_guillotine"]) {
       const c = CARD2[id];
       const s = c.slots[0];
       const setup = cardsFor(s.pos, s.role).some((o) => o.kind === "aufbauen" && o.zone === c.zone);
@@ -146,9 +146,73 @@ describe("Kern 2 – Karten", () => {
     }
   });
 
-  it("Stand-Takedowns brauchen nur beine ≥ 0", () => {
-    expect(CARD2.nd_double_leg.requires).toMatchObject({ beine: 0 });
-    expect(CARD2.nd_single_leg.requires).toMatchObject({ beine: 0 });
+  it("Stand-Takedowns haben klare Voraussetzungen (B17)", () => {
+    // Double Leg: Beine ≥ 0 und 1 Atem (Level Change macht ihn im Gerangel stärker); Single Leg braucht zusätzlich die Kopfposition.
+    expect(CARD2.nd_double_leg.requires).toEqual({ beine: 0 });
+    expect(CARD2.nd_double_leg.kraft).toBe(1);
+    expect(CARD2.nd_single_leg.requires).toEqual({ beine: 0, kopf: 0 });
+    expect(CARD2.cl_body_lock.requires).toEqual({ arme: 1 });
+    expect(CARD2.nd_sprawl.onStop).toEqual({ pos: "headlock", role: "top" });
+    expect(CARD2.nd_sprawl.onStopRequires).toEqual({ kopf: 0 });
+    expect(CARD2.nd_level_change).toMatchObject({ kind: "aufbauen", zone: "beine" });
+    expect(CARD2.nd_outside_foot.keys.join(" ")).toMatch(/Orthodox.*Southpaw/);
+    expect(CARD2.nd_outside_foot.keys.join(" ")).toMatch(/Gegengleich/);
+    expect(CARD2.nd_outside_foot.keys.join(" ")).toMatch(/Gleiche Auslage/);
+  });
+
+  it("Front Headlock (B16): Eingänge aus Stand, Clinch, Turtle und Sprawl; Ausgänge oben und unten", () => {
+    const into = CARDS2.filter((c) => c.to?.pos === "headlock" || c.onStop?.pos === "headlock").map((c) => c.id).sort();
+    expect(into).toEqual(["cl_snap_down", "nd_sprawl", "tt_to_headlock"]);
+    expect(CARD2.cl_snap_down.slots.map((x) => x.pos).sort()).toEqual(["clinch", "stand"]);
+    const top = cardsFor("headlock", "top"), bot = cardsFor("headlock", "bottom");
+    expect(top.some((c) => c.submission?.id === "guillotine")).toBe(true);
+    expect(top.filter((c) => c.to).map((c) => `${c.to!.pos}/${c.to!.role}`)).toEqual(["turtle/top"]);
+    const outs = bot.filter((c) => c.to).map((c) => `${c.to!.pos}/${c.to!.role}`).sort();
+    expect(outs).toEqual(["half/top", "stand/neutral", "stand/neutral"]);
+  });
+
+  it("onStop nur an Rahmen, Ziel gültig", () => {
+    for (const c of CARDS2.filter((x) => x.onStop)) {
+      expect(c.kind, c.id).toBe("rahmen");
+      expect(VALID_SLOT.has(`${c.onStop!.pos}:${c.onStop!.role}`), c.id).toBe(true);
+    }
+  });
+
+  it("Turtle (B20): Aufstehen und Raussitzen als Karten, Granby nur mit Trainer (keine Karte)", () => {
+    const tb = cardsFor("turtle", "bottom");
+    expect(tb.filter((c) => c.to?.pos === "stand").map((c) => c.id).sort()).toEqual(["tb_sit_out", "tb_stand_up"]);
+    expect(CARDS2.some((c) => /granby/i.test(c.id + c.term))).toBe(false);
+    expect(CARD2.tb_sit_out.keys.join(" ")).toMatch(/Granby.*nur mit Trainer/);
+    expect(CARD2.tb_sit_out.keys.join(" ")).toMatch(/Rücken nie zeigen/);
+  });
+
+  it("Takedowns, Würfe und Shots (B17): Sicherheitshinweis „Nur mit Trainer üben“", () => {
+    const ground = (p: Pos2) => p !== "stand" && p !== "clinch";
+    const td = CARDS2.filter((c) => c.to && ground(c.to.pos) && c.slots.some((x) => !ground(x.pos) || x.pos === "headlock"));
+    expect(td.length).toBeGreaterThanOrEqual(7);
+    for (const c of td) if (c.slots.some((x) => !ground(x.pos)) || c.id === "hlb_shot_through") expect(c.safety, c.id).toMatch(/nur mit Trainer/i);
+  });
+
+  it("MMA-Hinweis an jeder Karte (B18): ok/riskant/nein + ein Satz", () => {
+    for (const c of CARDS2) {
+      expect(["ok", "riskant", "nein"], c.id).toContain(c.mma);
+      expect(c.mmaNote, c.id).toBeTruthy();
+      expect(words(c.mmaNote!), `${c.id} mmaNote`).toBeLessThanOrEqual(12);
+    }
+    expect(CARD2.cl_pull_guard.mma).toBe("nein");
+    expect(CARDS2.some((c) => c.mma === "riskant")).toBe(true);
+  });
+
+  it("Glossar (B19): Alltagstitel + No-Gi-Begriff, einheitliche Schreibweise", () => {
+    for (const c of CARDS2) {
+      expect(c.plain, c.id).not.toBe(c.term);
+      expect(/[A-Za-z]/.test(c.term), `${c.id} term`).toBe(true);
+    }
+    const terms = CARDS2.map((c) => c.term).join(" | ");
+    for (const g of TERMS2) {
+      expect(terms.toLowerCase(), `Glossar ${g.nogi} kommt vor`).toContain(g.nogi.toLowerCase());
+      for (const v of g.avoid) expect(terms.toLowerCase().includes(v.toLowerCase()), `Variante „${v}“ statt „${g.nogi}“`).toBe(false);
+    }
   });
 
   it("Dilemma-Paare zeigen auf Zonen, in denen der Slot einen Folgeangriff hat", () => {
