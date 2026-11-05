@@ -85,3 +85,5 @@
 .k2-hand-info .k2-gem { margin-left: 4px; vertical-align: -1px; }
 .k2-hand-info .k2-rar-t { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-left: 3px; color: var(--text-3); }
 .k2-hand-info.is-empty i { display: inline-flex; align-items: center; gap: 3px; }
+/* Edelstein unten rechts bekommt eigenen Platz, wenn keine Bedingungs-Chips darunter stehen. */
+.k2-hcard:not(:has(.k2-hcard-reqs)) { padding-bottom: 16px; }
