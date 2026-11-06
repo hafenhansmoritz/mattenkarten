@@ -27,6 +27,7 @@ import {
 } from "./store";
 import "../program/program.css";
 import "./journey.css";
+import { emitLearning } from "../core2/rewards/events";
 import { formatDay, known, relDay, syncFromProgram, type JourneyStart } from "./ReviewCard";
 export { ReviewCard, journeyVisible, formatDay, type JourneyStart } from "./ReviewCard";
 
@@ -117,7 +118,7 @@ export function JourneyScreen({ start = "home", onBack }: { start?: JourneyStart
                 <button className="btn small ghost" onClick={leave} aria-label="Runde verlassen">✕</button>
                 <span className="label">Wiederholen · gemischt</span>
               </div>
-              <Quiz ids={view.ids} kicker="Wiederholen" onDone={(res) => setView({ kind: "reviewDone", res })} />
+              <Quiz ids={view.ids} kicker="Wiederholen" onDone={(res) => { if (res.length) emitLearning({ type: "review_done" }); setView({ kind: "reviewDone", res }); }} />
             </>
           )}
           {view.kind === "reviewDone" && <ReviewDone res={view.res} j={j} today={today} onDone={home} />}

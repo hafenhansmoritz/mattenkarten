@@ -12,6 +12,7 @@ import { decodePlan, planLink, readPlanFromHash } from "../data/planCode";
 import { STIL, randomStil, readStil } from "../data/stile";
 import { allCards, cardById, isPlanCard } from "../engine";
 import { useCollection } from "../collection/store";
+import { emitLearning } from "../rewards/events";
 import { SpielplanBauer, type BauerProps } from "./SpielplanBauer";
 import { Sideboard } from "./Sideboard";
 import { CoachAvatar } from "../../components/learn";
@@ -77,7 +78,7 @@ export function SpielplanModus({ onBack }: { onBack: () => void }) {
       <ArenaK2 key={`plan-${fight.seed}`} mode="free" seed={fight.seed} aiLevel={fight.level} boss={boss}
         stil={stilOfPlan(plan)} foeStil={boss ? undefined : fight.foe}
         plan={{ name: planName(plan), cards: fight.cards ?? plan.cards }} foePlan={{ name: foePlan.name, cards: foePlan.cards }}
-        onExit={() => setFight(null)} />
+        onExit={(won) => { if (won && boss) emitLearning({ type: "boss_first_win", boss: boss.id, name: boss.name }); setFight(null); }} />
     );
   }
   if (edit) {

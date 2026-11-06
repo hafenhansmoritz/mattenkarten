@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import type { Pos2 } from "../core2/types";
 import { onQuizAnswer } from "./events";
+import { emitLearning } from "../core2/rewards/events";
 import { POSITIONS, ROLES, type StuckRole } from "./recommend";
 import {
   applyAnswer, boost, isDate, learn, localDate, sanitizeReview, type ReviewState,
@@ -107,7 +108,10 @@ export function useJourney(): JourneyState {
 /* ---------- Aktionen ---------- */
 
 export function recordAnswer(id: string, ok: boolean, session: string, today = localDate()) {
+  const before = getJourney().graduated;
   updateJourney((s) => ({ ...s, ...applyAnswer(s, { id, ok, session }, today), acc: [...(s.acc ?? []), ok].slice(-ACC_WINDOW) }));
+  // Mechanik 8: Fehlerkarte 3/3 ausgebügelt → nur melden (die Reise liest nie Belohnungen).
+  if (getJourney().graduated > before) emitLearning({ type: "error_cleared", id });
 }
 
 /** Fragen aus abgeschlossenen Programm-Tagen nachtragen (für alle, die vor diesem Modul gelernt haben). */
@@ -124,6 +128,7 @@ export function syncLearned(pairs: { id: string; day: string }[], today = localD
 export function addTraining(e: Omit<TrainingEntry, "id">, reviewIds: string[], today = localDate()): TrainingEntry {
   const entry: TrainingEntry = { ...e, id: `t${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}` };
   updateJourney((s) => ({ ...s, ...boost(s, reviewIds, today), log: [...s.log, entry].slice(-200) }));
+  emitLearning({ type: "training_logged" });
   return entry;
 }
 

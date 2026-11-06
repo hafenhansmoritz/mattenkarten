@@ -10,6 +10,8 @@ import { leglockMenu } from "./leglock/store";
 import { useInstallPrompt } from "./pwa";
 import { unlockAudio } from "./sound";
 import type { GymStart } from "./gym/GymScreen";
+import { RewardToasts } from "./core2/rewards/RewardToasts";
+import { useRewards } from "./core2/rewards/store";
 
 // Code-Splitting (Bauplan 76): Startseite (Kampagne) lädt sofort, alles andere als eigener Chunk.
 // Der Service Worker precacht alle Chunks – offline bleibt alles verfügbar.
@@ -33,6 +35,7 @@ const CoachChat = named(() => import("./coach"), "CoachChat");
 const LegalScreen = named(() => import("./legal/LegalScreen"), "LegalScreen");
 const LeglockScreen = named(() => import("./leglock/LeglockScreen"), "LeglockScreen");
 const Sammlung = named(() => import("./core2/collection/Sammlung"), "Sammlung");
+const PaketeScreen = named(() => import("./core2/rewards/PaketeScreen"), "PaketeScreen");
 const Glossar = named(() => import("./core2/ui/Glossar"), "Glossar");
 const DailyScreen = named(() => import("./core2/daily/DailyScreen"), "DailyScreen");
 const GymScreen = named(() => import("./gym/GymScreen"), "GymScreen");
@@ -51,10 +54,19 @@ export function ScreenFallback() {
 }
 
 type Tab = "kampagne" | "raetsel" | "deck" | "mehr";
-type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "glossar" | "daily" | "warmup" | "gym";
+type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "glossar" | "daily" | "warmup" | "gym" | "pakete";
 const TAB_LABEL: Record<Tab, string> = { kampagne: "Kampagne", raetsel: "Rätsel", deck: "Deck", mehr: "Mehr" };
 
+/** Mechanik 8: Belohnungs-Hinweise liegen über jedem Bildschirm. */
 export function App() {
+  const [paketeTick, setPaketeTick] = useState(0);
+  return (<>
+    <AppScreens openPakete={paketeTick} />
+    <RewardToasts onOpen={() => setPaketeTick((n) => n + 1)} />
+  </>);
+}
+
+function AppScreens({ openPakete }: { openPakete: number }) {
   const g = useGame();
   const [tab, setTab] = useState<Tab>("kampagne");
   const [screen, setScreen] = useState<Screen>(null);
@@ -74,6 +86,8 @@ export function App() {
   // Geteilter Spielplan (#plan=…, Mechanik 7) öffnet die Körperkarte im Spielplan-Modus mit dem Spielplan-Bauer
   useEffect(() => { if (/(?:^#|&)plan=/.test(location.hash)) setScreen("k2"); }, []);
   useEffect(prefetchSoon, []);
+  // „Ansehen“ im Belohnungs-Hinweis öffnet Pakete & Staub (Kampf vorher beenden wir nicht – im Kampf gibt es keinen Hinweis mit Paket).
+  useEffect(() => { if (openPakete) setScreen("pakete"); }, [openPakete]);
   // iOS: Audio beim ersten Tippen entsperren
   useEffect(() => {
     const once = () => { unlockAudio(); window.removeEventListener("pointerdown", once); };
@@ -103,7 +117,8 @@ export function App() {
   if (screen === "trainer") return <TrainerCheck onBack={back} />;
   if (screen === "k2") return <KoerperkarteHub onBack={back} />;
   if (screen === "daily") return <DailyScreen onBack={back} />;
-  if (screen === "sammlung") return <div className="app"><div className="main"><Sammlung onBack={back} /></div></div>;
+  if (screen === "sammlung") return <div className="app"><div className="main"><Sammlung onBack={back} onPakete={() => setScreen("pakete")} /></div></div>;
+  if (screen === "pakete") return <div className="app"><div className="main"><PaketeScreen onBack={back} /></div></div>;
   if (screen === "glossar") return <div className="app"><div className="main"><Glossar onBack={back} /></div></div>;
   if (screen === "impressum" || screen === "datenschutz") return <div className="app"><div className="main"><LegalScreen page={screen} onBack={back} /></div></div>;
   if (screen === "gym") return <GymScreen start={gymStart} onBack={() => { setGymStart("home"); back(); }} />;
@@ -154,6 +169,7 @@ export function App() {
 
 function MoreMenu({ open }: { open: (s: Screen) => void }) {
   const { canInstall, iosHint, promptInstall } = useInstallPrompt();
+  const rw = useRewards();
   const items: { s: Screen; title: string; text: string }[] = [
     { s: "start", title: "7-Tage-Start", text: "Neu hier? In 7 Tagen à 15 Minuten sicher und mit Plan ins erste Training." },
     { s: "leglock", ...leglockMenu() },
@@ -168,6 +184,8 @@ function MoreMenu({ open }: { open: (s: Screen) => void }) {
     { s: "trainer", title: "Für Trainer", text: "Prüfliste aller Inhalte, die eine Trainer-Bestätigung brauchen." },
     { s: "daily", title: "Tages-Challenge", text: "Jeden Tag eine neue Lage aus der Körperkarte. Ein Versuch zählt, üben darfst du immer." },
     { s: "sammlung", title: "Sammlung", text: "Alle Körperkarten-Karten nach Position. Umdrehen zeigt das Kurzwissen." },
+    { s: "pakete", title: rw.packs ? `Pakete & Staub · ${rw.packs} ${rw.packs === 1 ? "Paket wartet" : "Pakete warten"}` : "Pakete & Staub",
+      text: `Fürs Lernen und echtes Training gibt es Kartenpakete. Kein Echtgeld, Chancen offen. ${rw.staub} Mattenstaub.` },
     { s: "glossar", title: "Glossar", text: "Schlüsselwörter wie Keil, Rahmen, Dilemma – Regel im Spiel und im echten Grappling." },
   ];
   return (

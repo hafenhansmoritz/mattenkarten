@@ -1,0 +1,164 @@
+/* Mechanik 8 – Pakete & Staub, Paket öffnen, Belohnungs-Hinweise. Mobile-first, 390px. */
+.rw-wrap, .rw-open { --rw-g: var(--rar-grundlage, #4fd1a1); --rw-t: #8fc3ff; --rw-m: var(--rar-meister, #b98bff); }
+
+/* ---------- Inventar ---------- */
+.rw-inv { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rw-tile {
+  position: relative; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto; column-gap: 10px; align-items: center;
+  padding: 12px; border-radius: var(--radius, 14px); background: var(--surface); border: 1px solid var(--line);
+}
+.rw-tile-ico { grid-row: 1 / 3; line-height: 0; }
+.rw-tile-n { font-family: var(--font-display); font-size: 30px; font-weight: 900; line-height: 1; }
+.rw-tile-l { font-size: 12.5px; color: var(--text-2); }
+.rw-open-btn { grid-column: 1 / -1; margin-top: 10px; width: 100%; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.rw-dust {
+  width: 26px; height: 34px; border-radius: 50% 50% 46% 46%;
+  background: radial-gradient(circle at 30% 30%, #fff 0 2px, transparent 3px), radial-gradient(circle at 70% 55%, #fff 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 45% 75%, #fff 0 1px, transparent 2px), linear-gradient(160deg, #8fc3ff, #b98bff);
+  box-shadow: 0 0 12px rgba(185, 139, 255, 0.45);
+}
+
+.rw-panel { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: var(--radius, 14px); background: var(--surface); border: 1px solid var(--line); }
+.rw-panel p { margin: 0; }
+.rw-h { margin: 0; font-family: var(--font-display); font-size: 19px; }
+.rw-ethics { border-color: color-mix(in srgb, var(--rw-g) 40%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--rw-g) 9%, var(--surface)), var(--surface)); }
+.rw-ethics ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 4px; font-size: 13.5px; }
+.rw-ethics li { position: relative; padding-left: 22px; }
+.rw-ethics li::before { content: "✓"; position: absolute; left: 2px; color: var(--rw-g); font-weight: 900; }
+
+.rw-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.rw-table th, .rw-table td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.rw-table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-2); font-weight: 700; }
+.rw-table tbody th { font-weight: 700; white-space: nowrap; }
+.rw-table tr.is-full td { color: var(--text-2); }
+.rw-today { color: var(--text-2); white-space: nowrap; }
+.rw-odds td.num { white-space: nowrap; }
+.rw-rules { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+
+.rw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rw-chips .k2-chip { display: inline-flex; align-items: center; gap: 5px; }
+.rw-msg { padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--rw-g) 14%, transparent); border: 1px solid color-mix(in srgb, var(--rw-g) 40%, transparent); }
+.rw-craft { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rw-craft li { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; border-bottom: 1px solid var(--line); padding: 2px 0; }
+.rw-craft-name { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-height: 44px; justify-content: center; text-align: left; background: none; border: 0; color: var(--text); font: inherit; padding: 2px 0; cursor: pointer; }
+.rw-craft-name b { font-size: 14px; }
+.rw-craft .btn { min-width: 92px; }
+.rw-log { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rw-log li { display: flex; justify-content: space-between; gap: 8px; }
+
+/* ---------- Paket öffnen ---------- */
+.rw-open {
+  position: fixed; inset: 0; z-index: 65; display: grid; grid-template-rows: auto 1fr auto; padding: max(12px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  background: radial-gradient(120% 70% at 50% 40%, #1d2550 0%, #0b0f1d 60%, #05070d 100%); color: #eaf0ff; overflow: hidden;
+}
+.rw-open-top { display: flex; justify-content: space-between; align-items: center; }
+.rw-open-count { font-size: 13px; color: #a9b6d6; }
+.rw-stage { display: grid; place-items: center; perspective: 1100px; min-height: 0; }
+.rw-open-foot { display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 120px; text-align: center; }
+.rw-open-hint { margin: 0; color: #a9b6d6; font-size: 14px; }
+
+.rw-pack { background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font: inherit; border-radius: 18px; }
+.rw-pack:focus-visible { outline: 3px solid var(--focus); outline-offset: 6px; }
+.rw-pack-art { position: relative; display: block; width: 200px; height: 290px; filter: drop-shadow(0 20px 40px rgba(122, 60, 255, 0.45)); }
+.rw-pack-body, .rw-pack-flap {
+  position: absolute; left: 0; right: 0; display: block;
+  background: linear-gradient(155deg, #ffd166 0%, #f0573f 38%, #9b3cff 78%, #3b2a8f 100%);
+}
+.rw-pack-flap {
+  top: 0; height: 34px; border-radius: 10px 10px 0 0;
+  clip-path: polygon(0 0, 100% 0, 100% 80%, 95% 100%, 90% 80%, 85% 100%, 80% 80%, 75% 100%, 70% 80%, 65% 100%, 60% 80%, 55% 100%, 50% 80%, 45% 100%, 40% 80%, 35% 100%, 30% 80%, 25% 100%, 20% 80%, 15% 100%, 10% 80%, 5% 100%, 0 80%);
+  transform-origin: 0% 100%; transition: transform .55s cubic-bezier(.3,.7,.2,1), opacity .55s;
+}
+.rw-pack-flap.go { transform: translate(40px, -90px) rotate(-28deg); opacity: 0; }
+.rw-pack-body {
+  top: 26px; bottom: 0; border-radius: 4px 4px 14px 14px; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center;
+  clip-path: polygon(0 0, 5% 4%, 10% 0, 15% 4%, 20% 0, 25% 4%, 30% 0, 35% 4%, 40% 0, 45% 4%, 50% 0, 55% 4%, 60% 0, 65% 4%, 70% 0, 75% 4%, 80% 0, 85% 4%, 90% 0, 95% 4%, 100% 0, 100% 100%, 0 100%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+.rw-pack-shine {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 45%, transparent 60%);
+  background-size: 250% 100%; animation: rw-shine 3.2s ease-in-out infinite;
+}
+@keyframes rw-shine { 0%, 30% { background-position: 130% 0; } 75%, 100% { background-position: -50% 0; } }
+.rw-pack-kicker { font-size: 10px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: #1a0f2e; opacity: .8; }
+.rw-pack-title { font-size: 34px; line-height: .95; color: #fff; text-shadow: 0 2px 0 rgba(40, 10, 70, 0.6); }
+.rw-pack-title b { display: block; color: #1a0f2e; text-shadow: none; }
+.rw-pack-gems { display: flex; gap: 8px; padding: 6px 10px; border-radius: 99px; background: rgba(10, 8, 30, 0.55); }
+.rw-pack-n { font-size: 11px; font-weight: 700; color: #1a0f2e; }
+
+.rw-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: min(100%, 380px); }
+.rw-slot { position: relative; aspect-ratio: 5 / 7.4; perspective: 900px; }
+.rw-flip { position: absolute; inset: 0; transform-style: preserve-3d; }
+.rw-slot .rw-back, .rw-slot .rw-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; margin: 0; }
+.rw-slot .rw-face { transform: rotateY(180deg); min-height: 0; padding: 7px 7px 18px; }
+.rw-back {
+  --gc: var(--rw-g);
+  display: grid; place-items: center; cursor: pointer; border-radius: 12px; font: inherit; color: #eaf0ff; padding: 0; overflow: hidden;
+  border: 2px solid color-mix(in srgb, var(--gc) 70%, #fff 0%);
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0 6px, transparent 6px 12px),
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--gc) 35%, #1a2348) 0%, #10162c 70%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--gc) 55%, transparent), 0 8px 18px rgba(0, 0, 0, 0.5);
+}
+.rw-back.rar-technik { --gc: var(--rw-t); }
+.rw-back.rar-meister { --gc: var(--rw-m); box-shadow: 0 0 30px color-mix(in srgb, var(--gc) 80%, transparent), 0 8px 18px rgba(0, 0, 0, 0.5); }
+.rw-back:focus-visible, .rw-face:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.rw-back-glow { position: absolute; inset: -30%; background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--gc) 60%, transparent), transparent 35%); animation: rw-spin 3s linear infinite; opacity: .55; }
+.rw-back.rar-grundlage .rw-back-glow { opacity: .3; }
+@keyframes rw-spin { to { transform: rotate(360deg); } }
+.rw-back-logo { position: relative; font-size: 30px; letter-spacing: -0.04em; color: #eaf0ff; }
+.rw-back-logo b { color: var(--gc); }
+.rw-back-gem { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); }
+.rw-slot.rar-meister .rw-back { animation: rw-pulse 1.4s ease-in-out infinite; }
+@keyframes rw-pulse { 50% { filter: brightness(1.25); } }
+
+.rw-face-t { font-size: 13px; margin-top: 4px; }
+.rw-face-term { font-size: 10px; color: var(--text-2); line-height: 1.2; }
+.rw-face-art { margin: auto auto 0; opacity: .22; color: var(--kc); line-height: 0; }
+.rw-face-rar { position: absolute !important; left: 7px; bottom: 5px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
+.rw-slot.rar-technik.is-shown .rw-face { box-shadow: 0 0 16px rgba(143, 195, 255, .45); }
+.rw-slot.rar-meister.is-shown .rw-face { box-shadow: 0 0 26px rgba(185, 139, 255, .75); }
+
+.rw-new, .rw-dup {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%); z-index: 3; white-space: nowrap;
+  font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; padding: 3px 9px; border-radius: 99px;
+}
+.rw-new { background: var(--points, #ffd166); color: #1a1205; box-shadow: 0 0 14px rgba(255, 209, 102, .7); }
+.rw-dup { background: #2a2f55; color: #d9ccff; border: 1px solid #6b5ab8; }
+.rw-burst {
+  position: absolute; inset: -14px; border-radius: 18px; pointer-events: none; z-index: -1;
+  border: 2px solid var(--rw-t); animation: rw-burst .8s ease-out forwards;
+}
+.rw-slot.rar-meister .rw-burst { border-color: var(--rw-m); box-shadow: 0 0 40px var(--rw-m); }
+@keyframes rw-burst { from { transform: scale(.7); opacity: 1; } to { transform: scale(1.35); opacity: 0; } }
+
+.rw-sum { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.rw-sum p { margin: 0; font-size: 15px; }
+.rw-sum-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+/* ---------- Hinweise ---------- */
+.rw-toasts { position: fixed; left: 0; right: 0; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 80; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 12px; pointer-events: none; }
+.rw-toast { width: min(100%, 420px); pointer-events: auto; }
+.rw-toast-in {
+  display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center; padding: 8px 6px 8px 12px; border-radius: 14px;
+  background: linear-gradient(135deg, #2a1f4d, #17203d); border: 1px solid rgba(185, 139, 255, .5); color: #eaf0ff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 0 18px rgba(185, 139, 255, .25);
+}
+.rw-toast-pack { line-height: 0; }
+.rw-toast-txt { display: flex; flex-direction: column; font-size: 13px; line-height: 1.25; }
+.rw-toast-txt span { color: #ffd166; font-weight: 700; }
+.rw-toast-x { width: 44px; height: 44px; border: 0; background: none; color: #a9b6d6; font-size: 22px; cursor: pointer; border-radius: 10px; }
+.rw-toast-x:focus-visible, .rw-toast-go:focus-visible { outline: 2px solid var(--focus); }
+
+/* Sammlung: Zugang zu Pakete & Staub */
+.sm-pakete { display: flex; align-items: center; gap: 10px; justify-content: space-between; padding: 8px 10px 8px 12px; border-radius: 12px; background: var(--surface); border: 1px solid rgba(185, 139, 255, .45); color: var(--text); font: inherit; cursor: pointer; text-align: left; min-height: 52px; }
+.sm-pakete b { display: block; }
+.sm-craft-btn { margin-top: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-pack-shine, .rw-back-glow, .rw-slot.rar-meister .rw-back { animation: none; }
+  .rw-slot .rw-face { transform: none; }
+  .rw-pack-flap { transition: none; }
+}

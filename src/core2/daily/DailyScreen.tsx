@@ -8,6 +8,7 @@ import { StilWahl } from "../ui/StilWahl";
 import type { StilId } from "../types";
 import { posLabel } from "../collection/Sammlung";
 import { dailyFor, dailySuccess, dateKey, toTutorial } from "./daily";
+import { emitLearning } from "../rewards/events";
 import { recordDaily, useDailyLog, type DailyEntry } from "./store";
 import "../../styles/core2.css";
 import "../../styles/sammlung.css";
@@ -36,7 +37,7 @@ export function DailyScreen({ onBack }: { onBack: () => void }) {
       <ArenaK2 key={`${key}-${run.practice}-${run.n}`} mode="tutorial" tutorial={t} aiLevel={def.aiLevel} stil={run.stil}
         onResult={(s: State2) => {
           const won = dailySuccess(def, s.result);
-          if (!run.practice && !log[key]) recordDaily(key, { id: def.id, won, rounds: s.history.length, pts: [s.p.pts, s.o.pts] });
+          if (!run.practice && !log[key] && recordDaily(key, { id: def.id, won, rounds: s.history.length, pts: [s.p.pts, s.o.pts] }) && won) emitLearning({ type: "daily_won", date: key });
           if (run.practice) setLastPractice(won);
         }}
         verdict={(s: State2) => {

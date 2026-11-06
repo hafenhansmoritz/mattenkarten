@@ -19,6 +19,7 @@ import {
   completeDay, currentDay, drillsDone, knotState, sameDayHint, useProgram, type ProgramProgress,
 } from "./store";
 import { ReviewCard, type JourneyStart } from "../journey/ReviewCard";
+import { emitLearning } from "../core2/rewards/events";
 import { LeglockCard } from "../leglock/LeglockScreen";
 import { GymWeekCard } from "../gym/GymScreen";
 import "./program.css";
@@ -320,6 +321,8 @@ function DayRun({ day, p, update, onExit }: {
                 setExamRes(r);
                 const sc = scoreExam(r);
                 update((x) => ({ ...x, exam: { ...sc, passed: sc.passed || !!x.exam?.passed, at: new Date().toISOString() } }));
+                // Mechanik 8: nur melden – das Programm liest nie Belohnungen.
+                if (sc.passed) emitLearning({ type: "exam_passed" });
                 go();
               }} />
             </>
@@ -345,6 +348,7 @@ function DayRun({ day, p, update, onExit }: {
             <HealthGate>
               <DrillCard day={day} onChoose={(d) => {
                 update((x) => completeDay(x, day.n, d));
+                emitLearning({ type: "program_day", day: day.n });
                 if (d === "done") sfx.win(); else sfx.select();
                 go();
               }} />

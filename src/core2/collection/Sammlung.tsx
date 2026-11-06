@@ -11,6 +11,9 @@ import { markSeen, useCollection } from "./store";
 import { keywordsOf, type KeywordId } from "../data/keywords";
 import { KeywordChips, KeywordPopover, KeywordTags } from "../ui/Keywords";
 import { sfx } from "../../sound";
+import { craftCard, useRewards } from "../rewards/store";
+import { CRAFT_COST } from "../rewards/table";
+import { PackMini } from "../rewards/RewardToasts";
 import "../../styles/core2.css";
 import "../../styles/sammlung.css";
 
@@ -47,8 +50,9 @@ function slotText(c: Card2): string {
   }).filter(Boolean).join(" · ");
 }
 
-export function Sammlung({ onBack }: { onBack: () => void }) {
+export function Sammlung({ onBack, onPakete }: { onBack: () => void; onPakete?: () => void }) {
   const col = useCollection();
+  const rw = useRewards();
   const cards = useMemo(() => allCards(), []);
   const groups = useMemo(() => groupByPosition(cards), [cards]);
   const have = useMemo(() => new Set(col.ids), [col.ids]);
@@ -75,6 +79,12 @@ export function Sammlung({ onBack }: { onBack: () => void }) {
           <span className="sm-bar"><i style={{ width: `${total ? (got / total) * 100 : 0}%` }} /></span>
         </div>
         <p className="muted small">Du sammelst eine Karte, wenn du sie spielst – oder wenn du sie im Kampf erfolgreich siehst. Tippe eine Karte an, dann nochmal zum Umdrehen.</p>
+        {onPakete && (
+          <button type="button" className="sm-pakete" onClick={() => { sfx.select(); onPakete(); }}>
+            <span><b>Pakete &amp; Staub</b><span className="muted small">{rw.packs ? `${rw.packs} ${rw.packs === 1 ? "Paket wartet" : "Pakete warten"}` : "Fürs Lernen gibt es Kartenpakete"} · {rw.staub} Staub</span></span>
+            <PackMini size={30} />
+          </button>
+        )}
         <ul className="sm-rar">
           {byRar.map(({ r, n, of }) => (
             <li key={r}><RarityGem rarity={r} size={13} /><b>{RARITY_LABEL[r]}</b><span className="num">{n}/{of}</span><span className="muted">{RARITY_HINT[r]}</span></li>
@@ -150,6 +160,7 @@ export function BigCard({ card: c, owned, onClose }: { card: Card2; owned: boole
             <b>Noch nicht gesammelt</b>
             <p>{KIND_LABEL[c.kind]} · {slotText(c)}</p>
             <p className="muted small">Spiel diese Lage im Kampf. Sobald du die Karte spielst oder sie erfolgreich gegen dich sitzt, gehört sie dir.</p>
+            <CraftButton card={c} />
           </div>
         ) : (
           <motion.div className="sm-flip" onClick={flip} role="button" tabIndex={0} aria-pressed={back}
@@ -188,5 +199,25 @@ export function BigCard({ card: c, owned, onClose }: { card: Card2; owned: boole
         <KeywordPopover ids={kw ? [kw] : null} labels={Object.fromEntries(kws.map((h) => [h.id, h.label]))} onClose={() => setKw(null)} />
       </motion.div>
     </motion.div>
+  );
+}
+
+/** Mechanik 8: fehlende Karte mit Mattenstaub herstellen (zweimal tippen = bestätigen). */
+function CraftButton({ card: c }: { card: Card2 }) {
+  const rw = useRewards();
+  const [sure, setSure] = useState(false);
+  const cost = CRAFT_COST[rarityOf(c)];
+  const can = rw.staub >= cost;
+  return (
+    <button type="button" className={`btn small sm-craft-btn ${sure ? "primary" : ""}`} disabled={!can}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!sure) { sfx.select(); setSure(true); return; }
+        const r = craftCard({ id: c.id, rarity: rarityOf(c) });
+        if (r.ok) sfx.win();
+        setSure(false);
+      }}>
+      {!can ? `Herstellen: ${cost} Staub nötig (du hast ${rw.staub})` : sure ? `Ja, für ${cost} Staub herstellen` : `Mit Mattenstaub herstellen · ${cost}`}
+    </button>
   );
 }

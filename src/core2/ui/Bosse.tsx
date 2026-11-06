@@ -6,6 +6,7 @@ import { ArenaK2 } from "./ArenaK2";
 import { FightersK2 } from "./FightersK2";
 import { POS_LABEL } from "./meta";
 import { StilWahl } from "./StilWahl";
+import { emitLearning } from "../rewards/events";
 import type { StilId } from "../types";
 import "../../styles/core2.css";
 
@@ -41,6 +42,7 @@ export function Bosse({ onBack }: { onBack: () => void }) {
       <ArenaK2 key={b.id + fight.seed} mode="free" boss={b} seed={fight.seed} stil={fight.stil}
         onExit={(won) => {
           if (won && !beaten.includes(b.id)) { const n = [...beaten, b.id]; setBeaten(n); writeBeaten(n); }
+          if (won) emitLearning({ type: "boss_first_win", boss: b.id, name: b.name });
           setFight(null);
         }} />
     );

@@ -9,6 +9,7 @@ import {
   type LQuestion, type Lesson, type RuleStatement, type SrcId, type Step,
 } from "./content";
 import { LegDiagram } from "./LegDiagram";
+import { emitLearning } from "../core2/rewards/events";
 import {
   checkOpen, completeLesson, isLeglockUnlocked, lessonOpen, recordCheck, scoreCheck, useLeglock, loadLeglock, type LeglockCheck,
 } from "./store";
@@ -54,6 +55,7 @@ export function LeglockScreen({ onBack }: { onBack: () => void }) {
           onDone={(res) => {
             const c = scoreCheck(res, (id) => QUESTIONS.find((q) => q.id === id)?.area);
             update((x) => recordCheck(x, c));
+            if (c.passed) emitLearning({ type: "leglock_badge" });
             setView({ kind: "result", c });
           }} />
       </div>
