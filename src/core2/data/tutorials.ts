@@ -26,8 +26,14 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     ],
     aiLevel: 1,
     maxRounds: 8,
-    // Schrittweises Aufdecken: erst nur Beine und Hüfte.
+    // Schrittweises Aufdecken: erst nur Beine und Hüfte (Stufe 2 = Tag 2: nur Aufbauen/Angreifen, kein Atem,
+    // keine Phasenleiste, keine Vorhersage; der Gegner greift nur in diesen Zonen an, keine Aufgabe).
     zones: ["beine", "huefte"],
+    ui: 2,
+    seed: 2201,
+    // Skript: R1 drückt er die Hüfte schwer, R2 blockt er den Elbow Escape mit den Knien – dann hilft die andere
+    // Richtung (Upa). Gleiche Züge, gleiches Ergebnis.
+    foe: { script: { 1: "mt_heavy_hips", 2: "mt_knee_pinch" }, prefer: ["mt_heavy_hips", "mt_post", "mt_knee_pinch"] },
     steps: [
       {
         round: 1, when: "start", highlightZone: "beine",
@@ -35,7 +41,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
       },
       {
         round: 1, when: "pick", requireCard: "mb_knee_inside", highlightZone: "beine",
-        text: "Bring dein Knie innen an seinen Knöchel, Ellbogen dazu (Ellbogen-Knie-Verbindung). Das ist dein Rahmen.",
+        text: "Bring dein Knie innen an seinen Knöchel, Ellbogen dazu (Ellbogen-Knie-Verbindung). Das ist deine Schutzhaltung.",
       },
       {
         round: 1, when: "after", highlightZone: "beine",
@@ -43,15 +49,15 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
       },
       {
         round: 2, when: "pick", requireCard: "mb_elbow_escape", highlightZone: "beine",
-        text: "Jetzt raus: seitlich wegrutschen, Knie zwischen euch (Elbow Escape). Sein Bein ist gefangen – du bist in der halben Guard.",
+        text: "Jetzt raus: seitlich wegrutschen, Knie zwischen euch (Elbow Escape). Klappt es, bist du in der Halben Guard.",
       },
       {
         round: 2, when: "after",
-        text: "Geblockt? Dann wechsle die Richtung: Brücke und rollen (Upa). Oder baue erst wieder deinen Rahmen.",
+        text: "Geblockt? Dann wechsle die Richtung: Brücke und rollen (Upa). Oder schütz dich erst wieder (Knie nach innen).",
       },
       {
         round: 3, when: "start",
-        text: "Jetzt du allein. Erst Rahmen, dann befreien. Rot zeigt, wo er gerade angreifen kann.",
+        text: "Jetzt du allein. Erst schützen, dann befreien. Blockt er eine Seite, nimm die andere.",
       },
     ],
   },
@@ -69,8 +75,10 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     goal: [{ pos: "side", role: "top" }],
     aiLevel: 1,
     maxRounds: 8,
-    // Schrittweises Aufdecken: Hüfte, Beine, dazu die Arme.
+    // Schrittweises Aufdecken: Hüfte, Beine, dazu die Arme (Stufe 3: Rahmen sichtbar, kein Atem, keine Phasenleiste).
     zones: ["huefte", "beine", "arme"],
+    ui: 3,
+    seed: 3201,
     steps: [
       {
         round: 1, when: "start", highlightZone: "huefte",
@@ -112,6 +120,8 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     aiLevel: 1,
     maxRounds: 10,
     seed: 4242,
+    // Tag 6 im Startprogramm: Stufe 6 (Atem, Phasenleiste, Dilemma).
+    ui: 6,
     steps: [
       {
         round: 1, when: "start", highlightZone: "arme",

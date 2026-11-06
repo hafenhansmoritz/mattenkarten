@@ -13,7 +13,8 @@ export {
 
 export { roleOf, boardFor, other, posValue, ZONE_LABEL, POS_LABEL } from "./board";
 export { legalCards, threats, PASS } from "./legal";
-export { aiChoose } from "./ai";
+export { aiChoose, aiChooseLesson, lessonAllows } from "./ai";
+export type { LessonFoe } from "./ai";
 export { setCardRegistry, cardById, slotCards, allCards } from "./registry";
 export { KRAFT_MAX } from "./resolve";
 export { GRIP_MAX, GRIP_EFFECT, gripsOf, gripBonus, gripFits, breakable } from "./grips";

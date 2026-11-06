@@ -3,6 +3,7 @@
 import type { Round2 } from "../types";
 import { cardById } from "../engine";
 import type { TutorialK2Def } from "./tutorialTypes";
+import { uiFeatures } from "./disclosure";
 
 export type Prediction = "win" | "stopped" | "nothing";
 
@@ -31,9 +32,16 @@ export function outcomeOf(r: Round2): Prediction {
   return "nothing";
 }
 
-/** Soll in dieser Runde vorhergesagt werden? */
+/** Fragt die Lektion überhaupt irgendwann nach einer Vorhersage (für den Schalter)? */
+export function lessonPredicts(tut: TutorialK2Def | undefined): boolean {
+  if (!tut || !uiFeatures(tut).predict) return false;
+  return !!tut.predictAll || PREDICT_ALL_LESSONS.has(tut.id) || tut.steps.some((st) => st.predict);
+}
+
+/** Soll in dieser Runde vorhergesagt werden? Erst ab Stufe 6 (Tag 6) – vorher ist die Vorhersage ausgeblendet. */
 export function shouldPredict(tut: TutorialK2Def | undefined, round: number): boolean {
   if (!tut) return false;
+  if (!uiFeatures(tut).predict) return false;
   if (tut.predictAll || PREDICT_ALL_LESSONS.has(tut.id)) return true;
   return tut.steps.some((st) => st.predict && (st.round == null || st.round === round));
 }

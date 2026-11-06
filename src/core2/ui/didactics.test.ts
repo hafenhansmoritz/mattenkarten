@@ -79,11 +79,17 @@ describe("Schrittweises Aufdecken (zones)", () => {
 });
 
 describe("Vorhersage vor dem Aufdecken", () => {
-  it("Lektionen 1–2 fragen jede Runde, sonst nur markierte Runden", () => {
-    expect(shouldPredict(byId("k2-raus-von-unten"), 5)).toBe(true);
-    expect(shouldPredict(byId("p-side-escape"), 1)).toBe(true);
-    expect(shouldPredict(byId("p-guard-posture"), 2)).toBe(true);
-    expect(shouldPredict(byId("p-guard-posture"), 3)).toBe(false);
+  it("Vorhersage erst ab Stufe 6 (Tag 6); dort nur markierte Runden", () => {
+    // UX-Review 06.11.: Tag 2–5 ohne Vorhersage (Stufe 2–5), auch wenn die Lektion sie früher jede Runde fragte.
+    expect(shouldPredict(byId("k2-raus-von-unten"), 5)).toBe(false);
+    expect(shouldPredict(byId("p-side-escape"), 1)).toBe(false);
+    expect(shouldPredict(byId("p-guard-posture"), 2)).toBe(false);
+    expect(shouldPredict(byId("p-shot-sprawl"), 2)).toBe(false);
+    expect(shouldPredict(byId("p-back-protect"), 2)).toBe(true);
+    expect(shouldPredict(byId("p-back-protect"), 3)).toBe(false);
+    // Ohne Stufe (z. B. Zusatz-Lektion, Tages-Challenge): wie bisher.
+    expect(shouldPredict({ ...byId("p-guard-posture"), ui: undefined }, 2)).toBe(true);
+    expect(shouldPredict({ ...byId("p-guard-posture"), ui: undefined }, 3)).toBe(false);
     expect(shouldPredict(byId("k2-erst-griff-dann-beenden"), 1)).toBe(false);
     expect(shouldPredict(undefined, 1)).toBe(false);
   });

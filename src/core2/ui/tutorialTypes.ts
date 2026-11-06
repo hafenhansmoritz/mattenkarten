@@ -20,6 +20,25 @@ export interface TutorialK2Step {
   predict?: boolean;
 }
 
+/**
+ * Freischalt-Stufe der Arena (UX-Review 06.11., „Freischalten nach Tagen“) = Tag im 7-Tage-Start.
+ * 2: Hüfte + Beine, nur Aufbauen/Angreifen, kein Atem, keine Phasenleiste, keine Vorhersage.
+ * 3: + Rahmen, Kopf/Nacken, genau eine gegnerische Aufgabe. 4: + Arme, „Flucht“.
+ * 5: + Atem („Atem 3/5“), Phasenleiste. 6: + Keil, Dilemma, Vorhersage (abschaltbar). 7 (oder fehlt): alles.
+ * Versteckt heißt versteckt (nicht grau). Siehe disclosure.ts → uiFeatures.
+ */
+export type UiLevel = 2 | 3 | 4 | 5 | 6 | 7;
+
+/** Gegner in der Lektion (deterministisch): Skript je Runde, Vorliebe, erlaubte Aufgaben. Zonen kommen aus der Stufe. */
+export interface TutorialFoe {
+  /** Karte je Runde (1-basiert), wenn spielbar und erlaubt. */
+  script?: Record<number, string>;
+  /** Vorliebe in Reihenfolge – die erste spielbare, erlaubte Karte wird gespielt. */
+  prefer?: string[];
+  /** Erlaubte gegnerische Aufgaben (IDs). Fehlt: Stufe 2 keine, sonst alle in den aktiven Zonen. Stufe 3: genau eine (Test). */
+  subs?: string[];
+}
+
 export interface TutorialK2Def {
   id: string;
   title: string;
@@ -52,4 +71,8 @@ export interface TutorialK2Def {
   /** false: Spielstil-Fähigkeit (Mechanik 5) aus – die ersten drei Lektionen und die Zusatz-Lektion; Lektionen bekommen ohnehin
    *  nur dann einen Stil, wenn der Aufrufer ihn mitgibt (Tages-Challenge nach der Stil-Wahl). */
   stil?: boolean;
+  /** Freischalt-Stufe (Tag). Fehlt: 7 (alles sichtbar, wie bisher). */
+  ui?: UiLevel;
+  /** Deterministischer Lektions-Gegner (zusätzlich zum festen Seed). */
+  foe?: TutorialFoe;
 }

@@ -299,9 +299,9 @@ function scoreStil(s: State2, side: Side, playing: Card2 | null, konter: Card2 |
 
 /** style (optional, B28): Boss-Spielstil oder Konter-Heuristik. Stufe 1 ignoriert ihn (und legt keine Konter).
  *  Alle Stufen rechnen nur mit der öffentlichen Sicht (publicView): sein verdeckter Konter bleibt verdeckt. */
-export function aiChoose(s0: State2, side: Side, level: 1 | 2 | 3, rng: () => number, style?: AiStyle): string {
+export function aiChoose(s0: State2, side: Side, level: 1 | 2 | 3, rng: () => number, style?: AiStyle, pool?: (c: Card2) => boolean): string {
   const s = publicView(s0, side);
-  const ok = okCards(s, side);
+  const ok = pool ? okCards(s, side).filter(pool) : okCards(s, side);
   if (ok.length === 0) return PASS;
   if (level === 1) {
     // Zufällig, aber sinnvoll: Rahmen ins Leere vermeiden, wenn es Alternativen gibt.
@@ -321,6 +321,38 @@ export function aiChoose(s0: State2, side: Side, level: 1 | 2 | 3, rng: () => nu
   const k = pickKonter(s, side, best, rng, style);
   const play = k ? withKonter(best.id, k.id) : best.id;
   return scoreStil(s, side, best, k, rng) > STIL_THRESHOLD ? withStil(play) : play;
+}
+
+/**
+ * Lektionen (UX-Review 06.11.): Regeln für den Gegner in geführten Lektionen.
+ * zones: nur Karten in diesen (sichtbaren) Zonen – nie eine Aufgabe in einer versteckten Zone.
+ * subs: erlaubte Aufgaben (IDs); [] = keine. Fehlt: alle in den Zonen.
+ * script: Karte je Runde (wenn spielbar und erlaubt). prefer: Vorliebe in Reihenfolge (erste spielbare gewinnt).
+ * So spielt der Gegner bei gleichen Spielerzügen immer gleich (zusammen mit dem festen Seed der Lektion).
+ */
+export interface LessonFoe {
+  zones?: Zone[];
+  subs?: string[];
+  script?: Record<number, string>;
+  prefer?: string[];
+}
+
+/** Darf der Lektions-Gegner diese Karte spielen (Zone sichtbar, Aufgabe erlaubt)? */
+export function lessonAllows(c: Card2, rules: LessonFoe): boolean {
+  if (rules.zones && rules.zones.length && !rules.zones.includes(c.zone)) return false;
+  if (c.submission && rules.subs && !rules.subs.includes(c.submission.id)) return false;
+  return true;
+}
+
+/** Gegner in Lektionen: Skript → Vorliebe → Stufe (nur erlaubte Karten); nichts erlaubt → Aufbauen in aktiver Zone, sonst passen. */
+export function aiChooseLesson(s0: State2, side: Side, level: 1 | 2 | 3, rng: () => number, rules: LessonFoe, style?: AiStyle): string {
+  const s = publicView(s0, side);
+  const ok = okCards(s, side).filter((c) => lessonAllows(c, rules));
+  if (ok.length === 0) return PASS;
+  const scripted = rules.script?.[s.round];
+  if (scripted && ok.some((c) => c.id === scripted)) return scripted;
+  for (const id of rules.prefer ?? []) if (ok.some((c) => c.id === id)) return id;
+  return aiChoose(s0, side, level, rng, style, (c) => lessonAllows(c, rules));
 }
 
 /** Bewertung eines Zustands aus Sicht von side. */

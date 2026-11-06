@@ -84,8 +84,10 @@ export const DAYS: ProgramDay[] = [
     goal: "Unten im Mount: erst Rahmen, dann wegrutschen (Elbow Escape) oder Upa.",
     why: "Erst schützen, dann raus: Die Schutzhaltung kommt vor jeder Befreiung.",
     lessons: [{ kind: "k2", id: "k2-raus-von-unten" }],
-    warmup: ["q-pos-best", "q-pos-guard-name", "q-tap-how"],
-    puzzle: ["q-mount-first", "q-mount-upa-trap", "q-mount-switch"],
+    // UX-Review 06.11.: kein „halbe Guard“ im Abruf (Tag 1 zeigt sie nicht), kein Upa-Fangen im Rätsel (die Lektion
+    // spielt Arm und Fuß fangen nicht) – stattdessen „halbe Guard ist Fortschritt“ (kommt im Elbow Escape vor).
+    warmup: ["q-pos-side-vs-guard", "q-pos-guard-name", "q-tap-how"],
+    puzzle: ["q-mount-first", "q-mount-progress", "q-mount-switch"],
     pics: ["qi-mount-elbows", "qi-mount-turn"],
     drill: {
       title: "Shrimp am Platz",
