@@ -35,6 +35,7 @@ import { firstUnseen, markKeywordSeen, readSeenKeywords, type KeywordId } from "
 import { KeywordPopover, KeywordToast } from "./Keywords";
 import type { BossDef } from "../data/bosses";
 import type { AiStyle } from "../engine/ai";
+import { TermText } from "../../program/TermText";
 import "../../styles/core2.css";
 
 export interface ArenaK2Props {
@@ -522,12 +523,19 @@ export function ArenaK2(props: ArenaK2Props) {
   }, [thr]);
 
   const won = s.result?.winner === "p";
+  // UX-Review: kein „Er gewinnt per Aufgabe 0:0“ – bei Aufgabe zählt der Tap, nicht der Punktestand.
   const resultTitle = !s.result ? "" :
-    s.result.type === "tap" ? (won ? "Du gewinnst per Aufgabe" : "Er gewinnt per Aufgabe") :
+    s.result.type === "tap" ? (won ? "Er klopft ab – du gewinnst" : "Du klopfst ab – er gewinnt") :
     s.result.type === "goal" ? "Ziel erreicht!" :
+    tut?.goal ? "Zeit um – Ziel noch offen" :
     s.result.winner === null ? "Unentschieden" : won ? "Sieg nach Punkten" : "Niederlage nach Punkten";
 
   // Kurze Ansage für Screenreader (eine dauerhafte Live-Region, damit sie zuverlässig vorliest).
+  const showAtem = !feat || feat.atem;
+  // Schlüsselwörter: Stufe plus abgeschaltete Mechaniken (z. B. „Griff lösen“ ohne Griffe, „Konter“ ohne Konter).
+  const hideKw = useMemo(() => [
+    ...(feat?.hideKeywords ?? []), ...(s.noGrips ? ["griff" as const] : []), ...(s.noChains ? ["kette" as const] : []), ...(s.noKonter ? ["konter" as const] : []),
+  ], [feat, s.noGrips, s.noChains, s.noKonter]);
   const announce = phase === "end" && s.result ? resultTitle
     : phase === "tap" ? "Klopf ab!" : phase === "release" ? "Er klopft ab – loslassen!"
     : phase === "result" && round ? `Runde ${round.round}: ${round.headline}` : "";
@@ -541,20 +549,25 @@ export function ArenaK2(props: ArenaK2Props) {
         <button type="button" className="k2-exit" aria-label="Zurück" onClick={(e) => { e.stopPropagation(); onExit(null); }}>‹</button>
         <div className="k2-hud p">
           <b className="k2-pts">{s.p.pts}</b>
-          <Pips n={s.p.kraft} />
+          {showAtem && <Pips n={s.p.kraft} label />}
         </div>
         <div className="k2-round">
           <span className="k2-round-n">Runde {Math.min(s.round, s.maxRounds)}/{s.maxRounds}{shown.top && <> · <span className={shown.top}>{shown.top === "p" ? "du oben" : "er oben"}</span></>}</span>
           <span className="k2-pos">{POS_LABEL[shown.pos]}</span>
         </div>
         <div className="k2-hud o">
-          <Pips n={s.o.kraft} />
+          {showAtem && <Pips n={s.o.kraft} label />}
           <b className="k2-pts">{s.o.pts}</b>
         </div>
       </header>
-      <ChainStrip pos={shown.pos} subs={shown.subs} history={shown.history} reduced={reduced}
-        last={phase === "impact" || phase === "result" ? round : null} />
-      {tut && <div className="k2-tut-idea"><b>{tut.title}</b> · {tut.idea}</div>}
+      {(!feat || feat.phaseBar) && <ChainStrip pos={shown.pos} subs={shown.subs} history={shown.history} reduced={reduced}
+        last={phase === "impact" || phase === "result" ? round : null} />}
+      {tut && <div className="k2-tut-idea"><span><b>{tut.title}</b> · <TermText text={tut.idea} /></span>
+        {lessonPredicts(tut) && (
+          <button type="button" className={`k2-pred-toggle${predictOn ? " on" : ""}`} aria-pressed={predictOn}
+            onClick={(e) => { e.stopPropagation(); togglePredict(); sfx.click(); }}>Vorhersage {predictOn ? "an" : "aus"}</button>
+        )}
+      </div>}
 
       {/* Szene */}
       <section className="k2-stage">
@@ -602,6 +615,16 @@ export function ArenaK2(props: ArenaK2Props) {
             </motion.div>
           )}
         </AnimatePresence>
+        {/* Coach-Blase (Tutorial-Start): über der Szene – verdeckt weder Hand noch Aufdecken-Knopf (UX-Review). */}
+        <AnimatePresence>
+          {startBubble && (
+            <motion.div className="k2-bubble is-stage" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}>
+              <CoachAvatar size={34} />
+              <p><TermText text={startBubble.text} /></p>
+              <button type="button" className="btn small" onClick={() => setBubbleDone((b) => [...b, startBubble.i])}>OK</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* Brett + Aufdeck-Ebene */}
@@ -610,7 +633,7 @@ export function ArenaK2(props: ArenaK2Props) {
           finish={finishOn.map((f) => ({ side: f.side, zone: f.zone }))} konterZone={myKonter?.zone ?? null} />
         <AnimatePresence>
           {showCards && (
-            <RevealLayer key={`rv-${round?.round}`} p={cards.p} o={cards.o} same={sameZone} impact={phase === "impact"} reduced={reduced}
+            <RevealLayer key={`rv-${round?.round}`} zones={ZONES.filter((z) => !hidZones.includes(z))} p={cards.p} o={cards.o} same={sameZone} impact={phase === "impact"} reduced={reduced}
               stil={(round?.stilUsed ?? []).map((x) => ({ side: x, power: STIL_POWER[s.stil![x]!].power }))}
               set={round?.konterSet ?? []} trig={(round?.events ?? []).filter((e) => e.t === "konter" && e.on === "trigger").map((e) => (e as Extract<Event2, { t: "konter" }>).side)} />
           )}
@@ -642,7 +665,7 @@ export function ArenaK2(props: ArenaK2Props) {
                 </motion.div>
               )}
             </AnimatePresence>
-            {afterStep && <div className="k2-coach-line"><CoachAvatar size={22} /><span>{afterStep.text}</span></div>}
+            {afterStep && <div className="k2-coach-line"><CoachAvatar size={22} /><span><TermText text={afterStep.text} /></span></div>}
             <button type="button" className="k2-tapnext" onClick={(e) => { e.stopPropagation(); advance(); }}>Tippen für weiter</button>
           </motion.section>
         )}
@@ -682,7 +705,7 @@ export function ArenaK2(props: ArenaK2Props) {
       {phase === "pick" && (
         <section className="k2-pick">
           {pickStep && !startBubble ? (
-            <div className="k2-coach-line"><CoachAvatar size={22} /><span>{pickStep.text}</span></div>
+            <div className="k2-coach-line"><CoachAvatar size={22} /><span><TermText text={pickStep.text} /></span></div>
           ) : (
             <div className={`k2-threatline${thr.length ? " has" : ""}${hisFinish ? " is-finish" : ""}`}>
               <span>{hisFinish ? `Er kann beenden – Rahmen an ${ZONE_DAT[hisFinish.zone]}!` : threatLine}{hisKonter ? " Er hat etwas vorbereitet." : ""}</span>
@@ -696,6 +719,7 @@ export function ArenaK2(props: ArenaK2Props) {
           )}
           <Hand2 cards={handShown} legal={legal} hiddenZones={hidZones} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.click(); }}
             myBoard={myBoard} locked={s.p.locked} kraft={s.p.kraft} requireCard={requireCard} highlightZone={hlZone}
+            showAtem={showAtem} hideKeywords={hideKw} kinds={feat?.kinds}
             gripZones={liveGrips.filter((g) => g.owner === "p").map((g) => g.zone)} chainReady={chainReady} konter={konterProp}
             plan={myPlan ? { ids: planIds, deck: myPlan.deck.length, fresh } : undefined} />
           <div className="k2-go-row">
@@ -720,17 +744,6 @@ export function ArenaK2(props: ArenaK2Props) {
       {phase === "predict" && pending && (
         <PredictPanel pending={pending} guess={guess} onGuess={makeGuess} onReveal={revealPending} />
       )}
-
-      {/* Coach-Blase (Tutorial-Start) */}
-      <AnimatePresence>
-        {startBubble && (
-          <motion.div className="k2-bubble" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}>
-            <CoachAvatar size={34} />
-            <p>{startBubble.text}</p>
-            <button type="button" className="btn small" onClick={() => setBubbleDone((b) => [...b, startBubble.i])}>OK</button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Tap / Loslassen */}
       <AnimatePresence>
@@ -766,7 +779,8 @@ export function ArenaK2(props: ArenaK2Props) {
             initial={{ scale: 0.88, y: 30 }} animate={{ scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 240, damping: 20 }}>
             <span className="label">{tut ? tut.title : `${props.plan ? `Spielplan · ${props.plan.name} · ` : ""}${boss ? `Boss · ${boss.name}` : `${props.plan ? "" : "Körperkarte · "}KI Stufe ${aiLevel}`}`}</span>
             <h2 className="display">{resultTitle}</h2>
-            <div className="k2-end-score"><span className="p">{s.p.pts}</span><span className="sep">:</span><span className="o">{s.o.pts}</span></div>
+            {/* Punktestand nur, wenn Punkte entscheiden (nicht bei Aufgabe oder erreichtem Lektionsziel). */}
+            {s.result.type !== "tap" && s.result.type !== "goal" && !tut?.goal && <div className="k2-end-score"><span className="p">{s.p.pts}</span><span className="sep">:</span><span className="o">{s.o.pts}</span></div>}
             {tapOk !== null && (
               <p className={`k2-end-safety ${tapOk ? "ok" : "late"}`}>
                 {tapOk ? (s.result.winner === "p" ? "Sauber losgelassen. So trainiert man sicher." : "Rechtzeitig abgeklopft. Genau richtig.")
@@ -777,11 +791,20 @@ export function ArenaK2(props: ArenaK2Props) {
               <p className="k2-end-pred">Vorhersagen: <b className="num">{predStats.ok} von {predStats.n}</b> richtig.
                 {predStats.ok === predStats.n ? " Du liest die Lage schon gut." : " Falsche Tipps sind okay – genau daraus lernst du."}</p>
             )}
-            <ol className="k2-end-why">
-              {topWhys(s.history).map((w) => (
-                <li key={w.round}><span className="k2-end-r">R{w.round}</span><span><b>{w.headline}</b> {w.why}</span></li>
-              ))}
-            </ol>
+            {s.result.type === "tap" && <p className="k2-end-sub">{s.result.sub} · Runde {s.history.length}</p>}
+            {(() => {
+              // Kurze Kämpfe: jede Runde der Reihe nach (keine Lücke wie „R1, R2, R4“). Lange: Schlüsselmomente, so benannt.
+              const all = s.history.length <= 5;
+              const rows = all ? s.history.map((r) => ({ round: r.round, headline: r.headline, why: r.why })) : topWhys(s.history);
+              return (<>
+                <p className="k2-end-why-h">{all ? "Runde für Runde" : "Schlüsselmomente"}</p>
+                <ol className="k2-end-why">
+                  {rows.map((w) => (
+                    <li key={w.round}><span className="k2-end-r">R{w.round}</span><span><b>{w.headline}</b> {w.why}</span></li>
+                  ))}
+                </ol>
+              </>);
+            })()}
             {boss && <p className="k2-end-lesson"><b>Lehre:</b> {boss.lesson}</p>}
             {myStil && (() => {
               const st = stilStats(s, "p");
@@ -866,7 +889,7 @@ function PredictPanel({ pending, guess, onGuess, onReveal }: {
           <b>{fb.ok ? "✓ " : "✗ "}{fb.title}</b> {pending.r.why}
         </motion.p>
       )}
-      {guess && <button type="button" className="btn primary big k2-go" onClick={onReveal} autoFocus>Aufdecken!</button>}
+      {guess && <button type="button" className="btn primary big k2-go" onClick={onReveal} ref={(el) => el?.focus({ preventScroll: true })}>Aufdecken!</button>}
     </motion.section>
   );
 }
@@ -934,11 +957,11 @@ function GripStrip({ grips, onOpen }: { grips: Grip2[]; onOpen: () => void }) {
   );
 }
 
-function Pips({ n }: { n: number }) {
+function Pips({ n, label }: { n: number; label?: boolean }) {
   return (
-    <span className="k2-pips" role="img" aria-label={`${ATEM_LABEL} ${n} von ${KRAFT_MAX}`} title={ATEM_LABEL}>
-      <KraftIcon size={11} />
-      {Array.from({ length: KRAFT_MAX }, (_, i) => <i key={i} className={i < n ? "on" : ""} />)}
+    <span className={`k2-pips${label ? " has-label" : ""}`} role="img" aria-label={`${ATEM_LABEL} ${n} von ${KRAFT_MAX}`} title={ATEM_LABEL}>
+      {label ? <span className="k2-pips-l" aria-hidden>{ATEM_LABEL} {n}/{KRAFT_MAX}</span> : <KraftIcon size={11} />}
+      <span className="k2-pips-row" aria-hidden>{Array.from({ length: KRAFT_MAX }, (_, i) => <i key={i} className={i < n ? "on" : ""} />)}</span>
     </span>
   );
 }
@@ -955,15 +978,16 @@ function PlayedRow({ label, c }: { label: string; c: Card2 | null }) {
 // Geometrie muss zu core2.css passen (.k2-board: padding-top + Zeilenhöhe).
 const BOARD_HEAD = 16;
 const BOARD_ROW = 30;
-const rowY = (z: Zone) => BOARD_HEAD + ZONES.indexOf(z) * BOARD_ROW + BOARD_ROW / 2;
+/** Zeilenmitte; zones = sichtbare Zonen (ausgeblendete Zeilen fehlen auf dem Brett). */
+const rowY = (z: Zone, zones: Zone[] = ZONES) => BOARD_HEAD + Math.max(0, zones.indexOf(z)) * BOARD_ROW + BOARD_ROW / 2;
 
 /** Beide Karten drehen sich um; gleiche Zone → sie knallen über dieser Leiste zusammen. */
-function RevealLayer({ p, o, same, impact, reduced, set = [], trig = [], stil = [] }: { p: Card2 | null; o: Card2 | null; same: boolean; impact: boolean; reduced: boolean; set?: Side[]; trig?: Side[]; stil?: { side: Side; power: string }[] }) {
+function RevealLayer({ p, o, same, impact, reduced, set = [], trig = [], stil = [], zones = ZONES }: { p: Card2 | null; o: Card2 | null; same: boolean; impact: boolean; reduced: boolean; set?: Side[]; trig?: Side[]; stil?: { side: Side; power: string }[]; zones?: Zone[] }) {
   return (
     <motion.div className="k2-reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.25 } }}>
       {(["p", "o"] as Side[]).map((side) => {
         const c = side === "p" ? p : o;
-        const y = c ? rowY(c.zone) : rowY("huefte");
+        const y = c ? rowY(c.zone, zones) : rowY("huefte", zones);
         // Gleiche Zone: Karten fliegen zur Mitte und knallen zusammen. Sonst bleiben sie an ihrer Seite.
         const restX = side === "p" ? "-62%" : "62%";
         const slamX = side === "p" ? "-52%" : "52%";
@@ -996,7 +1020,7 @@ function RevealLayer({ p, o, same, impact, reduced, set = [], trig = [], stil = 
           </motion.div>
         );
       })}
-      {same && impact && p && <motion.span className="k2-clash" style={{ top: rowY(p.zone) }}
+      {same && impact && p && <motion.span className="k2-clash" style={{ top: rowY(p.zone, zones) }}
         initial={{ scale: 0.2, opacity: 1 }} animate={{ scale: 1.8, opacity: 0 }} transition={{ duration: 0.45, delay: 0.12 }} aria-hidden />}
     </motion.div>
   );

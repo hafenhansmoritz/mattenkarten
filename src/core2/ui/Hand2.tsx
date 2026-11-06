@@ -40,13 +40,22 @@ export interface Hand2Props {
   /** Mechanik 6 „Spielplan“: ids = gezogene Angriffe deines Plans in dieser Lage (eigene Gruppe oben), alle anderen Karten sind
    *  Grundlagen; deck = Karten im Stapel; fresh = eben gezogen (Animation, „neu“). Ohne plan: normale Hand. */
   plan?: { ids: string[]; deck: number; fresh: string[] };
+  /** Freischalt-Stufe (UX-Review 06.11.): Atem-Kosten zeigen (Standard ja). */
+  showAtem?: boolean;
+  /** Freischalt-Stufe: diese Schlüsselwörter (noch) nicht zeigen. */
+  hideKeywords?: KeywordId[];
+  /** Freischalt-Stufe: sichtbare Kartenarten (für die Legende). */
+  kinds?: Card2["kind"][];
   /** Max. sichtbare Karten (Standard 8), Rest hinter "+N". */
   max?: number;
   className?: string;
 }
 
 /** Hand für Kern 2: Karten nach Zone gruppiert (vier Spalten), Farbe = Art. */
-export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, hiddenZones = [], gripZones = [], chainReady = {}, konter, plan, max = 8, className }: Hand2Props) {
+export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, hiddenZones = [], gripZones = [], chainReady = {}, konter, plan, showAtem = true, hideKeywords = [], kinds, max = 8, className }: Hand2Props) {
+  // Versteckte Zonen: Spalte fällt ganz weg (nicht grau). Ausnahme: eine Karte daraus wird gezeigt (geforderte Karte / Notfall).
+  const colZones = ZONES.filter((z) => !hiddenZones.includes(z) || cards.some((c) => c.zone === z));
+  const kwOf = (c: Card2) => keywordsOf(c).filter((h) => !hideKeywords.includes(h.id));
   const reduced = !!useReducedMotion();
   const [showAll, setShowAll] = useState(false);
   const lmap = useMemo(() => new Map(legal.map((l) => [l.id, l])), [legal]);
@@ -65,7 +74,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
   // Schlüsselwörter: Antippen im Detail oder langes Drücken auf der Karte öffnet das Glossar.
   const [kwOpen, setKwOpen] = useState<{ ids: KeywordId[]; labels: Partial<Record<KeywordId, string>> } | null>(null);
   const openKw = (c: Card2, only?: KeywordId) => {
-    const hits = keywordsOf(c).filter((h) => !only || h.id === only);
+    const hits = kwOf(c).filter((h) => !only || h.id === only);
     if (hits.length) setKwOpen({ ids: hits.map((h) => h.id), labels: Object.fromEntries(hits.map((h) => [h.id, h.label])) });
   };
   const lp = useRef<{ t?: ReturnType<typeof setTimeout>; fired: boolean }>({ fired: false });
@@ -83,12 +92,14 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
     const isSel = selected === c.id;
     const isKonter = konter?.sel === c.id;
     const isLying = konter?.mine === c.id;
-    const tooExpensive = c.kraft != null && kraft != null && c.kraft > kraft;
+    const tooExpensive = showAtem && c.kraft != null && kraft != null && c.kraft > kraft;
     const chainFrom = chainReady[c.id];
-    const reqs = reqList(c, gripZones, !!chainFrom, planSet.has(c.id));
+    // Bedingungen in ausgeblendeten Zonen nicht zeigen (dort ändert sich in der Lektion nichts).
+    const reqs = reqList(c, gripZones, !!chainFrom, planSet.has(c.id)).filter((r) => !hiddenZones.includes(r.zone));
+    const cost = showAtem ? c.kraft : undefined;
     const isFresh = freshSet.has(c.id);
     const rar = rarityOf(c);
-    const kws = keywordsOf(c);
+    const kws = kwOf(c);
     return (
       <Pulse key={c.id} active={requireCard === c.id && !isSel} radius="8px" className="k2-hcard-pulse">
         <motion.button type="button"
@@ -96,7 +107,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
           disabled={disabled && !isKonter}
           data-card={c.id}
           aria-pressed={isSel}
-          aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${kws.filter((k) => HAND_EXTRA.includes(k.id)).map((k) => ` ${k.label}`).join("")}${chainFrom && ok ? ", Kette bereit" : ""}${isFresh ? ", neu gezogen" : ""}${isKonter ? ", Konter" : isLying ? ", liegt verdeckt" : ""}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}`).join("")}${c.kraft ? `, ${c.kraft} Atem nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${reqs.some((r) => r.grip) ? ". Dein Griff senkt die Bedingung um 1" : ""}${reqs.some((r) => r.sharp) ? ". Geübt: dein Spielplan senkt die Bedingung um 1" : ""}${chainFrom && ok ? `. Kette nach ${chainFrom} senkt die Bedingung um 1` : ""}${isKonter ? ". Als Konter vorbereitet, verdeckt" : ""}${planSet.has(c.id) ? ". Aus deinem Spielplan" : ""}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
+          aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${kws.filter((k) => HAND_EXTRA.includes(k.id)).map((k) => ` ${k.label}`).join("")}${chainFrom && ok ? ", Kette bereit" : ""}${isFresh ? ", neu gezogen" : ""}${isKonter ? ", Konter" : isLying ? ", liegt verdeckt" : ""}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}`).join("")}${cost ? `, ${cost} Atem nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${reqs.some((r) => r.grip) ? ". Dein Griff senkt die Bedingung um 1" : ""}${reqs.some((r) => r.sharp) ? ". Geübt: dein Spielplan senkt die Bedingung um 1" : ""}${chainFrom && ok ? `. Kette nach ${chainFrom} senkt die Bedingung um 1` : ""}${isKonter ? ". Als Konter vorbereitet, verdeckt" : ""}${planSet.has(c.id) ? ". Aus deinem Spielplan" : ""}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
           title={!ok ? l?.reason : blockedByTut ? "Erst die markierte Karte" : c.plainDo}
           initial={reduced ? { opacity: 0 } : isFresh ? { opacity: 0, y: -46, x: 40, rotate: 8, scale: 0.7 } : { opacity: 0, y: 14, scale: 0.9 }}
           animate={{ opacity: 1, y: isSel && !reduced ? -4 : 0, scale: 1 }}
@@ -114,14 +125,14 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
           {isFresh && <span className="k2-fresh-badge">neu gezogen </span>}
           {planSet.has(c.id) && <span className="k2-hcard-zone" aria-hidden title={ZONE_LABEL[c.zone]}><ZoneIcon zone={c.zone} size={10} /></span>}
           {(isKonter || isLying) && <span className="k2-konter-badge"><KonterIcon size={9} />{isKonter ? "Konter" : "liegt verdeckt"} </span>}
-          {(reqs.length > 0 || c.kraft) && (
+          {(reqs.length > 0 || cost) && (
             <span className="k2-hcard-reqs">
               {reqs.map((r) => {
                 const met = myBoard ? myBoard[r.zone] >= r.n : null;
                 return <span key={r.zone} className={`k2-req${met === true ? " met" : met === false ? " miss" : ""}${r.grip ? " by-grip" : ""}${r.chain ? " by-chain" : ""}${r.sharp ? " by-plan" : ""}`}
                   title={r.chain ? "Deine Kette senkt die Bedingung um 1" : r.grip ? "Dein Griff senkt die Bedingung um 1" : r.sharp ? "Geübt: dein Spielplan senkt die Bedingung um 1" : undefined}>{ZONE_SHORT[r.zone]} {fmtSigned(r.n)} </span>;
               })}
-              {c.kraft ? <span className={`k2-req kraft${tooExpensive ? " miss" : ""}`}><KraftIcon size={9} />{c.kraft}</span> : null}
+              {cost ? <span className={`k2-req kraft${tooExpensive ? " miss" : ""}`}><KraftIcon size={9} />{cost}</span> : null}
             </span>
           )}
           {isLocked && <span className="k2-lock" aria-hidden><LockIcon size={11} /></span>}
@@ -145,13 +156,13 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
           <div className="k2-plan-head is-basics"><b>Grundlagen</b><span>kann jeder, immer</span></div>
         </div>
       )}
-      <div className="k2-hand-cols">
-        {ZONES.map((z) => {
+      <div className="k2-hand-cols" style={colZones.length !== 4 ? { gridTemplateColumns: `repeat(${colZones.length}, minmax(0, 1fr))` } : undefined}>
+        {colZones.map((z) => {
           const col = cards.filter((c) => c.zone === z && visibleSet.has(c.id) && !planSet.has(c.id));
           const later = hiddenZones.includes(z) && col.length === 0;
           return (
             <div key={z} className={`k2-hcol${highlightZone === z ? " is-hl" : ""}${later ? " is-later" : ""}`}>
-              <div className="k2-hcol-head" title={ZONE_LABEL[z]}><ZoneIcon zone={z} size={13} /><span>{ZONE_SHORT[z]}</span></div>
+              <div className="k2-hcol-head" title={ZONE_LABEL[z]}><ZoneIcon zone={z} size={13} /><span>{ZONE_LABEL[z]}</span></div>
               {later && <div className="k2-hcol-empty k2-hcol-later">später</div>}
               {col.length === 0 && !later && <div className="k2-hcol-empty" aria-hidden>–</div>}
               {col.map(renderCard)}
@@ -176,7 +187,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                 <b>{chainReady[sel.id] ? `Kette bereit nach ${chainReady[sel.id]}:` : `Kette nach ${chainAfterNames(sel).join(" oder ")}:`}</b> {sel.chain.why}
               </p>
             )}
-            <KeywordChips card={sel} onOpen={(id) => openKw(sel, id)} />
+            <KeywordChips card={sel} hide={hideKeywords} onOpen={(id) => openKw(sel, id)} />
             {konter && canKonter(sel) && <KonterOffer card={sel} konter={konter} />}
           </motion.div>
         ) : kSel ? (
@@ -188,7 +199,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
           </motion.div>
         ) : (
           <motion.div key="none" className="k2-hand-info is-empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            Wähle eine Karte. <i className="kc-a"><KindIcon kind="angriff" size={10} /> Angreifen</i> · <i className="kc-b"><KindIcon kind="aufbauen" size={10} /> Aufbauen</i> · <i className="kc-r"><KindIcon kind="rahmen" size={10} /> Rahmen</i>
+            Wähle eine Karte. <i className="kc-a"><KindIcon kind="angriff" size={10} /> Angreifen</i> · <i className="kc-b"><KindIcon kind="aufbauen" size={10} /> Aufbauen</i>{(!kinds || kinds.includes("rahmen")) && <> · <i className="kc-r"><KindIcon kind="rahmen" size={10} /> Rahmen</i></>}
           </motion.div>
         )}
       </AnimatePresence>

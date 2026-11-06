@@ -31,7 +31,7 @@
 .k2-ico { flex: none; display: block; }
 
 /* ---------- Kopfzeile ---------- */
-.k2-head { display: grid; grid-template-columns: 32px 1fr auto 1fr; align-items: center; gap: 6px; min-height: 40px; }
+.k2-head { display: grid; grid-template-columns: 44px 1fr auto 1fr; align-items: center; gap: 6px; min-height: 40px; }
 .k2-exit { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text-2); font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0 0 2px; }
 .k2-hud { display: flex; align-items: center; gap: 8px; }
 .k2-hud.o { justify-content: flex-end; }
@@ -155,7 +155,9 @@
 .k2-hand-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; align-items: start; }
 .k2-hcol { display: flex; flex-direction: column; gap: 5px; min-width: 0; padding: 4px 3px 5px; border-radius: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid transparent; transition: border-color var(--t-mid), background var(--t-mid); }
 .k2-hcol.is-hl { border-color: rgba(255, 209, 102, 0.55); background: rgba(255, 209, 102, 0.06); }
-.k2-hcol-head { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 10.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
+.k2-hcol-head { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 10.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; min-width: 0; }
+.k2-hcol-head span { overflow: hidden; text-overflow: clip; }
+@media (max-width: 420px) { .k2-hand-cols:not([style]) .k2-hcol-head { font-size: 9.5px; letter-spacing: 0; } .k2-hand-cols:not([style]) .k2-hcol-head svg { display: none; } }
 .k2-hcol-empty { text-align: center; color: var(--text-3); opacity: 0.4; font-size: 12px; padding: 6px 0; }
 .k2-hcard-pulse { display: block; width: 100%; }
 .k2-hcard {
@@ -552,3 +554,24 @@
 .k2-sb-chips li.is-foe { border-color: var(--danger, #e5484d); }
 .k2-sb-chips li.is-free { border-color: #3fae74; }
 .k2-sb-swaps { margin: 4px 0 8px; padding-left: 18px; font-size: 13.5px; }
+
+/* UX-Review 06.11.: Atem beschriftet („Atem 3/5“), Vorhersage-Schalter, Ergebnis ohne 0:0 */
+.k2-pips.has-label { flex-direction: column; align-items: flex-start; gap: 2px; }
+.k2-hud.o .k2-pips.has-label { align-items: flex-end; }
+.k2-pips-l { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
+.k2-pips-row { display: inline-flex; gap: 3px; }
+.k2-tut-idea { display: flex; align-items: center; gap: 8px; }
+.k2-tut-idea > span { flex: 1; min-width: 0; }
+.k2-pred-toggle { flex: none; min-height: 32px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-2); font: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+.k2-pred-toggle.on { color: var(--k2-focus); border-color: var(--k2-focus); }
+.k2-end-sub { margin: -4px 0 0; font-size: 14px; font-weight: 700; color: var(--text-2); }
+.k2-end-why-h { margin: 4px 0 -2px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+/* Coach-Blase über der Szene statt über Hand/Knopf; Kopfzeile bleibt beim Scrollen sichtbar. */
+.k2-stage { position: relative; }
+.k2-bubble.is-stage { position: absolute; top: 6px; left: 6px; right: 6px; bottom: auto; z-index: 8; padding: 8px 10px; }
+.k2-bubble.is-stage p { font-size: 13.5px; }
+.k2-head { position: sticky; top: 0; z-index: 20; background: var(--bg, #0b0f1a); padding: 4px 0; }
+/* Kartentitel ohne automatische Silbentrennung („Wegrut-schen“); Schlüsselwort-Tags dürfen umbrechen („Dilemma → Beine“). */
+.k2-hcard-t { hyphens: manual; -webkit-hyphens: manual; overflow-wrap: break-word; }
+.k2-hcard .kw-tag { white-space: normal; }
+@media (max-width: 420px) { .k2-hand-cols:not([style]) .k2-hcard-t { font-size: 11px; letter-spacing: -0.015em; } }

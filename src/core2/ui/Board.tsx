@@ -15,7 +15,7 @@ export interface BoardProps {
   threats?: { zone: Zone; cardIds: string[] }[];
   /** Aus wessen Sicht gezeigt wird (Standard "p"): diese Seite ist "du" (blau, links). */
   perspective?: Side;
-  /** Zonen, die in dieser Lektion noch nicht aktiv sind: grau, "kommt später". */
+  /** Zonen, die in dieser Lektion noch nicht aktiv sind: werden ausgeblendet. */
   hidden?: Zone[];
   /** Mechanik 2: liegende Griffe (State2.grips) – Marke neben der Zone, Farbe des Besitzers. */
   grips?: { id: string; name: string; owner: Side; zone: Zone }[];
@@ -68,18 +68,8 @@ export function Board({ board, focus = null, lastDeltas = null, threats = [], pe
       {ZONES.map((z) => {
         const v = Math.max(-2, Math.min(2, (board[z] ?? 0) * sign));
         const d = lastDeltas?.[z] ? (lastDeltas[z] as number) * sign : 0;
-        if (hidden.includes(z)) {
-          return (
-            <div key={z} className="k2-row is-later" aria-label={`${ZONE_LABEL[z]}: kommt später`}>
-              <div className="k2-row-label">
-                <ZoneIcon zone={z} size={15} />
-                <span>{ZONE_LABEL[z]}</span>
-              </div>
-              <div className="k2-track k2-track-later"><span>kommt später</span></div>
-              <span className="k2-row-val" />
-            </div>
-          );
-        }
+        // UX-Review 06.11.: noch nicht freigeschaltete Zonen werden ausgeblendet (nicht grau) – weniger auf einmal.
+        if (hidden.includes(z)) return null;
         const isFocus = focus === z;
         const threat = threatZones.has(z);
         const fin = finish.filter((f) => f.zone === z);

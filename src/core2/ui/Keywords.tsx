@@ -17,8 +17,8 @@ export function KeywordTags({ hits, className }: { hits: KeywordHit[]; className
 }
 
 /** Antippbare Chips: öffnen das Glossar-Popover für genau dieses Wort. */
-export function KeywordChips({ card, onOpen, className }: { card: Card2; onOpen: (id: KeywordId) => void; className?: string }) {
-  const hits = keywordsOf(card);
+export function KeywordChips({ card, onOpen, className, hide = [] }: { card: Card2; onOpen: (id: KeywordId) => void; className?: string; hide?: KeywordId[] }) {
+  const hits = keywordsOf(card).filter((h) => !hide.includes(h.id));
   if (!hits.length) return null;
   return (
     <span className={["kw-chips", className].filter(Boolean).join(" ")}>

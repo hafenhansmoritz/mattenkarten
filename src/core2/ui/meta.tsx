@@ -4,7 +4,7 @@ import { ZONES } from "../types";
 
 export const ZONE_LABEL: Record<Zone, string> = { kopf: "Kopf/Nacken", arme: "Arme", huefte: "Hüfte", beine: "Beine" };
 /** Kurzform für Chips ("Hüfte +1"). */
-export const ZONE_SHORT: Record<Zone, string> = { kopf: "Nacken", arme: "Arme", huefte: "Hüfte", beine: "Beine" };
+export const ZONE_SHORT: Record<Zone, string> = { kopf: "Kopf", arme: "Arme", huefte: "Hüfte", beine: "Beine" };
 /** Dativ für Sätze ("an Hüfte und Armen"). */
 export const ZONE_DAT: Record<Zone, string> = { kopf: "Nacken", arme: "Armen", huefte: "Hüfte", beine: "Beinen" };
 export const ZONE_QUESTION: Record<Zone, string> = {
