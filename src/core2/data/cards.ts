@@ -834,7 +834,7 @@ const mountTop: Card2[] = [
     id: "mt_knee_pinch", plain: "Knie zusammen", term: "Knee Pinch",
     plainDo: "Deine Knie klemmen – sein Knie kommt nicht rein.",
     kind: "rahmen", zone: "beine", slots: [MOUNT_T],
-    why: "Enge Knie (Knee Pinch) lassen keinen Platz für sein Knie – sein Ellbogen-Escape stockt.",
+    why: "Enge Knie (Knee Pinch) lassen keinen Platz für sein Knie – sein Wegrutschen (Elbow Escape) stockt.",
     keys: ["Knie an seine Hüfte", "Füße unter seine Beine"],
     mistakes: ["Knie weit offen"],
     source: SRC.mountEsc, check: true,

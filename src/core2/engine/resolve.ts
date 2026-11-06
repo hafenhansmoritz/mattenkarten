@@ -9,6 +9,7 @@ import { chainFrom } from "./chains";
 import { checkKonter, KONTER_COST, KONTER_NO_GAIN, KONTER_ROUNDS, konterFits, splitPlay } from "./konter";
 import { clonePlan, drawPlans } from "./plan";
 import { checkStil, STIL_COST, STIL_GAIN, STIL_POWER, stilBlockedBy } from "./stil";
+import { chainWhyFor, whyFor } from "./perspective";
 
 export const KRAFT_MAX = 5;
 
@@ -169,7 +170,7 @@ function attackSucceeds(ctx: Ctx, side: Side, c: Card2, steps = 1): boolean {
     ctx.notes.push({
       prio: 62, side,
       headline: you(side) ? `Deine Kette: ${from.term} → ${c.term}.` : `Seine Kette: ${from.term} → ${c.term}.`,
-      why: c.chain!.why, zone: c.zone,
+      why: chainWhyFor(c, side), zone: c.zone,
     });
   }
   if (c.submission) {
@@ -182,19 +183,19 @@ function attackSucceeds(ctx: Ctx, side: Side, c: Card2, steps = 1): boolean {
       ctx.notes.push({
         prio: 100, side,
         headline: you(side) ? `Tap! Du gewinnst mit ${t.name}.` : `Tap! Er gewinnt mit ${t.name}.`,
-        why: c.why, zone: c.zone,
+        why: whyFor(c, side), zone: c.zone,
       });
     } else {
       ctx.notes.push({
         prio: 60, side,
         headline: you(side) ? `${q(c)} greift: Aufgabe Schritt ${t.step} von 3.` : `Sein ${q(c)}: Aufgabe gegen dich, Schritt ${t.step}.`,
-        why: c.why, zone: c.zone,
+        why: whyFor(c, side), zone: c.zone,
       });
     }
   }
   if (c.to) ctx.pendingMoves.push({ side, card: c });
   if (!c.submission && !c.to) {
-    ctx.notes.push({ prio: 40, side, headline: you(side) ? `Dein ${q(c)} sitzt.` : `Sein ${q(c)} sitzt.`, why: c.why, zone: c.zone });
+    ctx.notes.push({ prio: 40, side, headline: you(side) ? `Dein ${q(c)} sitzt.` : `Sein ${q(c)} sitzt.`, why: whyFor(c, side), zone: c.zone });
   }
   return true;
 }
@@ -221,7 +222,7 @@ function applyMove(ctx: Ctx, side: Side, c: Card2): void {
   ctx.notes.push({
     prio: 80, side,
     headline: you(side) ? `${q(c)} klappt: du ${role} ${pos}.` : `Sein ${q(c)}: er ${role} ${pos}.`,
-    why: c.why, zone: c.zone,
+    why: whyFor(c, side), zone: c.zone,
   });
 }
 
@@ -235,7 +236,8 @@ function resolveMoves(ctx: Ctx): void {
       ctx.notes.push({
         prio: 65, side: other(m.side),
         headline: you(m.side) ? `Seine Aufgabe hält dich: ${q(m.card)} scheitert.` : `Deine Aufgabe hält ihn: ${q(m.card)} scheitert.`,
-        why: "Steckst du im Moment der Flucht in seiner Aufgabe, musst du sie erst abwehren.",
+        why: you(m.side) ? "Steckst du im Moment der Flucht in seiner Aufgabe, musst du sie erst abwehren."
+          : "Steckt er im Moment der Flucht in deiner Aufgabe, muss er sie erst abwehren.",
         zone: m.card.zone,
       });
       return;
@@ -445,7 +447,7 @@ export function resolveRound(s0: State2, pPlay: string, oPlay: string): { state:
           zone: z,
         });
       }
-      let why = rc.why;
+      let why = whyFor(rc, r);
       if (ac.dilemmaOpens) {
         addZone(ctx, a, ac.dilemmaOpens, 1);
         ctx.events.push({ t: "dilemma", side: a, zone: ac.dilemmaOpens });
@@ -471,7 +473,7 @@ export function resolveRound(s0: State2, pPlay: string, oPlay: string): { state:
         ctx.notes.push({
           prio: 20, side,
           headline: you(side) ? `Du baust auf: ${q(c)}, ${ZONE_LABEL[c.zone]} +${c.gain ?? 1}.` : `Er baut auf: ${q(c)}, ${ZONE_LABEL[c.zone]} +${c.gain ?? 1}.`,
-          why: c.why, zone: c.zone,
+          why: whyFor(c, side), zone: c.zone,
         });
       } else if (c.kind === "angriff") {
         attackSucceeds(ctx, side, c, BALANCE.unframedSubSteps);
