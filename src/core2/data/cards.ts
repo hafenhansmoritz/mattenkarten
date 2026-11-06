@@ -38,6 +38,10 @@ const K2 = {
   halfBot: s("JitsuIQ – Half Guard", "https://jitsuiq.com/positions/guard/half-guard.html"),
   armDrags: s("Evolve MMA – 38 Arm Drag Techniques for BJJ", "https://evolve-mma.com/blog/38-arm-drag-techniques-for-bjj/"),
   armTri: s("BJJ Atlas – Arm Triangle", "https://bjj-atlas.pages.dev/submissions/arm-triangle"),
+  // Inhaltsprüfung 2026-11-06 (KB 9, erledigt): Abstiegsseite beim Arm Triangle, Single Leg Kopf innen, Shoot Through.
+  iqArmTri: s("JitsuIQ – Arm Triangle („Transition to the side opposite the trapped arm“)", "https://jitsuiq.com/submissions/chokes/arm-triangle.html"),
+  gbSingle: s("Gracie Barra – 3 Tips For Your Single Leg Takedown (Kopf innen gegen die Guillotine)", "https://graciebarra.com/gb-news/3-tips-for-your-single-leg-takedown"),
+  shootThrough: s("Coaches Insider – Countering a Front Headlock (Dave Crowell): Shoot Through", "https://coachesinsider.com/wrestling/countering-a-front-headlock-with-dave-crowell-nazareth-area-high-school-pa"),
   noGiGrips: s("Evolve MMA – Grip Fighting in No-Gi BJJ", "https://evolve-mma.com/blog/heres-what-you-need-to-know-about-grip-fighting-in-no-gi-bjj/"),
   oldSchool: s("JitsuIQ – Old School Sweep", "https://jitsuiq.com/sweeps/old-school-sweep.html"),
   bodyLockPass: s("BJJ Atlas – Body Lock Pass", "https://bjj-atlas.pages.dev/guard-passing/body-lock-pass"),
@@ -66,8 +70,10 @@ const K2 = {
 
 const SAFETY_SUB = "Im Training langsam ansetzen, früh abklopfen, beim Tap sofort loslassen.";
 const SAFETY_THROW = "Ukemi (Fallschule) zuerst. Partner kontrolliert ablegen – kein Slam.";
-/** B17: jeder Takedown, Wurf und Shot – Partnerübung nur unter Aufsicht. */
-const SAFETY_TD = "Nur mit Trainer üben. Partner kontrolliert ablegen – kein Slam.";
+/** B17: jeder Takedown, Wurf und Shot – Partnerübung nur unter Aufsicht, Fallschule zuerst (KB 5.2). */
+const SAFETY_TD = "Nur mit Trainer üben. " + SAFETY_THROW;
+/** Hinz et al. 2021 (KB 5.4): Anteil an den Submission-Verletzungen. */
+const HINZ = "Hinz et al. 2021";
 const SAFETY_CHOKE = "Schwindel oder Sternchen = sofort abklopfen. " + SAFETY_SUB;
 
 type Slot = { pos: Pos2; role: Role2 };
@@ -127,14 +133,15 @@ const stand: Card2[] = [
   },
   {
     id: "nd_single_leg", plain: "Ein Bein schnappen", term: "Single Leg",
-    plainDo: "Du packst ein Bein, Kopf außen, und bringst ihn runter.",
+    plainDo: "Du packst ein Bein, Kopf innen, und bringst ihn runter.",
     kind: "angriff", zone: "beine", slots: [STAND], requires: { beine: 0, kopf: 0 },
     to: { pos: "half", role: "top", points: 2 },
-    why: "Ein Bein gefasst, Kopf außen (Single Leg): du landest oft direkt oben in seiner Half Guard.",
-    keys: ["Gegengleiche Auslage: sein Vorderbein steht direkt vor dir", "Erst Inside Position gewinnen", "Kopf außen und eng", "Brust hoch, Nacken gerade"],
-    mistakes: ["Kopf innen (Guillotine-Gefahr)", "Hüftknick statt Kniebeuge"],
+    // KB 9 (2026-11-06): IBJJF verbietet Single Leg mit Kopf außen für Weißgurte und unter 18 (wird nicht bestraft).
+    why: "Ein Bein gefasst, Kopf innen an seiner Brust (Single Leg): du landest oft oben in seiner Half Guard.",
+    keys: ["Gegengleiche Auslage: sein Vorderbein steht direkt vor dir", "Erst Inside Position gewinnen", "Kopf innen an seiner Brust, eng", "Brust hoch, Nacken gerade", "Kopf außen kennt man vom Ringen – IBJJF: für Weißgurte und unter 18 verboten"],
+    mistakes: ["Kopf außen – offen für die Guillotine", "Hüftknick statt Kniebeuge"],
     safety: SAFETY_TD,
-    source: K2.halfTop,
+    source: K2.gbSingle,
   },
   {
     id: "nd_clinch_entry", plain: "Ranrücken und festhalten", term: "Clinch Entry",
@@ -215,8 +222,8 @@ const clinch: Card2[] = [
     // B23: hinter ihm, hinter den Armen = „dominante Turtle“, gehalten → Takedown, 2 Punkte (K2.turtleScore).
     // Den Rücken mit Haken nimmst du danach (Back Take, 4 Punkte).
     to: { pos: "turtle", role: "top", points: 2 },
-    why: "Zwei Hände gegen einen Arm (2-on-1): am Trizeps quer vorbeiziehen öffnet seinen Rücken.",
-    keys: ["Handgelenk, dann Trizeps greifen", "Quer über seinen Körper ziehen, nicht nach unten", "Tief nachsteigen, Arm um seine Hüfte"],
+    why: "Zwei Hände gegen einen Arm (2-on-1): quer vorbeiziehen öffnet seinen Rücken – im Spiel landest du hinter ihm.",
+    keys: ["Handgelenk, dann Trizeps greifen", "Quer über seinen Körper ziehen, nicht nach unten", "Tief nachsteigen, Arm um seine Hüfte", "Vereinfacht: echt folgt oft Rücken im Stand oder ein Single Leg"],
     mistakes: ["Nach unten statt quer ziehen", "Nur am Handgelenk ziehen"],
     safety: SAFETY_TD,
     source: K2.armDrags, check: true,
@@ -389,7 +396,7 @@ const guardBottom: Card2[] = [
     why: "Deine Hüfte als Drehpunkt (Armbar); zieht er den Arm gebeugt heraus, ist das Dreieck offen.",
     keys: ["Handgelenk kontrollieren", "Knie zusammen", "Daumen zeigt nach oben"],
     mistakes: ["Daumen nach unten", "Knie offen", "Ruckartig strecken"],
-    safety: "Häufigste Submission-Verletzung (22,4 %). " + SAFETY_SUB,
+    safety: `Häufigste Submission-Verletzung (22,4 %, ${HINZ}). ` + SAFETY_SUB,
     source: SRC.combos,
     chain: { after: ["gb_triangle"], why: "Stemmt er sich aus dem Triangle hoch, wird sein Arm lang: Armbar.", source: SRC.combos },
   },
@@ -410,8 +417,8 @@ const guardBottom: Card2[] = [
     plainDo: "Senkt er den Kopf, umfasst dein Arm seinen Hals – langsam.",
     kind: "angriff", zone: "kopf", slots: [GUARD_B], requires: { kopf: 1 }, kraft: 1,
     submission: { id: "guillotine", name: "Guillotine" },
-    why: "Fang den Kopf, sobald er sinkt (Guillotine): Ellbogenbeuge am Hals, Hüfte vor.",
-    keys: ["Sofort zugreifen, wenn der Kopf sinkt", "Ellbogenbeuge am Hals, nicht das Handgelenk", "Hochziehen und Hüfte vor zugleich"],
+    why: "Fang den Kopf, sobald er sinkt (Guillotine): Arm tief um den Hals, Hüfte vor.",
+    keys: ["Sofort zugreifen, wenn der Kopf sinkt", "Arm tief: Unterarm quer unter seinem Kinn, nicht nur das Handgelenk", "Andere Hand fasst deine Würgehand und schließt den Griff", "Hochziehen und Hüfte vor zugleich"],
     mistakes: ["Zu flach greifen", "Nur nach oben ziehen", "Zögern"],
     safety: SAFETY_CHOKE,
     source: SRC.guillotine,
@@ -639,7 +646,7 @@ const sideTop: Card2[] = [
     why: "Aus der Seitkontrolle einen Arm isolieren (Kimura): erst kontrollieren, dann langsam drehen.",
     keys: ["Figure-Four-Griff", "Sein Ellbogen bleibt an deinem Körper", "Rotation Richtung Rücken"],
     mistakes: ["Ellbogen driftet weg", "Brustkontakt verlieren"],
-    safety: "12,6 % der Submission-Verletzungen. " + SAFETY_SUB,
+    safety: `12,6 % der Submission-Verletzungen (${HINZ}). ` + SAFETY_SUB,
     source: SRC.kimura,
     chain: { after: ["sct_americana"], why: "Wehrt er die Americana ab, drehst du den Arm in die andere Richtung: Kimura.", source: K2.iqAmericana },
   },
@@ -647,14 +654,15 @@ const sideTop: Card2[] = [
     // B11: zweiter Abschluss aus der Seitkontrolle (No-Gi), wirkt am Kopf statt an den Armen.
     id: "sct_arm_triangle", plain: "Kopf und Arm einschließen", term: "Arm Triangle (Kata Gatame)",
     plainDo: "Sein Arm liegt an seinem Hals, deine Schulter drückt dagegen.",
-    // No-Gi: auch aus dem Mount (BJJ Atlas: Frame am Hals → Kopf auf die andere Seite, zur Armseite abrollen).
+    // No-Gi: auch aus dem Mount. Absteigen zur Seite gegenüber seiner gefangenen Schulter – dorthin, wo sein Arm
+    // über den Hals geschoben liegt (JitsuIQ: „side opposite the trapped arm“; KB 9, 2026-11-06).
     kind: "angriff", zone: "kopf", slots: [SIDE_T, MOUNT_T], requires: { kopf: 1, arme: 1 }, kraft: 1,
     submission: { id: "arm_triangle", name: "Kopf-Arm-Würger" }, dilemmaOpens: "arme",
     why: "Sein eigener Arm und deine Schulter schließen den Hals ein (Kopf-Arm-Würger); zieht er den Arm raus, bleibt die Kimura.",
-    keys: ["Erst seinen Arm über seinen Hals schieben", "Hände verbinden, Schulter an sein Ohr", "Aus dem Mount zur Seite seines Arms abrollen", "Quer zu ihm laufen, langsam zudrücken"],
-    mistakes: ["Gerade auf ihm bleiben", "Nur mit den Armen quetschen"],
+    keys: ["Erst seinen Arm über seinen Hals schieben", "Hände verbinden, Schulter an sein Ohr", "Aus dem Mount zur anderen Seite absteigen – dahin, wo sein Arm über dem Hals liegt", "Quer zu ihm laufen, langsam zudrücken"],
+    mistakes: ["Gerade auf ihm bleiben", "Zur Seite seiner gefangenen Schulter absteigen", "Nur mit den Armen quetschen"],
     safety: SAFETY_CHOKE,
-    source: K2.armTri,
+    source: K2.iqArmTri,
   },
   {
     // B11: Americana auch aus der Seitkontrolle – braucht dort zusätzlich den Kopf (Crossface), sonst dreht er weg.
@@ -1001,8 +1009,8 @@ const backBottom: Card2[] = [
     plainDo: "Du drückst seinen unteren Haken von deinem Bein.",
     kind: "aufbauen", zone: "beine", slots: [BACK_B],
     why: "Erst die Hände, dann den unteren Haken lösen (Hook Off) – der obere kommt danach.",
-    keys: ["Unteren Hook zuerst", "Fuß wegschieben"],
-    mistakes: ["Oberen Hook zuerst"],
+    keys: ["Unteren Haken zuerst", "Fuß wegschieben"],
+    mistakes: ["Oberen Haken zuerst"],
     source: SRC.backEsc,
   },
   {
@@ -1010,7 +1018,7 @@ const backBottom: Card2[] = [
     plainDo: "Du rutschst runter, bis deine Schultern die Matte berühren.",
     kind: "aufbauen", zone: "huefte", slots: [BACK_B],
     why: "Schultern auf die Matte, Hüfte weg (Shoulders Down) – damit beginnt die Flucht zur Guard.",
-    keys: ["Hände bleiben am Hals", "Zur Seite seines unteren Hooks rutschen"],
+    keys: ["Hände bleiben am Hals", "Zur Seite des gelösten unteren Hakens rutschen"],
     mistakes: ["Kinn hochnehmen"],
     source: SRC.backMountEsc,
   },
@@ -1032,8 +1040,8 @@ const backBottom: Card2[] = [
     // Bewusst ohne `escape` (Mechanik 2 geprüft): Seitkontrolle unten ist ein leichterer Pin, keiner der drei Fluchtwege.
     to: { pos: "side", role: "bottom" },
     why: "Seitkontrolle unten ist schon ein Erfolg (Back Escape) – besser als den Rücken abzugeben.",
-    keys: ["Hände zuerst", "Side Control akzeptieren"],
-    mistakes: ["Oberen Hook zuerst", "Kinn hoch"],
+    keys: ["Hände zuerst, dann unteren Haken lösen", "Schultern zur Seite des gelösten Hakens", "Über den oberen Haken steigen, zu ihm drehen", "Side Control akzeptieren"],
+    mistakes: ["Oberen Haken zuerst", "Kinn hoch"],
     source: SRC.backEsc,
   },
   {
@@ -1156,7 +1164,7 @@ const turtleBottom: Card2[] = [
     plainDo: "Hände frei, ein Fuß nach dem anderen – du stehst.",
     kind: "angriff", zone: "beine", slots: [TURTLE_B], requires: { arme: 0 },
     to: { pos: "stand", role: "neutral", escape: "neutral" },
-    why: "Aufstehen ist laut BJJ Atlas immer am besten (Stand Up) – mit freiem Kopf.",
+    why: "Aus der Turtle ist Aufstehen meist die beste Flucht (Stand Up) – mit freiem Kopf.",
     keys: ["Hände frei machen", "Kopf hoch beim Aufstehen"],
     mistakes: ["Mit gefangenem Kopf aufstehen (Guillotine)"],
     source: K2.turtleEsc,
@@ -1216,11 +1224,11 @@ const headlockTop: Card2[] = [
   },
   {
     id: "hl_guillotine", plain: "Würger von vorne", term: "Guillotine (Front Headlock)",
-    plainDo: "Handgelenk unters Kinn, Ellbogen eng, Hüfte vor – langsam.",
+    plainDo: "Unterarm unters Kinn, Griff schließen, Hüfte vor – langsam.",
     kind: "angriff", zone: "kopf", slots: [HL_T], requires: { kopf: 1, arme: 0 }, kraft: 1,
     submission: { id: "guillotine", name: "Guillotine" }, dilemmaOpens: "arme",
     why: "Aus der Kopfklammer der häufigste Würger (Guillotine); schützt er den Hals, öffnet sich sein Rücken.",
-    keys: ["Eigenes Handgelenk unter seinem Kinn greifen", "Beide Ellbogen eng", "Würgen, nicht kurbeln"],
+    keys: ["Arm tief: Unterarm quer unter seinem Kinn, nicht nur das Handgelenk", "Andere Hand fasst deine Würgehand und schließt den Griff", "Beide Ellbogen eng", "Würgen, nicht kurbeln"],
     mistakes: ["Zu flach greifen", "Nur nach oben ziehen (Nacken!)"],
     safety: SAFETY_CHOKE,
     source: K2.fhlAttacks,
@@ -1290,7 +1298,8 @@ const headlockBottom: Card2[] = [
     keys: ["Erst Kopf frei, dann schießen", "Hüfte unter dich, dann vor"],
     mistakes: ["Mit gefangenem Kopf schießen (Guillotine)"],
     safety: SAFETY_TD,
-    check: true,
+    // Shoot Through als Front-Headlock-Konter belegt (Coaches Insider, Kurzfassung); Landung oben in der Half Guard = Spiel-Annahme.
+    source: K2.shootThrough, check: true,
   },
   {
     id: "hlb_elbow_in", plain: "Mitdrehen, Gesicht zu ihm", term: "Block the Go-Behind",
@@ -1417,7 +1426,7 @@ const MMA: Record<string, [MmaFlag, string]> = {
   hl_head_block: ["ok", "Kopfdruck hält ihn vorn – im MMA auch für Knie."],
   hlb_hands: ["ok", "Seine Würgehand kontrollieren, dann raus."],
   hlb_head_out: ["ok", "Kopf raus, sonst drohen Knie und Guillotine."],
-  hlb_stand_up: ["ok", "Aufstehen ist im MMA immer gut."],
+  hlb_stand_up: ["ok", "Im MMA ist Aufstehen meist der sicherste Weg."],
   hlb_shot_through: ["riskant", "Mit gesenktem Kopf drohen Knie und Guillotine."],
   hlb_elbow_in: ["ok", "Rücken nie zeigen – im MMA erst recht."],
 };

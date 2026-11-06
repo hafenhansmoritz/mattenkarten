@@ -240,7 +240,7 @@ function singleLeg(): DemoSequence {
     armF: { to: pt(188, 118), bend: "down" }, armB: { to: pt(182, 112), bend: "down" },
     legF: foot(176, "right"), legB: foot(104, "right"),
   });
-  // Kopf außen an seiner Brust, beide Arme um sein vorderes Bein.
+  // Kopf innen an seiner Brust (IBJJF-Weißgurt-Regel), beide Arme um sein vorderes Bein.
   const p2 = mk({
     hip: pt(200, 138), torso: -52, headAng: -60, face: 1, z: 1,
     armF: { to: at(o0, "kneeF", 6, -6), bend: "down" }, armB: { to: at(o0, "kneeF", 10, 6), bend: "down" },
@@ -268,7 +268,7 @@ function singleLeg(): DemoSequence {
     start: { ...DIST, caption: "Auf Abstand" },
     frames: [
       { p: p1, o: o0, caption: "1. In die Knie gehen", focus: ["hip", "kneeF"] },
-      { p: p2, o: o0, caption: "2. Kopf außen, vorderes Bein umklammern", focus: ["head", "handF", "handB"] },
+      { p: p2, o: o0, caption: "2. Kopf innen, vorderes Bein umklammern", focus: ["head", "handF", "handB"] },
       { p: p3, o: o3, caption: "3. Bein hoch, Brust hoch", focus: ["neck", "handF"] },
       { p: p4, o: o4, caption: "4. Bein wegdrehen, er fällt", focus: ["hip"] },
       { ...GUARD_TOP, caption: "5. Oben in seiner Guard: 2 Punkte", hold: 1.3 },

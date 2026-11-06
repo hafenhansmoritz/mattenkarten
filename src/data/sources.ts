@@ -9,6 +9,7 @@ export const SRC = {
   guClinch: s("Gracie University – Clinch (Lesson 7)", "https://www.gracieuniversity.com/Pages/Public/Lesson.aspx?sh=232"),
   doubleLeg: s("Evolve MMA – Double Leg Takedown", "https://evolve-mma.com/blog/everything-you-need-to-know-about-the-double-leg-takedown/"),
   kkwSingle: s("Keep Kids Wrestling – Single Leg (PDF)", "https://www.keepkidswrestling.com/_files/ugd/7ebc08_98c5824d637040fa9c7202f7fa8d4a65.pdf"),
+  gbSingle: s("Gracie Barra – 3 Tips For Your Single Leg Takedown (Kopf innen)", "https://graciebarra.com/gb-news/3-tips-for-your-single-leg-takedown"),
   kkwSprawl: s("Keep Kids Wrestling – Mastering the Sprawl", "https://www.keepkidswrestling.com/post/mastering-the-sprawl-in-neutral-position"),
   jiqSprawl: s("JitsuIQ – Sprawl", "https://jitsuiq.com/movement-mechanics/sprawl.html"),
   dake: s("FanaticWrestling – Stopping the Double Leg (Kyle Dake)", "https://fanaticwrestling.com/blogs/news/the-science-of-stopping-the-double-leg-with-kyle-dake"),

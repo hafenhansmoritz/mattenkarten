@@ -107,7 +107,7 @@ function ReviewCard({ c, r, onChange }: { c: CardDef; r: Review; onChange: (r: R
         <label className="tr-field">
           <span className="label">{r.verdict === "change" ? "Was soll anders sein?" : "Notiz"}</span>
           <textarea ref={noteRef} className="tr-input tr-note" rows={3} value={r.note}
-            placeholder="z. B. Kopf außen statt innen, besser: …"
+            placeholder="z. B. Hüfte tiefer, Kopf hoch, besser: …"
             onChange={(e) => onChange({ ...r, note: e.target.value })} />
         </label>
       )}

@@ -329,8 +329,8 @@ Laut Sekundärquellen verboten für Erwachsene im Weißgurt: Wristlocks, Kompres
 
 - Slams sind laut BJJ Fanatics „illegal at all levels“, inklusive Suplex.
 - Erlaubt für Weißgurte laut Jiu Jitsu News: Straight Foot Lock, Ezekiel, frontale Guillotine, Omoplata, Triangle, Arm Triangle. Alle Kern-Submissions aus 4.5 sind erlaubt.
-- Unklar: eine abgeschnittene Single-Leg-Einschränkung und die Formulierung „jumping guard“. Druck auf das Gesicht beim Side-Control-Escape gilt laut BJJ Atlas im Gi als illegal.
-- Primärquelle „Golpes Proibidos“ (IBJJF-PDF) wurde nicht abgerufen.
+- ~~Unklar: Single-Leg-Einschränkung und „jumping guard“~~ geklärt (8.12.2 und 9.1): Single Leg mit Kopf außen ist für 4–17 Jahre und Weißgurte verboten (wird nicht bestraft); Jumping Guard für Weißgurte verboten. Druck auf das Gesicht beim Side-Control-Escape gilt laut BJJ Atlas im Gi als illegal.
+- Primärquelle „Golpes Proibidos“ (IBJJF-PDF) abgerufen am 2026-11-05 und erneut am 2026-11-06 (Tabelle als Bild geprüft).
 
 **Mattenkarten-Bezug:** Slam, Neck Crank, Heel Hook und Kani Basami erscheinen nicht als spielbare Karten, sondern als Regel-Lektion in Weiß (Spec 3).
 
@@ -342,7 +342,7 @@ Laut Sekundärquellen verboten für Erwachsene im Weißgurt: Wristlocks, Kompres
 | Kontext | Sparring 77,6 %, Techniktraining 11,4 %, Wettkampf 9,6 % | ebd. |
 | Mechanismus | Submissions 29,7 %, Takedowns 26,4 %, Guard Passing 24,0 % | ebd. |
 | Wer wird verletzt | 78,9 % der Submission-Verletzungen beim Unterlegenen | ebd. |
-| Häufigste Submissions | Armbar 22,4 %, Kimura 12,6 %, Heel Hook 11 % | ebd. |
+| Häufigste Submissions | Armbar 22,4 %, Kimura 12,6 %, Heel Hook 11 % (Anteil der Verletzungen beim Unterlegenen; Wortlaut am Volltext geprüft 2026-11-06) | ebd. (Hinz, Kleim, Berthold, Geyer, Lambert, Imhoff, Mehl: Orthop J Sports Med 9(12), 2021, [DOI 10.1177/23259671211062568](https://doi.org/10.1177/23259671211062568)) |
 | Körperregion | Knie 27,1 %, Schulter 14,6 % | ebd. |
 | Gurte | Weißgurte im Mittel am wenigsten (0,73), Braungurte am meisten (1,22) | ebd. |
 | Review | Knie und Brust/Rippen am häufigsten, dann Schulter; überwiegend Anfänger | [SciELO/PMC](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11193589/) |
@@ -648,7 +648,7 @@ Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`
 **Weiter [ungeprüft]**
 - Neuere IBJJF-Liste als 2024 nicht gefunden (Seite verlinkt am 2026-11-05 die 2024er Dateien). Vor Release erneut prüfen.
 - Deutsche Turniere/Verbände, EBI, NAGA, Grappling Industries: keine Primärquelle → in der App „Regel deines Turniers/Gyms prüfen.“
-- Verteidigungsdetails (Knie-Linie, Zehen anziehen, Beine nicht kreuzen lassen, Ferse aus der Achsel): nur BJJ Atlas (sekundär) → App-Hinweis „Technik-Detail: Dein Trainer zeigt dir, wie es richtig geht.“
+- Verteidigungsdetails (Knie-Linie, Fuß anwinkeln/„Boot“, Beine nicht kreuzen lassen, Ferse aus der Achsel): nur Sekundärquellen (BJJ Atlas, Digitsu; zur Fußstellung siehe 9.1, Punkt 2) → App-Hinweis „Technik-Detail: Dein Trainer zeigt dir, wie es richtig geht.“
 
 **Umsetzung** `src/leglock/` – „Woche 2: Beinhebel sicher“, frei nach Tag 7 des 7-Tage-Starts (liest `mk.program.v1` nur lesend), eigener Speicher `mk.leglock.v1`. Keine spielbaren Beinhebel-Angriffskarten. 4 Lektionen: (43) Regelkunde mit Sortierspiel „Erlaubt oder verboten?“, (45) Erst Verteidigung mit 4× „Was ist hier gefährlich?“ an eigenen SVG-Skizzen, (46) Gerader Fußhebel nur erkennen + „nur mit Trainer, langsam ansetzen“, (47/48) Sicherheitskarte „Früh abklopfen – nie rausdrehen“ (Flip-Karte, Abklopfen-Übung, 2 cm vs. 30 cm, Fuß-/Wort-Aufgabe). Abschluss-Check 20 Fragen, je Bereich ≥ 80 %, Abzeichen „Beinhebel-Sicherheit: Wissen geprüft“ mit Hinweis „Üb Beinhebel nur mit Trainer“. Tests: `src/leglock/leglock.test.ts` (Regelaussagen belegt oder markiert, ≤ 20 Wörter pro Satz, Freischaltung, 80-%-Regel).
 
@@ -716,7 +716,7 @@ Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätig
 12. Konter gegen Double Underhooks; Body Lock ↔ Whizzer.
 13. Upa-Konter des Top-Spielers und Wechsel zum Elbow-Knee Escape.
 14. Guard-Passing-Ketten jenseits von Knee Slice; Posture Break in der Closed Guard.
-15. Back Escape: auf welche Seite drehen.
+15. ~~Back Escape: auf welche Seite drehen~~ entschieden 2026-11-06 (9.1, Punkt 5); andere Schulen (Overhook-Seite, Seite des oberen Hakens) bleiben Trainer-Frage.
 16. Front Headlock unten: Verteidigung (Kopf hoch, Hüfte unter Körper).
 17. Käfig-/Wandarbeit, Kick-Catch-Konter, Ground-and-Pound.
 18. Underhooks, Pummeling und Hand Fighting im Grappling (D3 komplett [FW]); Inside Tie, Frames gegen Clinch-Eingang.
@@ -752,6 +752,24 @@ Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätig
 42. Chess.com: Werden Hinweise je Lernpfad automatisch reduziert oder nur vom Nutzer abgeschaltet?
 43. Adesope et al. 2017: Moderatoren (Feedback, Format) zusätzlich zu Prüfpunkt 25; Cepeda et al. 2006 nicht abgerufen.
 44. Lichess-Learn-Details (Sterne, Ablauf) auf der Seite nicht bestätigt; Slay-the-Spire-Onboarding nur über schwache Sekundärquelle.
+
+### 9.1 Inhaltsprüfung No-Gi-Lernspiel (erledigt 2026-11-06)
+
+Anlass: Content-Review fand mögliche Fehler. Jede Entscheidung mit Quelle (abgerufen 2026-11-06, sofern nicht anders genannt) und Umsetzung.
+
+1. **Single Leg: Kopf innen.** IBJJF „Technical Fouls & Illegal Moves“ VRS 4.0, Zeile 11: „Single leg takedown while the attacking athlete has his head outside his opponents body (**)“ – rote Punkte bei 4–12, 13–15 und „16 & 17 years old (all ranks) and white belts“; Fußnote: „Although it is a prohibited technique, the athlete will not be penalized.“ ([PDF](https://ibjjf.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBcE1WIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--e13c15f6e568323ecea8ef21a102b726067a4540/20240101_GolpesProibidos_EN.pdf), Tabelle als Bild geprüft). Gracie Barra: Kopf innen ist sicherer, Kopf außen öffnet die Guillotine; im Ringen ist die Guillotine verboten ([Gracie Barra – 3 Tips For Your Single Leg](https://graciebarra.com/gb-news/3-tips-for-your-single-leg-takedown)). Lachlan Giles lehrt Kopf innen als sicherer für alle Level ([Evolve MMA – Single Leg](https://evolve-mma.com/blog/everything-you-need-to-know-about-the-single-leg-takedown/)). **Umsetzung:** `nd_single_leg` und alte Karte `single_leg` lehren Kopf innen; Kopf außen = Ringer-Variante, für IBJJF-Weißgurte und unter 18 verboten; Fehler jetzt „Kopf außen – offen für die Guillotine“. Demo-Bildunterschrift und TrainerCheck-Beispiel angepasst. Fragen/Leglock-Inhalte enthielten keine Single-Leg-Aussage.
+2. **„Zehen anziehen“ → „Fuß anwinkeln, Zehen zum Schienbein“.** Der gerade Fußhebel zwingt den Fuß in Plantarflexion (Zehen weg) ([BJJEE – Straight Achilles Lock](https://www.bjjee.com/articles/the-straight-achilles-lock-just-pain-or-serious-risk-of-injury/); [JitsuIQ](https://jitsuiq.com/submissions/locks/joint-locks/straight-ankle-lock.html): „hyperextends the ankle“). Digitsu: „Actively dorsiflex your foot (pulling toes toward your knee) to resist plantarflexion pressure“ ([Digitsu – Straight Ankle Lock 101](https://digitsu.com/a/straight-ankle-lock-101)). **Widerspruch:** BJJ Atlas schreibt beim „Boot“ „point toes away (plantar flexion)“, sagt aber auch „Boot position DELAYS submission, doesn't prevent it … Still must TAP“ ([BJJ Atlas – Leg Lock Defense](https://bjj-atlas.pages.dev/leg-locks/leg-lock-defense)); LowKick MMA nennt „straighten the foot“. Entscheidung: Mechanik + Digitsu → anwinkeln; „bremst nur kurz, bei Druck abklopfen“ ist durch BJJ Atlas gedeckt. **Umsetzung:** `src/leglock/content.ts` (Spot-Bild „Fuß angewinkelt“, Info-Text, Fragen ll-v2, ll-f3) eindeutig formuliert; neue Quelle `digitsu-sal`. [Trainer prüfen]
+3. **Guillotine-Griff vereinheitlicht.** BJJ Atlas: „crook of elbow on throat, not wrist“, „Lock hands (gable grip or clasp under chin)“ ([BJJ Atlas – Guillotine](https://bjj-atlas.pages.dev/submissions/guillotine)); JitsuIQ: „blade of your forearm aligns with their throat“, Arm-in vs. High Elbow ([JitsuIQ – Guillotine](https://jitsuiq.com/submissions/chokes/guillotine.html)); Evolve: „your other hand locks onto your wrist“, „squeeze slowly“ ([Evolve MMA – Guillotine](https://evolve-mma.com/blog/the-3-best-positions-to-set-up-the-guillotine-from-in-bjj/)). **Umsetzung:** `gb_guillotine` und `hl_guillotine` gleich: „Arm tief: Unterarm quer unter seinem Kinn, nicht nur das Handgelenk“ + „Andere Hand fasst deine Würgehand und schließt den Griff“. High-Elbow bleibt außen vor (Fortgeschrittene).
+4. **Takedown-Sicherheit mit Fallschule.** KB 5.2 (Ukemi vor jedem Wurf; DJB). **Umsetzung:** `SAFETY_TD` = „Nur mit Trainer üben. “ + `SAFETY_THROW` („Ukemi (Fallschule) zuerst. Partner kontrolliert ablegen – kein Slam.“). Alte Karte `single_leg` ebenso.
+5. **Back Escape: eine Reihenfolge.** BJJ Atlas: Kinn runter, beide Hände an das würgende Handgelenk, „Target bottom hook first“, „Bottom hook cleared, start rotating toward that side“, „Drive shoulder toward the mat on cleared side“, dann oberer Haken, zu ihm drehen ([BJJ Atlas – Back Escapes](https://bjj-atlas.pages.dev/escapes/back-escapes)). Hände zuerst auch bei [Evolve MMA – RNC](https://evolve-mma.com/blog/how-to-escape-the-rear-naked-choke/) und [Cursa – Back Escapes](https://cursa.app/en/page/bjj-escapes-from-back-control-hand-fighting-hip-scooting-and-turning-to-guard). Abweichend: Cursa wählt die Seite, auf der man den oberen Haken einklemmt; Mackenzie fällt zur Overhook-Seite ([BJJ Fanatics](https://bjjfanatics.com/blogs/news/three-battle-tested-methods-to-make-an-exit-from-the-back-mount-position)) → Trainer-Frage, Spiel folgt BJJ Atlas. **Umsetzung:** `bb_hook_off`, `bb_shoulders`, `bb_escape_side` und alte `back_escape`: Hände → unteren Haken lösen → Schultern zur Seite des gelösten Hakens → über den oberen Haken steigen → zu ihm drehen; einheitlich „Haken“.
+6. **Arm Triangle aus dem Mount: Absteigen gegenüber der gefangenen Schulter.** JitsuIQ: „Transition to the side opposite the trapped arm“ (rechter Arm gefangen → zu seiner linken Seite), Kopf bleibt nah am gefangenen Arm ([JitsuIQ – Arm Triangle](https://jitsuiq.com/submissions/chokes/arm-triangle.html)). BJJ Atlas („toward their trapped arm“) und LowKick („go to the side of the arm you have trapped“) meinen die Seite, auf der der über den Hals geschobene Arm liegt – das ist dieselbe Seite. „Zur Seite seines Arms“ war mehrdeutig. **Umsetzung:** `sct_arm_triangle`: „Aus dem Mount zur anderen Seite absteigen – dahin, wo sein Arm über dem Hals liegt“, Fehler „Zur Seite seiner gefangenen Schulter absteigen“; Quelle jetzt JitsuIQ.
+7. **Arm Drag → Turtle oben, 2 Punkte: als Vereinfachung markiert.** JitsuIQ nennt als Folge Back Control, Standing Back Control oder Single Leg, nicht „immer Turtle“ ([JitsuIQ – Arm Drag](https://jitsuiq.com/movement-mechanics/arm-drag.html)); Punkte für die dominante Turtle siehe 8.12.3. Keine Balance-Änderung. **Umsetzung:** `nd_arm_drag` why „… – im Spiel landest du hinter ihm“, Schlüssel „Vereinfacht: echt folgt oft Rücken im Stand oder ein Single Leg“.
+8. **Frage zum Hip Bump umgeschrieben.** Hip Bump gibt es in No-Gi ([JitsuIQ](https://jitsuiq.com/sweeps/hip-bump-sweep.html)), die Karte ist aber nicht im Spiel. **Umsetzung:** `q-guard-hipbump` → `q-guard-pairs` (Konzeptfrage „Angriffe in Paaren“, Beispiel Armbar ↔ Triangle, KB 2.3/4.6).
+9. **Ringer-Boss-Lektion** widersprach der Sprawl-Regel (Front Headlock nur mit Kopfkontrolle, 8.12.3). **Umsetzung:** „Gegen Shots zuerst sprawlen. Hast du dabei seinen Kopf, fass den Front Headlock.“
+10. **Verletzungszahlen richtig zugeordnet.** Armbar 22,4 %, Kimura 12,6 % stammen aus Hinz et al. 2021 ([PMC8721390](https://pmc.ncbi.nlm.nih.gov/articles/PMC8721390), Wortlaut „the armbar (22.4%), the kimura (12.6%), and the heel hook (11%)“). Die Karten nannten nur die Technik-Quelle. **Umsetzung:** Sicherheitstext nennt „Hinz et al. 2021“ (`gb_armbar`, `sct_kimura`, alte `armbar_guard`, `kimura_side`).
+11. **Kinn: Grundhaltung vs. RNC-Abwehr.** Cursa: Kinn neutral, nicht hart einziehen (allgemeine Nacken-Sicherheit) ([Cursa – Safety](https://cursa.app/en/page/bjj-starter-guide-safety-tapping-and-positional-priorities)); gegen den Würger von hinten: „tuck chin to chest (first line of defense)“ ([BJJ Atlas – Back Escapes](https://bjj-atlas.pages.dev/escapes/back-escapes)), „Tucking your chin down also makes it harder …“ ([Evolve MMA – RNC](https://evolve-mma.com/blog/how-to-escape-the-rear-naked-choke/)). **Umsetzung:** Schutzhaltung „Kinn unten“: „Kinn leicht runter, locker. Würgt er von hinten, Kinn fest zur Brust.“ RNC-Karten/Fragen behalten „Kinn auf die Brust“.
+12. **`hlb_shot_through` hat jetzt eine Quelle.** „Shoot Through: pull the elbow down, shoot the head inside, circle“ als Konter gegen den Front Headlock ([Coaches Insider – Dave Crowell](https://coachesinsider.com/wrestling/countering-a-front-headlock-with-dave-crowell-nazareth-area-high-school-pa), nur Kurzfassung, Video hinter Paywall). `check: true` bleibt (Landung oben in der Half Guard = Spiel-Annahme).
+13. **Absolute Aussagen abgeschwächt.** Positionshierarchie (3.2: Rücken > Mount > … > Guard neutral) und BJJ Atlas „Standing is always best“ (nur für die Turtle; [BJJ Atlas – Turtle Escapes](https://bjj-atlas.pages.dev/turtle/turtle-escapes)). **Umsetzung:** `tb_stand_up` „Aus der Turtle ist Aufstehen meist die beste Flucht“; MMA-Hinweis `hlb_stand_up` „meist der sicherste Weg“; Fragen q-pos-best („Rücken und Mount gelten meist als die stärksten Lagen“), q-pos-guard-name, q-guard-best-bottom („meist die beste Lage … Im MMA ist Aufstehen oft wichtiger“), qi-where-back; PositionMap „meist am stärksten“.
 
 ---
 
@@ -790,7 +808,7 @@ Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätig
 - https://bjjfanatics.com/blogs/news/illegal-moves-in-bjj
 - https://bjjfanatics.com/blogs/news/are-neck-cranks-legal-in-bjj
 - https://jiujitsu-news.com/ibjjf-illegal-and-legal-submissions
-- https://Www.Ibjjf.com/rails/active_storage/blobs/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBcE1WIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--e13c15f6e568323ecea8ef21a102b726067a4540/20240101_GolpesProibidos_EN.pdf (nicht abgerufen)
+- https://Www.Ibjjf.com/rails/active_storage/blobs/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBcE1WIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--e13c15f6e568323ecea8ef21a102b726067a4540/20240101_GolpesProibidos_EN.pdf (abgerufen 2026-11-05/06)
 - https://ibjjf.com/books-videos
 - https://ibjjf.com/graduation-system
 - https://bjjmore.com/bjj-belt-requirements-and-curriculum/
@@ -861,6 +879,24 @@ Alles hier muss ein Trainer (BJJ, Judo, Ringen) oder die Primärquelle bestätig
 - https://jitsuiq.com/submissions/chokes/cross-collar-choke.html
 - https://jitsuiq.com/positions/back/back-control.html
 - https://submissionshark.com/blogs/bjj-for-begginers/how-to-defend-yourself-from-cross-collar-chokes-in-jiu-jitsu-bjj
+
+**Inhaltsprüfung 2026-11-06 (Abschnitt 9.1)**
+- https://graciebarra.com/gb-news/3-tips-for-your-single-leg-takedown
+- https://evolve-mma.com/blog/everything-you-need-to-know-about-the-single-leg-takedown/
+- https://digitsu.com/a/straight-ankle-lock-101
+- https://www.bjjee.com/articles/the-straight-achilles-lock-just-pain-or-serious-risk-of-injury/
+- https://bjj-atlas.pages.dev/leg-locks/leg-lock-defense
+- https://jitsuiq.com/submissions/locks/joint-locks/straight-ankle-lock.html
+- https://jitsuiq.com/submissions/chokes/guillotine.html
+- https://jitsuiq.com/submissions/chokes/arm-triangle.html
+- https://bjj-atlas.pages.dev/submissions/arm-triangle
+- https://lowkickmma.com/arm-triangle-choke
+- https://cursa.app/en/page/bjj-escapes-from-back-control-hand-fighting-hip-scooting-and-turning-to-guard
+- https://bjjfanatics.com/blogs/news/three-battle-tested-methods-to-make-an-exit-from-the-back-mount-position
+- https://jitsuiq.com/movement-mechanics/arm-drag.html
+- https://coachesinsider.com/wrestling/countering-a-front-headlock-with-dave-crowell-nazareth-area-high-school-pa
+- https://bjj-atlas.pages.dev/turtle/turtle-escapes
+- https://doi.org/10.1177/23259671211062568
 
 **Techniken: Boden, Escapes, Submissions**
 - https://evolve-mma.com/blog/the-complete-brazilian-jiu-jitsu-beginners-guide/

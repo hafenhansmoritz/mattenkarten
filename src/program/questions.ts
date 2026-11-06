@@ -68,7 +68,7 @@ export const QUESTIONS: Question[] = [
     q: "Welche Lage ist für dich am stärksten?",
     options: ["Du bist an seinem Rücken", "Du liegst unten in der Guard", "Du liegst unten in der halben Guard"],
     answer: 0, src: "KB 3.2",
-    why: "Vom Rücken aus kontrollierst du ihn, und er sieht dich kaum. Diese Lage gilt als die beste.",
+    why: "Vom Rücken aus kontrollierst du ihn, und er sieht dich kaum. Rücken und Mount gelten meist als die stärksten Lagen.",
   },
   {
     id: "q-pos-mount-name", day: 1, topic: "positionen",
@@ -82,7 +82,7 @@ export const QUESTIONS: Question[] = [
     q: "Du liegst unten, deine Beine sind um seine Hüfte. Wie heißt das?",
     options: ["Guard", "Mount", "Turtle"],
     answer: 0, scene: { pos: "guard", top: "o" }, src: "KB 3.2",
-    why: "Guard heißt: Deine Beine sind zwischen euch. Unten ist das die beste Lage.",
+    why: "Guard heißt: Deine Beine sind zwischen euch. Liegst du unten, ist das meist die beste Lage.",
   },
   {
     id: "q-pos-goal-bottom", day: 1, topic: "positionen",
@@ -253,11 +253,11 @@ export const QUESTIONS: Question[] = [
     why: "Enge Ellbogen schützen deine Arme. Ein weiter Arm lädt zu Armhebel und Beine-Würger ein.",
   },
   {
-    id: "q-guard-hipbump", day: 4, topic: "guard",
-    q: "Er will dich mit der Hüfte umwerfen (Hip Bump). Du ziehst deinen Arm weg. Was droht?",
-    options: ["Er dreht deinen Arm nach hinten (Kimura)", "Nichts, du hast gewonnen", "Du bekommst Punkte"],
-    answer: 0, src: "KB 4.5, 4.6 (JitsuIQ)",
-    why: "Hip Bump und Kimura sind ein Paar. Wehrst du das eine ab, öffnet sich das andere.",
+    id: "q-guard-pairs", day: 4, topic: "guard",
+    q: "Du wehrst seinen ersten Angriff ab. Warum bist du noch nicht sicher?",
+    options: ["Gute Angriffe kommen in Paaren: deine Abwehr öffnet oft den nächsten", "Nach einer Abwehr ist die Runde vorbei", "Eine Abwehr bringt dir Punkte"],
+    answer: 0, src: "KB 2.3, 4.6 (Dilemma-Paare, z. B. Armbar ↔ Triangle)",
+    why: "Angriffe kommen in Paaren. Wehrst du das eine ab, öffnet sich oft das andere, etwa Armbar und Triangle.",
   },
   {
     id: "q-guard-standup", day: 4, topic: "guard",
@@ -269,9 +269,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "q-guard-best-bottom", day: 4, topic: "guard",
     q: "Ist die Guard unten schlecht für dich?",
-    options: ["Nein – unten ist sie die beste Lage", "Ja – sie ist die schlechteste Lage"],
+    options: ["Nein – unten ist sie meist die beste Lage", "Ja – sie ist die schlechteste Lage"],
     answer: 0, src: "KB 3.2",
-    why: "In der Guard hältst du ihn mit den Beinen auf Abstand. Dort kannst du sogar angreifen.",
+    why: "In der Guard hältst du ihn mit den Beinen auf Abstand und kannst angreifen. Im MMA ist Aufstehen oft wichtiger.",
   },
   {
     id: "q-guard-nogi-grip", day: 4, topic: "guard",
@@ -509,7 +509,7 @@ export const IMAGE_QUESTIONS: Question[] = [
     id: "qi-where-back", day: 1, topic: "positionen", kind: "image",
     image: { pos: "back", top: "p", mark: { side: "p", part: "arms" } },
     q: "Wo bist du – und wie gut ist das?",
-    options: ["An seinem Rücken – die beste Lage", "Unten in der Guard – eher schlecht", "Im Stand – noch offen"],
+    options: ["An seinem Rücken – meist die stärkste Lage", "Unten in der Guard – eher schlecht", "Im Stand – noch offen"],
     answer: 0, src: "KB 3.2",
     why: "Du bist hinter ihm, deine Arme umfassen ihn. Vom Rücken aus kontrollierst du am meisten.",
   },

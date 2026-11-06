@@ -30,7 +30,7 @@ export const GOALS: GoalTask[] = [
   { spot: LADDER[3], options: ["Haltung brechen, umdrehen oder angreifen", "Flach liegen und warten"], answer: 0,
     why: "In der Guard bist du unten nicht verloren. Du kannst ihn umwerfen oder angreifen." },
   { spot: LADDER[0], options: ["Haken drin lassen, Hals angreifen", "Ihn loslassen, damit er sich umdreht"], answer: 0,
-    why: "Am Rücken bist du am stärksten. Halte ihn fest, dann beenden." },
+    why: "Am Rücken bist du meist am stärksten. Halte ihn fest, dann beenden." },
 ];
 
 type Phase = "intro" | "sort" | "goals" | "tap" | "done";

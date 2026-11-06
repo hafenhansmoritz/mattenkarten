@@ -81,7 +81,7 @@ export const BOSSES: BossDef[] = [
     },
     likes: "Er bleibt gern im Stand und im Clinch. Er schießt auf deine Beine und zieht deinen Kopf runter (Snap Down).",
     howTo: "Schießt er, sprawlst du: Beine nach hinten, Hüfte runter. Im Clinch erst den Underhook holen. Unten am Boden ist er schwächer.",
-    lesson: "Gegen Shots zuerst sprawlen – dann gehört sein Kopf dir.",
+    lesson: "Gegen Shots zuerst sprawlen. Hast du dabei seinen Kopf, fass den Front Headlock.",
     scene: { pos: "headlock", top: "o" },
     signature: ["clinch/neutral", "headlock/top"],
     sources: [SRC.tdCounter, SRC.snapDown],

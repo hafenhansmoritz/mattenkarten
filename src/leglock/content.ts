@@ -7,7 +7,7 @@
 /** Marker für Regelaussagen ohne Primärbeleg. */
 export const UNVERIFIED_MARK = "Regel deines Turniers/Gyms prüfen.";
 
-export type SrcId = "ibjjf-illegal" | "ibjjf-rules" | "adcc-opens" | "giles" | "graciebarra" | "bjjatlas";
+export type SrcId = "ibjjf-illegal" | "ibjjf-rules" | "adcc-opens" | "giles" | "graciebarra" | "bjjatlas" | "digitsu-sal";
 
 export interface Source {
   label: string;
@@ -48,6 +48,12 @@ export const SOURCES: Record<SrcId, Source> = {
     label: "BJJ Atlas: Leg Lock Defense (Sekundärquelle)",
     url: "https://bjj-atlas.pages.dev/leg-locks/leg-lock-defense",
     checked: "2026-11-05", kind: "sekundär",
+  },
+  // KB 9 (2026-11-06): „Fuß anwinkeln“ = Zehen Richtung Schienbein (Dorsalflexion) gegen den geraden Fußhebel.
+  "digitsu-sal": {
+    label: "Digitsu: Straight Ankle Lock 101 („dorsiflex your foot, pulling toes toward your knee“)",
+    url: "https://digitsu.com/a/straight-ankle-lock-101",
+    checked: "2026-11-06", kind: "sekundär",
   },
 };
 
@@ -167,9 +173,9 @@ export const LESSONS: Lesson[] = [
       {
         kind: "spot", title: "Fuß verstecken", q: "Was ist hier gefährlich?",
         pics: ["foot-hidden", "foot-exposed"], danger: 1,
-        captions: ["Zehen angezogen", "Fuß gestreckt"],
-        why: "Ein gestreckter Fuß lässt sich leicht greifen. Zieh die Zehen an und versteck den Fuß.",
-        src: ["bjjatlas"], trainer: true,
+        captions: ["Fuß angewinkelt", "Fuß gestreckt"],
+        why: "Ein gestreckter Fuß lässt sich leicht greifen. Winkel den Fuß an, Zehen zum Schienbein, und versteck ihn.",
+        src: ["bjjatlas", "digitsu-sal"], trainer: true,
       },
       {
         kind: "spot", title: "Beine nicht kreuzen lassen", q: "Was ist hier gefährlich?",
@@ -213,9 +219,9 @@ export const LESSONS: Lesson[] = [
         body: [
           "Üb den Fußhebel nur, wenn dein Trainer dabei ist.",
           "Setz ihn langsam an. Dein Partner braucht Zeit zum Abklopfen.",
-          "Zehen anziehen bremst den Hebel nur. Drückt es, klopf ab.",
+          "Fuß anwinkeln, Zehen zum Schienbein, bremst den Hebel nur kurz. Spürst du Druck, klopf ab.",
         ],
-        src: ["graciebarra", "bjjatlas"],
+        src: ["graciebarra", "bjjatlas", "digitsu-sal"],
         rules: [
           { text: "Beim Fußhebel zur Seite des freien Fußes drehen ist für Weißgurte verboten.", verified: true, src: ["ibjjf-illegal"] },
         ],
@@ -308,8 +314,8 @@ export const QUESTIONS: LQuestion[] = [
   },
   {
     id: "ll-v2", area: "verteidigung", q: "Was machst du mit deinem Fuß?",
-    options: ["Zehen anziehen und Fuß verstecken", "Fuß locker strecken", "Fuß in seine Achsel schieben"], answer: 0, src: ["bjjatlas"],
-    why: "Ein gestreckter, freier Fuß ist leicht zu greifen. Angezogen und versteckt ist er schwerer zu fassen.",
+    options: ["Fuß anwinkeln (Zehen zum Schienbein) und verstecken", "Fuß locker strecken", "Fuß in seine Achsel schieben"], answer: 0, src: ["bjjatlas", "digitsu-sal"],
+    why: "Ein gestreckter, freier Fuß ist leicht zu greifen. Angewinkelt und versteckt ist er schwerer zu fassen.",
   },
   {
     id: "ll-v3", area: "verteidigung", q: "Er kreuzt seine Beine über deinem Bein. Was heißt das?",
@@ -338,9 +344,9 @@ export const QUESTIONS: LQuestion[] = [
     why: "Langsam ansetzen gibt deinem Partner Zeit zum Abklopfen. Dein Trainer sieht Fehler sofort.",
   },
   {
-    id: "ll-f3", area: "fusshebel", q: "Du ziehst die Zehen an. Reicht das gegen den Fußhebel?",
-    options: ["Nein, es bremst nur. Drückt es, klopf ab", "Ja, dann kann nichts passieren"], answer: 0, src: ["bjjatlas"],
-    why: "Zehen anziehen verzögert den Hebel nur. Abklopfen schützt dich wirklich.",
+    id: "ll-f3", area: "fusshebel", q: "Du winkelst den Fuß an, Zehen zum Schienbein. Reicht das gegen den Fußhebel?",
+    options: ["Nein, es bremst nur kurz. Spürst du Druck, klopf ab", "Ja, dann kann nichts passieren"], answer: 0, src: ["bjjatlas", "digitsu-sal"],
+    why: "Den Fuß anwinkeln verzögert den Hebel nur. Abklopfen schützt dich wirklich.",
   },
   {
     id: "ll-f4", area: "fusshebel", q: "Was ist beim Fußhebel für Weißgurte verboten?",

@@ -43,7 +43,7 @@ export const SCHUTZHALTUNG: Concept = {
   idea: "Unter Druck gilt: erst schützen, dann befreien. Vier Punkte, die du überall mitnimmst.",
   points: [
     { id: "ellbogen", short: "Ellbogen eng", text: "Ellbogen eng am Körper. So kann er deinen Arm nicht isolieren.", part: "arms", joint: "elbowF", src: "Cursa; KB 4.5" },
-    { id: "kinn", short: "Kinn unten", text: "Kinn leicht runter, nicht verkrampfen. So bleibt der Hals schwer zu greifen.", part: "head", joint: "head", src: "Cursa; KB 4.5 (RNC: Kinn runter)" },
+    { id: "kinn", short: "Kinn unten", text: "Kinn leicht runter, locker. Würgt er von hinten, Kinn fest zur Brust.", part: "head", joint: "head", src: "Cursa (Grundhaltung); KB 4.5 (RNC-Abwehr: Kinn zur Brust)" },
     { id: "haende", short: "Hände vorn", text: "Hände vorn, nah am Hals. Sie schützen den Raum, den ein Würger braucht.", part: "neck", joint: "handF", src: "Cursa" },
     { id: "ruecken", short: "Rücken nie zeigen", text: "Nie wegdrehen und den Rücken zeigen. Dreh dich zu ihm, nicht weg.", part: "torso", joint: "torso", src: "Cursa; KB 3.2" },
   ],
