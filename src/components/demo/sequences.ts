@@ -477,7 +477,7 @@ function hipBump(): DemoSequence {
 }
 
 function scissorSweep(): DemoSequence {
-  // o wird über Kragen/Ärmel nach vorn gezogen
+  // o wird über Nacken und Handgelenk nach vorn gezogen (No-Gi)
   const o1 = mk({
     hip: pt(212, 152), torso: -138, headAng: -160, face: -1,
     armF: { to: pt(166, 160), bend: "down" }, armB: { to: pt(172, 156), bend: "down" },
@@ -503,7 +503,7 @@ function scissorSweep(): DemoSequence {
     cardId: "scissor_sweep",
     start: { ...GUARD_BOTTOM, caption: "Unten in der Guard" },
     frames: [
-      { p: p1, o: o1, caption: "1. Kragen und Ärmel greifen", focus: ["handF", "handB"] },
+      { p: p1, o: o1, caption: "1. Nacken und Handgelenk greifen", focus: ["handF", "handB"] },
       { p: p2, o: o1, caption: "2. Hüfte raus, Knie quer über Bauch", focus: ["kneeF", "hip"] },
       { p: p3, o: o3, caption: "3. Ziehen und scheren gleichzeitig", focus: ["footF", "footB"] },
       { ...MOUNT_TOP, caption: "4. Mitrollen in den Mount", hold: 1.3 },

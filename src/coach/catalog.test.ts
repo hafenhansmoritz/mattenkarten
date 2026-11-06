@@ -50,8 +50,9 @@ describe("Coach-Katalog", () => {
     expect(catalog).toMatch(/verboten: Heel Hook, Kneebar, Toe Hold/);
     expect(catalog).toContain("früh abklopfen, nie rausdrehen");
     expect(catalog).toContain("Keine Kragen-, Ärmel-, Hosen- oder Gürtelgriffe");
-    // Gi-Karten der alten Kampagne tauchen nicht auf
-    for (const id of ["cross_collar", "collar_defense", "scissor_sweep"]) expect(catalog).not.toContain(`[${id}]`);
+    // Ehemalige Gi-Karten sind auf No-Gi umgeschrieben (UX-Review 2026-11-06): keine Kragen-/Ärmelgriffe im Katalog
+    const cardLines = catalog.split("\n").filter((l) => /^\s*- \[/.test(l)).join("\n");
+    expect(cardLines).not.toMatch(/Kragen|Ärmel/);
   });
 
   it("Ein-Satz-Fragen mit Musterantwort und Kernpunkten", () => {

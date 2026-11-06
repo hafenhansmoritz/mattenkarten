@@ -129,24 +129,26 @@ const side: CardDef[] = [
 // ---------------- Mount ----------------
 const mount: CardDef[] = [
   {
-    id: "cross_collar", name: "Cross Collar Choke", de: "Kreuz-Kragenwürger (Gi)", kind: "angriff", rarity: "episch",
-    plain: "Kragen-Würger über Kreuz", plainDo: "Deine Hände greifen über Kreuz in seinen Kragen – er muss abklopfen.",
+    // No-Gi (KB 8.12): ersetzt den Kreuz-Kragenwürger; ID bleibt für gespeicherte Sammlungen.
+    id: "cross_collar", name: "Arm Triangle", de: "Kopf-Arm-Würger von oben", kind: "angriff", rarity: "episch",
+    plain: "Kopf und Arm einschließen", plainDo: "Dein Arm schließt Kopf und einen Arm ein – er muss abklopfen.",
     slots: [MOUNT_TOP], tags: ["choke"], tempo: 3, gas: 2, requiresControl: 3, submission: true,
-    desc: "Nur im Gi: erste Hand sehr tief in den gegenüberliegenden Kragen (Daumen innen), zweite Hand in den anderen Kragen (Daumen außen), Ellbogen Richtung Matte, Brust vor.",
-    keys: ["Erster Griff sehr tief", "Ein Daumen innen, einer außen", "Ellbogen nach unten, Brust nach vorn"],
-    mistakes: ["Flacher erster Griff", "Ellbogen ausgestellt", "Aufrecht sitzen statt Brust vor"],
+    desc: "Drückt er nach oben: seinen Arm über sein Gesicht schieben, Kopf an Kopf, Hände schließen, zur Seite gegenüber dem gefangenen Arm absteigen, Brust vor.",
+    keys: ["Sein Arm über sein Gesicht", "Kopf an Kopf, Hände schließen", "Zur anderen Seite absteigen, Brust vor"],
+    mistakes: ["Im Mount sitzen bleiben", "Lücke zwischen Kopf und Arm", "Zur falschen Seite absteigen"],
     safety: "Würger: bei Schwindel sofort abklopfen. " + SAFETY_SUB,
-    source: SRC.crossCollar,
+    source: SRC.armTriangle,
   },
   {
-    id: "collar_defense", name: "Collar Grip Fight", de: "Kragengriffe abwehren", kind: "reaktion", rarity: "selten",
-    plain: "Kragen-Griffe wegnehmen", plainDo: "Stoppt Würger an deinem Hals und Kragen.",
+    // No-Gi (KB 8.12): ersetzt „Kragengriffe abwehren“; ID bleibt für gespeicherte Sammlungen.
+    id: "collar_defense", name: "Hand Fighting (Choke Defense)", de: "Hände an den Hals", kind: "reaktion", rarity: "selten",
+    plain: "Hände an den Hals", plainDo: "Stoppt Würger an deinem Hals.",
     slots: [MOUNT_BOTTOM], counters: ["choke"], gas: 1,
-    lesson: "Den ersten Kragengriff verhindern (Grip Fight) – wer erst beide Griffe zulässt, ist einen Schritt vom Tap entfernt.",
-    desc: "Die Hände früh bekämpfen, den ersten tiefen Kragengriff nicht zulassen. Hat er ihn doch: zweiten Griff blocken, notfalls gegen seine Ellbogen nach innen drücken.",
-    keys: ["Ersten Griff verhindern", "Zweiten Griff blocken", "Danach zur Brücke Richtung Angriffsarm"],
-    mistakes: ["Beide Kragengriffe zulassen", "Aus Stolz nicht abklopfen"],
-    source: SRC.collarDefense,
+    lesson: "Hände zuerst (Hand Fighting) – wer den Hals früh schützt, lässt den Würger gar nicht erst zu.",
+    desc: "Hände früh an den Hals, Ellbogen eng, Kinn runter. Schiebt er einen Arm unter deinen Kopf: seinen Arm wegdrücken, nicht rüberlassen, dann zur Brücke Richtung Angriffsarm.",
+    keys: ["Hände zuerst an den Hals", "Kinn runter, Ellbogen eng", "Danach Brücke Richtung Angriffsarm"],
+    mistakes: ["Hals offen lassen", "Aus Stolz nicht abklopfen"],
+    source: SRC.mountEsc,
   },
 ];
 

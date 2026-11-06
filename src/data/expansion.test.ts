@@ -164,8 +164,8 @@ describe("Content-Paket 2", () => {
 });
 
 describe("No-Gi-Fokus: Gi-Karten der alten Kampagne", () => {
-  it("GI_ONLY nennt nur Bibliothekskarten, die Kragen oder Ärmel brauchen", () => {
-    expect(GI_ONLY.size).toBeGreaterThan(0);
+  it("keine Karte braucht Kragen oder Ärmel (No-Gi); GI_ONLY nennt nur Bibliothekskarten", () => {
+    for (const c of CARDS) expect([c.desc, c.de, c.plain, c.plainDo, c.lesson, ...(c.keys ?? []), ...(c.mistakes ?? [])].join(" "), c.id).not.toMatch(/Kragen|Ärmel|\(Gi\)/);
     for (const id of GI_ONLY) {
       expect(DECK_CARD_IDS, id).toContain(id);
       const c = CARD[id];

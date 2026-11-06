@@ -20,8 +20,9 @@ export const DECK_CARD_IDS: string[] = [...DECK_CARDS, ...EXPANSION_CARDS].map((
  * Quelle: BJJ Fanatics – Illegal Moves in BJJ (Sekundärquelle zum IBJJF-Regelwerk).
  */
 /** No-Gi-Fokus (KB 8.12): Karten der alten Kampagne, die nur mit Gi funktionieren (Kragen-/Ärmelgriffe).
- *  Die Bibliothek markiert sie mit „Gi“ und kann sie ausblenden. */
-export const GI_ONLY: ReadonlySet<string> = new Set(["cross_collar", "collar_defense", "scissor_sweep"]);
+ *  Seit dem UX-Review 2026-11-06 sind alle drei auf No-Gi umgeschrieben (Arm Triangle, Hände an den Hals,
+ *  Scissor Sweep mit Nacken + Handgelenk) – die Menge bleibt als Schalter für künftige Gi-Karten. */
+export const GI_ONLY: ReadonlySet<string> = new Set<string>([]);
 
 export const BANNED_LESSONS: { id: string; name: string; why: string }[] = [
   { id: "slam", name: "Slam", why: "Im IBJJF auf allen Stufen verboten (sofortige Disqualifikation), auch der Suplex." },

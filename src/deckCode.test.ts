@@ -86,10 +86,10 @@ describe("Deck-Code", () => {
 describe("adoptDeck", () => {
   it("übernimmt nur eigene Karten und füllt mit dem bisherigen Deck auf", () => {
     const locked = DECK_CARD_IDS.find((id) => !STARTER_DECK.includes(id))!;
-    const imported = [locked, locked, "jab", "jab", "sprawl"];
+    const imported = [locked, locked, "level_change", "level_change", "sprawl"];
     const r = adoptDeck(imported, Array.from(new Set(STARTER_DECK)), STARTER_DECK);
     expect(r.locked).toEqual([locked]);
-    expect(r.taken).toEqual(["jab", "jab", "sprawl"]);
+    expect(r.taken).toEqual(["level_change", "level_change", "sprawl"]);
     expect(r.deck).toHaveLength(20);
     for (const id of r.deck) expect(r.deck.filter((x) => x === id).length).toBeLessThanOrEqual(CARD[id].rarity === "legendaer" ? 1 : 2);
   });

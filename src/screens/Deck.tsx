@@ -240,13 +240,13 @@ export function Library() {
       </motion.div>
       <p className="muted small">Tippe eine Karte an: Du siehst, was sie im Alltag bedeutet. Beim Üben wirst du gefragt – so bleibt es hängen.</p>
       <PhaseChips value={phase} onChange={setPhase} />
-      <div className="chips" role="toolbar" aria-label="Gi-Karten">
+      {GI_ONLY.size > 0 && <div className="chips" role="toolbar" aria-label="Gi-Karten">
         <button className={`chip ${hideGi ? "on" : ""}`} aria-pressed={hideGi} onClick={() => setHideGi(!hideGi)}
           title="Mattenkarten setzt auf No-Gi. Gi-Karten brauchen Kragen- oder Ärmelgriffe.">
           {hideGi && <span className="chip-bg" />}
           Nur No-Gi <span className="chip-n num">{GI_ONLY.size} Gi</span>
         </button>
-      </div>
+      </div>}
       {hideGi && <p className="muted small">Gi-Karten brauchen Kragen- oder Ärmelgriffe – Mattenkarten setzt auf No-Gi.</p>}
       {ORDER.map((p) => {
         const ids = DECK_CARD_IDS.filter((id) => CARD[id].slots[0].pos === p && test(CARD[id]) && !(hideGi && GI_ONLY.has(id)));

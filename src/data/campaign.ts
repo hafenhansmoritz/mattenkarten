@@ -19,7 +19,7 @@ function deck(...entries: [string, number][]): string[] {
 
 /** Starterdeck (20) – deckt die ganze Kette ab: Distanz → Takedown → Pass → Mount → Rücken → RNC. */
 export const STARTER_DECK: string[] = deck(
-  ["jab", 1], ["level_change", 1], ["double_leg", 2], ["clinch_entry", 1], ["collar_tie", 1],
+  ["level_change", 2], ["double_leg", 2], ["clinch_entry", 1], ["collar_tie", 1],
   ["snap_down", 1], ["sprawl", 2], ["head_up", 1], ["stack_pass", 1], ["hip_bump", 1],
   ["shrimp_recover", 1], ["upa", 1], ["elbow_knee", 1], ["wrist_free", 1], ["to_mount", 1], ["americana", 1],
   ["seatbelt_hooks", 1], ["rnc", 1],

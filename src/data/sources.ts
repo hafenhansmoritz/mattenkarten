@@ -61,8 +61,7 @@ export const SRC = {
   toreando: s("BJJ Atlas – Toreando Pass", "https://bjj-atlas.pages.dev/guard-passing/toreando"),
   kneeShield: s("Evolve MMA – BJJ 101: Knee Shield Half Guard", "https://evolve-mma.com/blog/bjj-101-knee-shield-half-guard/"),
   kob: s("BJJ Atlas – Knee on Belly", "https://bjj-atlas.pages.dev/immobilizations/knee-on-belly"),
-  crossCollar: s("BJJ Atlas – Cross Collar Choke", "https://bjj-atlas.pages.dev/submissions/cross-collar-choke"),
-  collarDefense: s("Submission Shark – Defending Cross Collar Chokes", "https://submissionshark.com/blogs/bjj-for-begginers/how-to-defend-yourself-from-cross-collar-chokes-in-jiu-jitsu-bjj"),
+  armTriangle: s("JitsuIQ – Arm Triangle", "https://jitsuiq.com/submissions/chokes/arm-triangle.html"),
   backControl: s("JitsuIQ – Back Control", "https://jitsuiq.com/positions/back/back-control.html"),
   backMountEsc: s("Evolve MMA – 3 Back Mount Escapes", "https://evolve-mma.com/blog/3-back-mount-escapes-you-need-to-know-in-bjj/"),
 } satisfies Record<string, Src>;

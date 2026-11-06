@@ -240,7 +240,7 @@ export const PUZZLES: Puzzle[] = [
   }),
   P({
     id: "guard-slice-breakposture", title: "Er zieht dich runter", difficulty: 1, pos: "guard", top: "p",
-    situation: "Er zieht an deinem Kragen und will deine Haltung brechen.",
+    situation: "Er zieht deinen Nacken runter und will deine Haltung brechen.",
     oppCard: "b_break_posture", options: ["knee_slice", "base_post", "b_guard_posture"], answer: "knee_slice",
     why: "Er bereitet nur vor. Knie durchschneiden bringt dich quer drauf: 3 Punkte.", concept: "Punkte",
   }),
