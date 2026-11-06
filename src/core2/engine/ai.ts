@@ -5,6 +5,7 @@ import { ZONES } from "../types";
 import { boardFor, other, posValue, roleOf } from "./board";
 import { cardsOfSlot, checkCard, okCards, PASS, threats, unmetRequires } from "./legal";
 import { cardById } from "./registry";
+import { breakable, gripsOf } from "./grips";
 import { resolveRound } from "./resolve";
 
 /** B28 Boss-Spielstil: Gewichte, die auf Stufe 2/3 aufgeschlagen werden (siehe data/bosses.ts). */
@@ -15,12 +16,15 @@ export interface AiStyle {
   cards?: Partial<Record<string, number>>;
   /** Bonus je Schritt einer eigenen Aufgabe-Leiste (Aufgabe-ID, z. B. "rnc"). */
   subs?: Partial<Record<string, number>>;
+  /** Mechanik 2: Bonus für einen liegenden eigenen Griff (Griff-ID, z. B. "seatbelt") – Signatur-Griffe der Bosse. */
+  grips?: Partial<Record<string, number>>;
 }
 
 /** Stilwert einer Lage aus Sicht von side: Positionsvorliebe + eigene Aufgaben-Schritte. */
 export function styleValue(s: State2, side: Side, st: AiStyle): number {
   let v = st.pos?.[`${s.pos}/${roleOf(s, side)}`] ?? 0;
   for (const t of s.subs) if (t.owner === side) v += (st.subs?.[t.id] ?? 0) * t.step;
+  for (const g of gripsOf(s, side)) v += st.grips?.[g.id] ?? 0;
   return v;
 }
 
@@ -64,6 +68,16 @@ const WEDGE_BONUS = 2;
 /** B16 Stufe 2 „Konter-Wechsel“: Rahmen mit onStop (Sprawl) gegen drohende Shots aufwerten, Shots in einen solchen Rahmen abwerten. */
 const COUNTER_BONUS = 3;
 const COUNTER_RISK = 1;
+/** Mechanik 2 (B31–B34): Griff legen, Griff lösen (alle Stufen ab 2, auch im Gegnermodell von Stufe 3). */
+const GRIP_PLACE = 1.2;
+const GRIP_PUMMEL = 0.8;
+const GRIP_BREAK = 2;
+const GRIP_BREAK_KEY = 1.5;
+/** Rahmen, der einen Griff löst, geht nicht ins Leere: hebt den Leere-Abzug (−4) auf. */
+const GRIP_BREAK_FRAME = 4;
+const GRIP_FRAME_HIT = 1;
+/** Stufe 3: Wert eines liegenden Griffs in der Bewertung. */
+const GRIP_EVAL = 1.5;
 
 /** progress: Stufe-2-Regeln für Positionsfortschritt (B15). Das Gegnermodell von Stufe 3 bleibt bei der alten Heuristik. */
 function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => number, progress = level === 2): number {
@@ -133,6 +147,21 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     v += (c.gain ?? 1) * 0.3;
   }
 
+  // Mechanik 2: Griff legen (neu oder verdrängend) und Griff lösen.
+  if (c.grip && !s.noGrips) {
+    const mine = gripsOf(s, side);
+    if (!mine.some((g) => g.id === c.grip!.id)) v += GRIP_PLACE + (gripsOf(s, other(side)).some((g) => g.zone === c.zone) ? GRIP_PUMMEL : 0);
+    else v -= 0.5;
+  }
+  const br = breakable(s, side, c);
+  if (br.length) {
+    v += GRIP_BREAK + (c.kind === "rahmen" && !thrZones.has(c.zone) ? GRIP_BREAK_FRAME : 0);
+    // Der Griff trägt einen seiner Angriffe (Angriff in der Griff-Zone mit Bedingung dort) – dann erst recht lösen.
+    if (cardsOfSlot(s, other(side)).some((x) => x.kind === "angriff" && br.some((g) => x.zone === g.zone && x.requires?.[g.zone] !== undefined))) v += GRIP_BREAK_KEY;
+  }
+  // Rahmen, der seinen Angriff in der Zone seines Griffs stoppt, löst auch den Griff.
+  if (c.kind === "rahmen" && thrZones.has(c.zone) && gripsOf(s, other(side)).some((g) => g.zone === c.zone)) v += GRIP_FRAME_HIT;
+
   if (habits) {
     const h = habits[c.zone];
     // Gegner spielte zuletzt oft in dieser Zone: Rahmen dort aufwerten, Aufbauen dort abwerten.
@@ -162,6 +191,7 @@ function styleCard(s: State2, side: Side, c: Card2, st: AiStyle): number {
   let v = styleCardBonus(s, side, c, st);
   if (c.to && st.pos) v += (st.pos[`${c.to.pos}/${c.to.role}`] ?? 0) - (st.pos[`${s.pos}/${roleOf(s, side)}`] ?? 0);
   if (c.submission) v += st.subs?.[c.submission.id] ?? 0;
+  if (c.grip && !gripsOf(s, side).some((g) => g.id === c.grip!.id)) v += st.grips?.[c.grip.id] ?? 0;
   return v;
 }
 
@@ -172,7 +202,7 @@ export function aiChoose(s: State2, side: Side, level: 1 | 2 | 3, rng: () => num
   if (level === 1) {
     // Zufällig, aber sinnvoll: Rahmen ins Leere vermeiden, wenn es Alternativen gibt.
     const thrZones = new Set(threats(s, side).map((t) => t.zone));
-    const sensible = ok.filter((c) => c.kind !== "rahmen" || thrZones.has(c.zone));
+    const sensible = ok.filter((c) => c.kind !== "rahmen" || thrZones.has(c.zone) || breakable(s, side, c).length > 0);
     return pick(sensible.length ? sensible : ok, rng).id;
   }
   if (level === 3) return lookahead(s, side, ok, rng, style);
@@ -204,6 +234,8 @@ export function evaluate(s: State2, side: Side): number {
     if (!okCards(s, def).some((c) => c.kind === "rahmen" && c.zone === t.zone)) v += own * t.step * 4;
   }
   v += (s[side].kraft - s[foe].kraft) * 0.3;
+  // Mechanik 2: liegende Griffe sind Kontrolle (Zustand, kein Moment).
+  v += GRIP_EVAL * (gripsOf(s, side).length - gripsOf(s, foe).length);
   // Offensive Optionen (eigene ok-Angriffe) zählen, gegnerische Bedrohungen kosten.
   v += okCards(s, side).filter((c) => c.kind === "angriff").length * 0.8;
   v -= okCards(s, foe).filter((c) => c.kind === "angriff").length * 0.8;

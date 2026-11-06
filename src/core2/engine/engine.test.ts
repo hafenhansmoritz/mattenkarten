@@ -259,11 +259,11 @@ describe("Positionswechsel & Aufgaben", () => {
     const r = playRound(sideTop(), "sc_kimura", "scb_escape");
     expect(r.state.pos).toBe("side");
     expect(r.state.subs[0].step).toBe(2);
-    expect(r.round.headline).toMatch(/Griff/);
+    expect(r.round.headline).toMatch(/Aufgabe hält/);
     // Danach ist die Befreiung nicht spielbar, bis er den Griff löst.
     const l = legalCards(r.state, "o").find((c) => c.id === "scb_escape")!;
     expect(l.ok).toBe(false);
-    expect(l.reason).toMatch(/Griff lösen/);
+    expect(l.reason).toMatch(/Aufgabe abwehren/);
   });
   it("B4: bei Schritt 1 (nur isoliert) ist Weggehen erlaubt und löscht die Leiste", () => {
     let s = sideTop();

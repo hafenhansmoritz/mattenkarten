@@ -65,6 +65,8 @@ export const BOSSES: BossDef[] = [
         hb_come_up: 1.5, cl_pull_guard: -6,
       },
       subs: { guillotine: 1 },
+      // Mechanik 2: seine Signatur-Griffe im Clinch.
+      grips: { collar_tie: 1.5, underhook: 1 },
     },
     counter: {
       // Am Boden oben ist er schwächer: Lagen oben aufwerten, Front Headlock unten meiden.
@@ -91,6 +93,7 @@ export const BOSSES: BossDef[] = [
         bb_shrimp: 1.5, mb_elbow_escape: 1, gb_wrestle_up: -2,
       },
       subs: { triangle: 2, guillotine: 1.5, armbar: 1 },
+      grips: { wrist: 1.5 },
     },
     counter: {
       pos: { "side/top": 2, "half/top": 1 },
@@ -117,6 +120,7 @@ export const BOSSES: BossDef[] = [
         mt_heavy_hips: 1.5, mt_knee_pinch: 1, sct_americana: 2, sct_kimura: 2, mt_americana: 2,
       },
       subs: { americana: 2, kimura: 2 },
+      grips: { crossface: 2, underhook: 1 },
     },
     counter: {
       pos: { "side/bottom": -2, "mount/bottom": -3 },
@@ -144,12 +148,15 @@ export const BOSSES: BossDef[] = [
         bt_clear_hands: 1, bt_rnc: 2, bt_hook_retention: 1, bt_follow: 1, mt_to_back: 2.5, hb_back_take: 2,
       },
       subs: { rnc: 3, back_armbar: 1 },
+      grips: { seatbelt: 1, chin_strap: 0.5 },
     },
     counter: {
       pos: { "turtle/bottom": -3, "back/bottom": -4 },
       cards: {
         mb_no_back: 3, bb_chin_tuck: 4, bb_elbows_tight: 3, bb_hand_fight: 2.5, bb_shrimp: 2, bb_escape_side: 2,
         tb_sit_out: 2, tb_stand_up: 2, tb_shell: 3.5, hlb_elbow_in: 3.5, scb_underhook: -2,
+        // Mechanik 2: ihren Seatbelt lösen (Hände frei machen), in der Half Guard selbst den Underhook holen (verdrängt ihren) – sonst geht sie an den Rücken.
+        tb_hands: 2.5, ht_underhook: 2,
       },
     },
     likes: "Sie will hinter dich: Arm ziehen, Turtle, Oberkörper umklammern (Seatbelt), Haken rein – dann der Würger von hinten.",

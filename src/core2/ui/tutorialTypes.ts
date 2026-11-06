@@ -43,4 +43,6 @@ export interface TutorialK2Def {
   zones?: Zone[];
   /** In jeder Runde vor dem Aufdecken eine Vorhersage abfragen. */
   predictAll?: boolean;
+  /** false: Griffe (Mechanik 2) aus – die ersten drei Lektionen führen sie noch nicht ein. */
+  grips?: boolean;
 }

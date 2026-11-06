@@ -16,7 +16,7 @@ const VALID_SLOT = new Set(SLOTS2.map((s) => `${s.pos}:${s.role}`));
 /** Neuling, der den Hinweisen folgt: Runde 1 Body Lock, danach Stufe 3 – aber nie Guard ziehen. */
 const NO_PULL = { cards: { cl_pull_guard: -50 } };
 function run(seed: number) {
-  let s: State2 = newMatch({ seed, maxRounds: T.maxRounds, start: T.start, goal: T.goal });
+  let s: State2 = newMatch({ seed, maxRounds: T.maxRounds, start: T.start, goal: T.goal, grips: T.grips });
   const oRng = mulberry32(seed || 1);
   const pRng = mulberry32(seed ^ 0x9e3779b9);
   const log: string[] = [];

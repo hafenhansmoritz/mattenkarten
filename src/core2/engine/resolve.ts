@@ -1,9 +1,10 @@
 // Auflösung einer Runde (Spec „Regeln“ 1–9).
-import type { Card2, Event2, Round2, Side, State2, SubTrack, Zone } from "../types";
+import type { Card2, Event2, Grip2, Round2, Side, State2, SubTrack, Zone } from "../types";
 import { ZONES } from "../types";
 import { clampZone, other, POS_LABEL, roleOf, sign, topFor, ZONE_LABEL } from "./board";
 import { checkCard, heldInSub, PASS, unmetRequires } from "./legal";
 import { cardById } from "./registry";
+import { breakable, GRIP_MAX, gripFits } from "./grips";
 
 export const KRAFT_MAX = 5;
 
@@ -32,6 +33,7 @@ export function cloneState(s: State2): State2 {
     p: { ...s.p, locked: [...s.p.locked] },
     o: { ...s.o, locked: [...s.o.locked] },
     subs: s.subs.map((t) => ({ ...t })),
+    grips: (s.grips ?? []).map((g) => ({ ...g })),
     history: [...s.history],
     result: s.result ? { ...s.result } : null,
     goal: s.goal ? s.goal.map((g) => ({ ...g })) : undefined,
@@ -73,6 +75,59 @@ function changeKraft(ctx: Ctx, side: Side, delta: number): void {
   const f = ctx.s[side];
   const nv = Math.max(0, Math.min(KRAFT_MAX, f.kraft + delta));
   if (nv !== f.kraft) { ctx.events.push({ t: "kraft", side, delta: nv - f.kraft }); f.kraft = nv; }
+}
+
+// ---------------- Mechanik 2: Griffe (B31–B34) ----------------
+type GripWhy = Extract<Event2, { t: "grip" }>["why"];
+
+function dropGrip(ctx: Ctx, g: Grip2, why: GripWhy): void {
+  ctx.s.grips = ctx.s.grips.filter((x) => x !== g);
+  ctx.events.push({ t: "grip", owner: g.owner, id: g.id, name: g.name, zone: g.zone, on: false, why });
+}
+
+/** B31: gelungene Griff-Karte legt den Griff. Gleicher Griff oder gleiche Zone: ersetzt den eigenen;
+ *  sein Griff in dieser Zone wird verdrängt (B33); mehr als GRIP_MAX: der älteste fällt. */
+function placeGrip(ctx: Ctx, side: Side, c: Card2): void {
+  if (!c.grip || ctx.s.noGrips) return;
+  const s = ctx.s;
+  for (const g of s.grips.filter((x) => x.owner === side && (x.id === c.grip!.id || x.zone === c.zone))) s.grips = s.grips.filter((x) => x !== g);
+  const pushed = s.grips.filter((x) => x.owner !== side && x.zone === c.zone);
+  for (const g of pushed) dropGrip(ctx, g, "verdraengt");
+  s.grips.push({ id: c.grip.id, name: c.grip.name, owner: side, zone: c.zone, card: c.id });
+  ctx.events.push({ t: "grip", owner: side, id: c.grip.id, name: c.grip.name, zone: c.zone, on: true });
+  const mine = s.grips.filter((x) => x.owner === side);
+  if (mine.length > GRIP_MAX) dropGrip(ctx, mine[0], "alt");
+  const z = ZONE_LABEL[c.zone];
+  ctx.notes.push({
+    prio: pushed.length ? 46 : 22, side,
+    headline: pushed.length
+      ? (you(side) ? `Dein ${c.grip.name} verdrängt seinen ${pushed[0].name}.` : `Sein ${c.grip.name} verdrängt deinen ${pushed[0].name}.`)
+      : (you(side) ? `Dein Griff liegt: ${c.grip.name} (${z}).` : `Sein Griff liegt: ${c.grip.name} (${z}).`),
+    why: you(side) ? `Solange dein Griff liegt, brauchen deine Angriffe in der Zone ${z} 1 weniger.`
+      : `Solange sein Griff liegt, brauchen seine Angriffe in der Zone ${z} 1 weniger.`,
+    zone: c.zone,
+  });
+}
+
+/** B32 Griff lösen: Karte mit breaks, die nicht geschlagen wurde, löst seine passenden Griffe. true = etwas gelöst. */
+function applyBreaks(ctx: Ctx, side: Side, c: Card2): boolean {
+  const hit = breakable(ctx.s, side, c);
+  for (const g of hit) dropGrip(ctx, g, "loesen");
+  if (!hit.length) return false;
+  ctx.acted.add(side);
+  const n = hit[0].name;
+  ctx.notes.push({
+    prio: 56, side,
+    headline: you(side) ? `${q(c)} löst seinen ${n}.` : `${q(c)}: er löst deinen ${n}.`,
+    why: "Ein Griff bleibt liegen, bis man ihn aktiv löst – das ist Grip Fighting.",
+    zone: hit[0].zone,
+  });
+  return true;
+}
+
+/** B34: nach einem Positionswechsel fallen Griffe, die zur neuen Lage nicht passen. */
+function dropUnfitGrips(ctx: Ctx): void {
+  for (const g of [...ctx.s.grips]) if (!gripFits(ctx.s, g)) dropGrip(ctx, g, "position");
 }
 
 /** Rahmen schlägt den Aufgabe-Angriff `ac` (rahmen>angriff, gleiche Zone): dessen Leiste −1. true = etwas bewirkt. */
@@ -138,6 +193,8 @@ function applyMove(ctx: Ctx, side: Side, c: Card2): void {
   // Balance „Schwung“: der Gewinner kommt mit +1 in dieser Zone an (statt nur kappen).
   s.board[c.zone] = BALANCE.momentum ? sign(side) : Math.max(-1, Math.min(1, before));
   if (s.board[c.zone] !== before) ctx.events.push({ t: "zone", zone: c.zone, delta: s.board[c.zone] - before, by: side });
+  // B34: Griffe, die zur neuen Lage nicht passen, fallen.
+  dropUnfitGrips(ctx);
   // Positionswechsel löscht alle Aufgabe-Leisten.
   for (const t of s.subs) if (t.step > 0) ctx.events.push({ t: "sub", owner: t.owner, id: t.id, step: 0 });
   s.subs = [];
@@ -161,8 +218,8 @@ function resolveMoves(ctx: Ctx): void {
     if (BALANCE.gripStopsEscape && heldInSub(ctx.s, m.side)) {
       ctx.notes.push({
         prio: 65, side: other(m.side),
-        headline: you(m.side) ? `Sein Griff hält dich: ${q(m.card)} scheitert.` : `Dein Griff hält ihn: ${q(m.card)} scheitert.`,
-        why: "Wer im Moment der Flucht gegriffen wird, muss erst den Griff lösen.",
+        headline: you(m.side) ? `Seine Aufgabe hält dich: ${q(m.card)} scheitert.` : `Deine Aufgabe hält ihn: ${q(m.card)} scheitert.`,
+        why: "Steckst du im Moment der Flucht in seiner Aufgabe, musst du sie erst abwehren.",
         zone: m.card.zone,
       });
       return;
@@ -257,6 +314,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
           addZone(ctx, t, z, 1);
           ctx.acted.add(t);
           triWinner = t;
+          placeGrip(ctx, t, cards[t]!);
           ctx.notes.push({
             prio: 15, side: t,
             headline: you(t) ? `Beide bauen an ${ZONE_LABEL[z]} – du oben setzt dich durch.` : `Beide bauen an ${ZONE_LABEL[z]} – er oben setzt sich durch.`,
@@ -279,6 +337,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       gainWith(ctx, b, c, 1);
       ctx.acted.add(b);
       triWinner = b;
+      placeGrip(ctx, b, c);
       const n = (c.gain ?? 1) + 1;
       ctx.notes.push({
         prio: 45, side: b,
@@ -297,6 +356,17 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       }
       ctx.acted.add(r);
       triWinner = r;
+      // B32: Der Rahmen, der seinen Angriff stoppt, löst auch seinen Griff in dieser Zone.
+      for (const g of ctx.s.grips.filter((x) => x.owner === a && x.zone === z)) {
+        dropGrip(ctx, g, "rahmen");
+        ctx.notes.push({
+          prio: 71, side: r,
+          headline: you(r) ? `${q(rc)} stoppt ihn – Griff gelöst.` : `${q(rc)} stoppt dich – Griff gelöst.`,
+          why: you(r) ? `Stoppst du den Angriff in der Zone seines Griffs, fällt auch sein ${g.name}.`
+            : `Stoppt er den Angriff in der Zone deines Griffs, fällt auch dein ${g.name}.`,
+          zone: z,
+        });
+      }
       let why = rc.why;
       if (ac.dilemmaOpens) {
         addZone(ctx, a, ac.dilemmaOpens, 1);
@@ -319,6 +389,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       if (c.kind === "aufbauen") {
         gainWith(ctx, side, c);
         ctx.acted.add(side);
+        placeGrip(ctx, side, c);
         ctx.notes.push({
           prio: 20, side,
           headline: you(side) ? `Du baust auf: ${q(c)}, ${ZONE_LABEL[c.zone]} +${c.gain ?? 1}.` : `Er baut auf: ${q(c)}, ${ZONE_LABEL[c.zone]} +${c.gain ?? 1}.`,
@@ -326,6 +397,8 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
         });
       } else if (c.kind === "angriff") {
         attackSucceeds(ctx, side, c, BALANCE.unframedSubSteps);
+      } else if (breakable(ctx.s, side, c).length || (!ctx.s.noGrips && cards[other(side)]?.grip && c.breaks?.includes(cards[other(side)]!.grip!.id))) {
+        // B32: Griff lösen wird nach dem Legen geprüft (unten) – ein Rahmen, der einen Griff löst, geht nicht ins Leere.
       } else {
         {
           leer = true;
@@ -338,6 +411,12 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       }
     }
     rule = leer ? "rahmen-ins-leere" : "verschiedene-zonen";
+  }
+
+  // B32 Griff lösen: jede Karte mit breaks, die in ihrer Zone nicht geschlagen wurde (nach dem Legen neuer Griffe).
+  for (const side of ["p", "o"] as Side[]) {
+    const c = cards[side];
+    if (c?.breaks && triWinner !== other(side)) applyBreaks(ctx, side, c);
   }
 
   // Tap vor Positionswechsel (Wechsel würde die Leiste löschen).

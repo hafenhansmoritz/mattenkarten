@@ -10,6 +10,8 @@ export { legalCards, threats, PASS } from "./legal";
 export { aiChoose } from "./ai";
 export { setCardRegistry, cardById, slotCards, allCards } from "./registry";
 export { KRAFT_MAX } from "./resolve";
+export { GRIP_MAX, GRIP_EFFECT, gripsOf, gripBonus, gripFits, breakable } from "./grips";
+export { needIn } from "./legal";
 
 export const KRAFT_START = 3;
 
@@ -18,6 +20,8 @@ export interface NewMatchOpts {
   maxRounds?: number;
   start?: { pos: Pos2; top: Side | null; board?: Partial<Board> };
   goal?: State2["goal"];
+  /** false: Griffe aus (erste drei Lektionen) – Griff-Karten wirken dann nur als Keil. */
+  grips?: boolean;
   /** Optional: eigenes Kartenregister (setzt das globale Register; Tests/Tutorials). */
   cards?: Card2[];
 }
@@ -35,6 +39,8 @@ export function newMatch(opts: NewMatchOpts): State2 {
     p: { pts: 0, kraft: KRAFT_START, locked: [] },
     o: { pts: 0, kraft: KRAFT_START, locked: [] },
     subs: [],
+    grips: [],
+    ...(opts.grips === false ? { noGrips: true } : {}),
     history: [],
     result: null,
     goal: opts.goal,

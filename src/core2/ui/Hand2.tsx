@@ -28,13 +28,15 @@ export interface Hand2Props {
   highlightZone?: Zone | null;
   /** Zonen, die in dieser Lektion noch nicht aktiv sind (Spalte grau, "später"). */
   hiddenZones?: Zone[];
+  /** Mechanik 2: Zonen, in denen du gerade einen Griff hältst (Angriffe dort brauchen 1 weniger). */
+  gripZones?: Zone[];
   /** Max. sichtbare Karten (Standard 8), Rest hinter "+N". */
   max?: number;
   className?: string;
 }
 
 /** Hand für Kern 2: Karten nach Zone gruppiert (vier Spalten), Farbe = Art. */
-export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, hiddenZones = [], max = 8, className }: Hand2Props) {
+export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, hiddenZones = [], gripZones = [], max = 8, className }: Hand2Props) {
   const reduced = !!useReducedMotion();
   const [showAll, setShowAll] = useState(false);
   const lmap = useMemo(() => new Map(legal.map((l) => [l.id, l])), [legal]);
@@ -78,7 +80,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                 const disabled = !ok || blockedByTut;
                 const isSel = selected === c.id;
                 const tooExpensive = c.kraft != null && kraft != null && c.kraft > kraft;
-                const reqs = reqList(c);
+                const reqs = reqList(c, gripZones);
                 const rar = rarityOf(c);
                 const kws = keywordsOf(c);
                 return (
@@ -88,7 +90,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                       disabled={disabled}
                       data-card={c.id}
                       aria-pressed={isSel}
-                      aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${kws.filter((k) => HAND_EXTRA.includes(k.id)).map((k) => ` ${k.label}`).join("")}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}`).join("")}${c.kraft ? `, ${c.kraft} Atem nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
+                      aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${kws.filter((k) => HAND_EXTRA.includes(k.id)).map((k) => ` ${k.label}`).join("")}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}${r.grip ? " dank Griff" : ""}`).join("")}${c.kraft ? `, ${c.kraft} Atem nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
                       title={!ok ? l?.reason : blockedByTut ? "Erst die markierte Karte" : c.plainDo}
                       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.9 }}
                       animate={{ opacity: 1, y: isSel && !reduced ? -4 : 0, scale: 1 }}
@@ -106,7 +108,8 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                         <span className="k2-hcard-reqs">
                           {reqs.map((r) => {
                             const met = myBoard ? myBoard[r.zone] >= r.n : null;
-                            return <span key={r.zone} className={`k2-req${met === true ? " met" : met === false ? " miss" : ""}`}>{ZONE_SHORT[r.zone]} {fmtSigned(r.n)} </span>;
+                            return <span key={r.zone} className={`k2-req${met === true ? " met" : met === false ? " miss" : ""}${r.grip ? " by-grip" : ""}`}
+                              title={r.grip ? "Dein Griff senkt die Bedingung um 1" : undefined}>{ZONE_SHORT[r.zone]} {fmtSigned(r.n)} </span>;
                           })}
                           {c.kraft ? <span className={`k2-req kraft${tooExpensive ? " miss" : ""}`}><KraftIcon size={9} />{c.kraft}</span> : null}
                         </span>

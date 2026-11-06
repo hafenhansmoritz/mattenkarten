@@ -67,7 +67,16 @@ export interface Card2 {
   mmaNote?: string;
   source?: { title: string; url: string };
   check?: boolean;        // ohne Primärquelle → Trainer prüfen
+  /** Mechanik 2 „Griffe bleiben liegen“ (B31): gelingt diese Aufbauen-Karte, liegt der Griff für ihren Spieler auf dem Brett
+   *  (in card.zone). Wirkung immer gleich: deine Angriffe brauchen in dieser Zone 1 weniger. Er bleibt, solange die Lage zu
+   *  einer Karte mit derselben Griff-ID passt (Slots aller Karten dieses Griffs), bis er gelöst wird. */
+  grip?: { id: string; name: string };
+  /** B32 „Griff lösen“: wird diese Karte nicht geschlagen, fallen diese gegnerischen Griffe (Griff-IDs). */
+  breaks?: string[];
 }
+
+/** Ein liegender Griff (Mechanik 2). */
+export interface Grip2 { id: string; name: string; owner: Side; zone: Zone; card: string }
 
 export interface SubTrack { id: string; name: string; owner: Side; step: 0 | 1 | 2 | 3; zone: Zone }
 
@@ -83,6 +92,10 @@ export interface State2 {
   p: Fighter2;
   o: Fighter2;
   subs: SubTrack[];       // laufende Aufgabe-Leisten
+  /** Liegende Griffe (Mechanik 2), älteste zuerst; höchstens GRIP_MAX je Spieler. */
+  grips: Grip2[];
+  /** Griffe ausgeschaltet (erste drei Lektionen): Griff-Karten wirken dann nur als Keil. */
+  noGrips?: boolean;
   history: Round2[];
   result: null | { type: "tap"; winner: Side; sub: string } | { type: "points"; winner: Side | null } | { type: "goal"; winner: Side };
   /** Tutorial-Ziel: Spieler gewinnt, sobald (pos, role) erreicht. */
@@ -96,7 +109,9 @@ export type Event2 =
   | { t: "sub"; owner: Side; id: string; step: number }   // Aufgabe-Leiste ändert sich
   | { t: "tap"; winner: Side; sub: string }
   | { t: "dilemma"; side: Side; zone: Zone }
-  | { t: "kraft"; side: Side; delta: number };
+  | { t: "kraft"; side: Side; delta: number }
+  /** Griff gelegt (on) oder gelöst (off); why: wodurch er fiel. */
+  | { t: "grip"; owner: Side; id: string; name: string; zone: Zone; on: boolean; why?: "rahmen" | "loesen" | "verdraengt" | "position" | "alt" };
 
 export interface Round2 {
   round: number;

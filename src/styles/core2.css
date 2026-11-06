@@ -312,3 +312,17 @@
 .k2-boss-body p { margin: 0 0 4px; font-size: 14px; line-height: 1.4; }
 .k2-boss-mma { color: var(--bad, #e05a5a); font-size: 13px !important; }
 .k2-boss-body .btn { margin-top: 8px; width: 100%; }
+
+/* ---------- Mechanik 2: Griffe bleiben liegen ---------- */
+.k2-grip-tok { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 17px; height: 17px; border-radius: 999px; margin-left: -1px; }
+.k2-grip-tok.p { color: #cfe1ff; background: rgba(62, 139, 255, 0.32); box-shadow: 0 0 0 1px rgba(62, 139, 255, 0.7); }
+.k2-grip-tok.o { color: #ffd3d4; background: rgba(229, 72, 77, 0.3); box-shadow: 0 0 0 1px rgba(229, 72, 77, 0.7); }
+.k2-grips { display: flex; flex-wrap: wrap; gap: 6px; }
+.k2-grip-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 4px 12px; border-radius: 999px; font: inherit; font-size: 11.5px; color: var(--text); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); cursor: pointer; }
+.k2-grip-chip b { font-weight: 800; }
+.k2-grip-chip.p { border-color: rgba(62, 139, 255, 0.6); }
+.k2-grip-chip.p b, .k2-grip-chip.p .k2-ico { color: #a9cbff; }
+.k2-grip-chip.o { border-color: rgba(229, 72, 77, 0.6); }
+.k2-grip-chip.o b, .k2-grip-chip.o .k2-ico { color: #ffb0b0; }
+.k2-grip-chip:focus-visible { outline: 2px solid var(--k2-focus, #ffd166); outline-offset: 2px; }
+.k2-req.by-grip { box-shadow: inset 0 0 0 1px rgba(255, 209, 102, 0.75); }

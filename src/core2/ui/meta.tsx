@@ -40,9 +40,13 @@ export function reqMet(req: ZoneReq | undefined, myBoard: Board | undefined, zon
   return myBoard[zone] >= (req[zone] as number);
 }
 
-export function reqList(c: Card2): { zone: Zone; n: number }[] {
+/** Bedingungen einer Karte. gripZones (Mechanik 2): Zonen mit eigenem Griff – dort braucht ein Angriff in dieser Zone 1 weniger. */
+export function reqList(c: Card2, gripZones: Zone[] = []): { zone: Zone; n: number; grip?: boolean }[] {
   if (!c.requires) return [];
-  return ZONES.filter((z) => c.requires![z] != null).map((z) => ({ zone: z, n: c.requires![z] as number }));
+  return ZONES.filter((z) => c.requires![z] != null).map((z) => {
+    const grip = z === c.zone && gripZones.includes(z);
+    return { zone: z, n: (c.requires![z] as number) - (grip ? 1 : 0), ...(grip ? { grip } : {}) };
+  });
 }
 
 function Svg({ size = 16, className, children }: { size?: number; className?: string; children: React.ReactNode }) {
@@ -51,6 +55,16 @@ function Svg({ size = 16, className, children }: { size?: number; className?: st
       fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
       {children}
     </svg>
+  );
+}
+
+/** Mechanik 2: Griff (greifende Hand). */
+export function GripIcon({ size = 14, className }: { size?: number; className?: string }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M18 11.5V9a2 2 0 0 0-4 0v1.4" /><path d="M14 10V8a2 2 0 0 0-4 0v2" /><path d="M10 9.9V9a2 2 0 0 0-4 0v5" />
+      <path d="M6 14a2 2 0 0 0-4 0" /><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8 2 2 0 1 1 4 0" />
+    </Svg>
   );
 }
 

@@ -1,7 +1,12 @@
 import { useMemo } from "react";
 import { FightersScene, sceneOfPos2, type BodyPart, type FighterHighlight } from "../../components/fighters";
-import type { Pos2, Side, SubTrack, Zone } from "../types";
-import type { TapState } from "../../components/fighters/choreo";
+import type { Grip2, Pos2, Side, SubTrack, Zone } from "../types";
+import type { Grip, TapState } from "../../components/fighters/choreo";
+
+/** Mechanik 2: Griff-ID der Karte → Hand-Griff der Choreografie (für den dauerhaften Glow). */
+export const GRIP_SCENE: Record<string, Grip> = {
+  collar_tie: "collar", underhook: "underhook", crossface: "crossface", seatbelt: "seatbelt", wrist: "wrist", chin_strap: "chinstrap",
+};
 
 /** Zone der Körperkarte → hervorgehobenes Körperteil. */
 export const ZONE_PART: Record<Zone, BodyPart> = {
@@ -32,10 +37,12 @@ export interface FightersK2Props {
   tap?: TapState;
   /** Griff-Marker an den Händen (Standard: wie `zone`). */
   grips?: { side: Side; zone: Zone } | null;
+  /** Mechanik 2: liegende Griffe (State2.grips) – ihre Hände glühen, solange der Griff liegt. */
+  held?: Pick<Grip2, "id" | "owner">[];
 }
 
 /** Kampf-Silhouetten für Kern 2: nutzt den Fighters-Renderer, kennt zusätzlich "half" und "turtle". */
-export function FightersK2({ pos, top, zone = null, zoneColor, part = null, sub = null, tap = null, grips, ...rest }: FightersK2Props) {
+export function FightersK2({ pos, top, zone = null, zoneColor, part = null, sub = null, tap = null, grips, held = [], ...rest }: FightersK2Props) {
   const highlight = useMemo<FighterHighlight | null>(
     () => (part ? { side: part.side, part: part.part, color: zoneColor }
       : zone ? { side: zone.side, part: ZONE_PART[zone.zone], color: zoneColor } : null),
@@ -45,6 +52,8 @@ export function FightersK2({ pos, top, zone = null, zoneColor, part = null, sub 
   const gripZone = useMemo(() => (gz ? { side: gz.side, zone: gz.zone } : null), [gz?.side, gz?.zone]); // eslint-disable-line react-hooks/exhaustive-deps
   const subPose = useMemo(() => (sub && sub.step > 0 ? { owner: sub.owner, id: sub.id, zone: sub.zone, step: sub.step } : null),
     [sub?.owner, sub?.id, sub?.zone, sub?.step]); // eslint-disable-line react-hooks/exhaustive-deps
+  const heldKey = held.map((g) => `${g.owner}:${g.id}`).join(",");
+  const heldScene = useMemo(() => held.filter((g) => GRIP_SCENE[g.id]).map((g) => ({ side: g.owner, grip: GRIP_SCENE[g.id] })), [heldKey]); // eslint-disable-line react-hooks/exhaustive-deps
   return <FightersScene pos={sceneOfPos2(pos)} top={pos === "stand" || pos === "clinch" ? null : top} highlight={highlight}
-    gripZone={gripZone} sub={subPose} tap={tap} {...rest} />;
+    gripZone={gripZone} sub={subPose} tap={tap} held={heldScene} {...rest} />;
 }

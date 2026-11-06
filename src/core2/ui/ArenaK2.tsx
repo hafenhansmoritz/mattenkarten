@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import type { Card2, Event2, Round2, Side, State2, SubTrack, Zone } from "../types";
+import type { Card2, Event2, Grip2, Round2, Side, State2, SubTrack, Zone } from "../types";
 import { ZONES } from "../types";
 import {
   newMatch, roleOf, boardFor, legalCards, playRound, aiChoose, threats as threatsOf,
-  slotCards, cardById, PASS, KRAFT_MAX,
+  slotCards, cardById, PASS, KRAFT_MAX, gripsOf,
 } from "../engine";
 import { FightersK2 } from "./FightersK2";
 import type { TapState } from "../../components/fighters/choreo";
@@ -14,7 +14,7 @@ import { Hand2 } from "./Hand2";
 import type { TutorialK2Def, TutorialK2Step } from "./tutorialTypes";
 import { filterHandByZones, hiddenZones } from "./disclosure";
 import { PREDICTIONS, PREDICTION_LABEL, outcomeOf, predictionFeedback, shouldPredict, type Prediction } from "./predict";
-import { ATEM_LABEL, KIND_LABEL, KraftIcon, LockIcon, POS_LABEL, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
+import { ATEM_LABEL, GripIcon, KIND_LABEL, KraftIcon, LockIcon, POS_LABEL, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
 import { Stamp, FloatText, useHitStop, Confetti, ImpactBurst, type StampTone } from "../../components/fx";
 import { CoachAvatar } from "../../components/learn";
 import { sfx } from "../../sound";
@@ -126,6 +126,7 @@ function startState(props: ArenaK2Props, seed: number): State2 {
     maxRounds: t?.maxRounds,
     start: t ? { pos: t.start.pos, top: t.start.top, board: t.start.board } : undefined,
     goal: t?.goal,
+    grips: t?.grips,
   });
 }
 
@@ -204,15 +205,19 @@ export function ArenaK2(props: ArenaK2Props) {
   const [kwToast, setKwToast] = useState<KeywordId | null>(null);
   const [kwPop, setKwPop] = useState<KeywordId | null>(null);
   const kwRound = useRef(0);
+  const liveGrips = useMemo(() => gripsOf(s), [s]);
   useEffect(() => {
-    if (tut || phase !== "pick" || kwToast || kwRound.current === s.round + matchNo * 100) return;
-    const id = firstUnseen(handShown, kwSeen);
+    if (phase !== "pick" || kwToast || kwRound.current === s.round + matchNo * 100) return;
+    // Mechanik 2: liegt der erste Griff auf dem Brett (auch seiner), einmal „Griff“ erklären – auch in späteren Lektionen.
+    const gripNew = liveGrips.length > 0 && !kwSeen.includes("griff");
+    if (tut && !gripNew) return;
+    const id = gripNew ? "griff" : firstUnseen(handShown, kwSeen);
     if (!id) return;
     kwRound.current = s.round + matchNo * 100;
     markKeywordSeen(id);
     setKwSeen((k) => [...k, id]);
     setKwToast(id);
-  }, [tut, phase, handShown, kwSeen, kwToast, s.round, matchNo]);
+  }, [tut, phase, handShown, kwSeen, kwToast, s.round, matchNo, liveGrips]);
   useEffect(() => { if (phase !== "pick") setKwToast(null); }, [phase]);
   const closeKwToast = useCallback(() => setKwToast(null), []);
 
@@ -394,7 +399,7 @@ export function ArenaK2(props: ArenaK2Props) {
 
       {/* Szene */}
       <section className="k2-stage">
-        <FightersK2 pos={shown.pos} top={shown.top} zone={zoneHL} sub={liveSub} tap={tapAnim} {...fx} className="k2-fighters" />
+        <FightersK2 pos={shown.pos} top={shown.top} zone={zoneHL} sub={liveSub} tap={tapAnim} held={gripsOf(shown)} {...fx} className="k2-fighters" />
         {burst && <ImpactBurst key={burst} x="50%" y="58%" onDone={() => setBurst(null)} />}
         {floats.map((f) => (
           <FloatText key={f.key} text={f.text} color={f.color} x={f.x} y="40%" onDone={() => setFloats((fs) => fs.filter((x) => x.key !== f.key))} />
@@ -404,7 +409,7 @@ export function ArenaK2(props: ArenaK2Props) {
 
       {/* Brett + Aufdeck-Ebene */}
       <section className="k2-board-wrap">
-        <Board board={s.board} focus={focus} lastDeltas={deltas} threats={shownThreats} hidden={hidZones} />
+        <Board board={s.board} focus={focus} lastDeltas={deltas} threats={shownThreats} hidden={hidZones} grips={liveGrips} />
         <AnimatePresence>
           {showCards && (
             <RevealLayer key={`rv-${round?.round}`} p={cards.p} o={cards.o} same={sameZone} impact={phase === "impact"} reduced={reduced} />
@@ -413,6 +418,7 @@ export function ArenaK2(props: ArenaK2Props) {
       </section>
 
       <SubTracks subs={s.subs} />
+      <GripStrip grips={liveGrips} onOpen={() => setKwPop("griff")} />
 
       {/* Ergebnis: eine schlanke Zeile */}
       <AnimatePresence>
@@ -452,7 +458,8 @@ export function ArenaK2(props: ArenaK2Props) {
             </div>
           )}
           <Hand2 cards={handShown} legal={legal} hiddenZones={hidZones} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.click(); }}
-            myBoard={myBoard} locked={s.p.locked} kraft={s.p.kraft} requireCard={requireCard} highlightZone={hlZone} />
+            myBoard={myBoard} locked={s.p.locked} kraft={s.p.kraft} requireCard={requireCard} highlightZone={hlZone}
+            gripZones={liveGrips.filter((g) => g.owner === "p").map((g) => g.zone)} />
           <button type="button" className="btn primary big k2-go" disabled={anyLegal ? !sel || (!!requireCard && sel !== requireCard) : false} onClick={reveal}>
             {!anyLegal ? "Passen" : sel ? "Aufdecken!" : "Wähle eine Karte"}
           </button>
@@ -577,6 +584,22 @@ function PredictPanel({ pending, guess, onGuess, onReveal }: {
       )}
       {guess && <button type="button" className="btn primary big k2-go" onClick={onReveal} autoFocus>Aufdecken!</button>}
     </motion.section>
+  );
+}
+
+/** Mechanik 2: liegende Griffe als Marken unter dem Brett – Tippen erklärt „Griff“. */
+function GripStrip({ grips, onOpen }: { grips: Grip2[]; onOpen: () => void }) {
+  if (!grips.length) return null;
+  return (
+    <div className="k2-grips" role="group" aria-label="Liegende Griffe">
+      {grips.map((g) => (
+        <button key={`${g.owner}-${g.id}`} type="button" className={`k2-grip-chip ${g.owner}`} onClick={(e) => { e.stopPropagation(); onOpen(); }}
+          aria-label={`${g.owner === "p" ? "Du" : "Er"}: ${g.name} · ${ZONE_LABEL[g.zone]}. ${g.owner === "p" ? "Deine" : "Seine"} Angriffe dort brauchen 1 weniger. Tippen für Erklärung.`}>
+          <GripIcon size={12} />
+          <span><b>{g.owner === "p" ? "Du" : "Er"}:</b> {g.name} · {ZONE_LABEL[g.zone]}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 

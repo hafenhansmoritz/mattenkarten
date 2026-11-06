@@ -2,6 +2,7 @@
 import type { Card2, Side, State2, Zone } from "../types";
 import { ZONES } from "../types";
 import { boardFor, fmtSigned, other, roleOf, ZONE_LABEL } from "./board";
+import { gripBonus } from "./grips";
 import { slotCards } from "./registry";
 
 /** Platzhalter, wenn eine Seite keine spielbare Karte hat (Slot leer oder alles gesperrt). */
@@ -13,12 +14,18 @@ export function cardsOfSlot(s: State2, side: Side): Card2[] {
   return slotCards(s.pos, roleOf(s, side));
 }
 
-export function unmetRequires(s: State2, side: Side, c: Card2): string[] {
+/** Bedingung einer Karte in Zone z für side – B31: ein eigener Griff in der Zone der Karte senkt dort ihre Bedingung um 1. */
+export function needIn(s: State2, side: Side, c: Pick<Card2, "requires" | "zone">, z: Zone): number | undefined {
+  const need = c.requires?.[z];
+  return need === undefined ? undefined : need - (z === c.zone ? gripBonus(s, side, z) : 0);
+}
+
+export function unmetRequires(s: State2, side: Side, c: Pick<Card2, "requires" | "zone">): string[] {
   if (!c.requires) return [];
   const b = boardFor(s, side);
   const out: string[] = [];
   for (const z of ZONES) {
-    const need = c.requires[z];
+    const need = needIn(s, side, c, z);
     if (need !== undefined && b[z] < need) out.push(`${ZONE_LABEL[z]} ${fmtSigned(need)}`);
   }
   return out;
@@ -39,7 +46,7 @@ export function heldInSub(s: State2, side: Side): boolean {
 export const HOLD_STEP = 2;
 
 export function checkCard(s: State2, side: Side, c: Card2): Legal {
-  if (c.to && heldInSub(s, side)) return { id: c.id, ok: false, reason: "Erst den Griff lösen (Rahmen in seiner Zone)" };
+  if (c.to && heldInSub(s, side)) return { id: c.id, ok: false, reason: "Erst seine Aufgabe abwehren (Rahmen in ihrer Zone)" };
   if (s[side].locked.includes(c.id) && !continuesHold(s, side, c)) return { id: c.id, ok: false, reason: "Gesperrt (gerade gespielt)" };
   const unmet = unmetRequires(s, side, c);
   if (unmet.length) return { id: c.id, ok: false, reason: `Braucht ${unmet.join(", ")}` };

@@ -72,6 +72,22 @@ export const SCREENS = [
   { id: "k2arena", go: seq(more("Körperkarte"), async (p) => {
       await p.getByRole("button", { name: /^Normal$/ }).first().click(); await p.waitForTimeout(1500);
     }) },
+  // Mechanik 2: freies Match spielen (Griff-Karten bevorzugt), bis Griffe auf dem Brett liegen – Wahl-Phase prüfen.
+  { id: "k2griffe", go: seq(more("Körperkarte"), async (p) => {
+      await p.getByRole("button", { name: /^Normal$/ }).first().click(); await p.waitForTimeout(1200);
+      const PREF = ["nd_clinch_entry", "cl_collar_tie", "cl_underhook", "hb_underhook", "ht_crossface", "sct_crossface", "bt_seatbelt", "tt_seatbelt", "gb_wrist_control", "tt_front_headlock"];
+      for (let r = 0; r < 9; r++) {
+        if (await p.locator(".k2-grip-chip").count() && await p.locator(".k2-hcard").count()) break;
+        if (await p.locator(".k2-end").count()) break;
+        const ids = await p.locator(".k2-hcard:not([disabled])").evaluateAll((els) => els.map((e) => e.getAttribute("data-card")));
+        const pick = PREF.find((id) => ids.includes(id)) ?? ids[0];
+        if (pick) await p.locator(`.k2-hcard[data-card="${pick}"]`).click();
+        await p.locator(".k2-go").click(); await p.waitForTimeout(400);
+        if (await p.locator(".k2-predict-opt").count()) { await p.locator(".k2-predict-opt").first().click(); await p.locator(".k2-go").click(); }
+        await p.waitForTimeout(1500);
+        if (await p.locator(".k2-tapnext").count()) { await p.locator(".k2-tapnext").click(); await p.waitForTimeout(500); }
+      }
+    }) },
   { id: "k2tut", go: seq(more("Körperkarte"), async (p) => { await p.locator("button", { hasText: /Raus von unten/i }).first().click(); await p.waitForTimeout(1500); }) },
   { id: "bibliothek", go: more("Bibliothek") },
   { id: "warmup", go: more("Aufwärmen") },

@@ -70,6 +70,8 @@ export interface FightersProps {
   gripZone?: { side: Side; zone: string } | null;
   /** Laufende Aufgabe: Angreifer-Gliedmaßen schließen sich je Schritt enger um Arm/Hals. */
   sub?: SubPose | null;
+  /** Kern 2, Mechanik 2: liegende Griffe – die Hände mit diesem Griff glühen dauerhaft (gleicher Glow wie gripZone). */
+  held?: { side: Side; grip: Grip }[];
   /** Tap-Moment: hold = Griff sitzt, tapping = Verteidiger klopft ab, release = Angreifer lässt sofort los. */
   tap?: TapState;
 }
@@ -85,7 +87,7 @@ export type FightersSceneProps = Omit<FightersProps, "pos"> & { pos: SceneId };
 export function FightersScene({
   pos, top, shake = null, flash = null, className,
   highlight = null, slowmo = false, zoom = false, windup = null,
-  gripZone = null, sub = null, tap = null,
+  gripZone = null, sub = null, tap = null, held = [],
 }: FightersSceneProps) {
   const reduced = !!useReducedMotion();
   const uid = useId().replace(/:/g, "");
@@ -202,6 +204,11 @@ export function FightersScene({
       if (g && GRIP_ZONE[g] === gripZone.zone) markers.push({ side: gripZone.side, hand: h, grip: g });
     }
   }
+  // Liegende Griffe (Kern 2): Glow bleibt, solange der Griff liegt.
+  const heldMarkers: { side: Side; hand: "F" | "B"; grip: Grip }[] = [];
+  for (const hg of held) for (const h of ["F", "B"] as const) {
+    if (grips[hg.side][h] === hg.grip && !markers.some((m) => m.side === hg.side && m.hand === h)) heldMarkers.push({ side: hg.side, hand: h, grip: hg.grip });
+  }
   if (sub && sub.step > 0 && tap !== "release") {
     for (const h of ["F", "B"] as const) {
       if (!markers.some((m) => m.side === sub.owner && m.hand === h)) markers.push({ side: sub.owner, hand: h, grip: "sub" });
@@ -230,7 +237,10 @@ export function FightersScene({
             <GripMarker key={`${m.side}${m.hand}${m.grip}-${gripZone?.zone ?? ""}-${sub?.step ?? 0}`}
               f={F[m.side]} hand={m.hand} reduced={reduced} grad={`mk-grip-${uid}`} strong={m.grip === "sub" && (sub?.step ?? 0) >= 2} />
           ))}
-          {markers.length > 0 && (
+          {heldMarkers.map((m) => (
+            <GripMarker key={`held-${m.side}${m.hand}${m.grip}`} f={F[m.side]} hand={m.hand} reduced={reduced} grad={`mk-grip-${uid}`} strong={false} />
+          ))}
+          {markers.length + heldMarkers.length > 0 && (
             <defs>
               <radialGradient id={`mk-grip-${uid}`}>
                 <stop offset="0" stopColor="#fff6d6" stopOpacity="1" />

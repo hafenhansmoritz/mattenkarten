@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Board as BoardT, Side, Zone } from "../types";
 import { ZONES } from "../types";
-import { ThreatChevron, ZONE_LABEL, ZONE_QUESTION, ZoneIcon, fmtSigned } from "./meta";
+import { GripIcon, ThreatChevron, ZONE_LABEL, ZONE_QUESTION, ZoneIcon, fmtSigned } from "./meta";
 
 export interface BoardProps {
   /** Brett aus Sicht von "p" (wie in State2). */
@@ -17,6 +17,8 @@ export interface BoardProps {
   perspective?: Side;
   /** Zonen, die in dieser Lektion noch nicht aktiv sind: grau, "kommt später". */
   hidden?: Zone[];
+  /** Mechanik 2: liegende Griffe (State2.grips) – Marke neben der Zone, Farbe des Besitzers. */
+  grips?: { id: string; name: string; owner: Side; zone: Zone }[];
   /** Tippen auf eine Zeile (z. B. für Erklärung). */
   onZoneTap?: (z: Zone) => void;
   className?: string;
@@ -34,7 +36,7 @@ function ownerWord(v: number): string {
  * Körperkarte: vier Tauzieh-Leisten (Kopf/Nacken, Arme, Hüfte, Beine), je −2…+2.
  * Links = du (blau), rechts = er (rot). Der Puck rutscht zu dem, der die Zone kontrolliert.
  */
-export function Board({ board, focus = null, lastDeltas = null, threats = [], perspective = "p", hidden = [], onZoneTap, className }: BoardProps) {
+export function Board({ board, focus = null, lastDeltas = null, threats = [], perspective = "p", hidden = [], grips = [], onZoneTap, className }: BoardProps) {
   const reduced = !!useReducedMotion();
   const sign = perspective === "p" ? 1 : -1;
   const threatZones = new Set(threats.filter((t) => t.cardIds.length > 0).map((t) => t.zone));
@@ -76,20 +78,27 @@ export function Board({ board, focus = null, lastDeltas = null, threats = [], pe
         }
         const isFocus = focus === z;
         const threat = threatZones.has(z);
+        const zg = grips.filter((g) => g.zone === z);
+        const gripTxt = zg.map((g) => `${g.owner === perspective ? "Dein" : "Sein"} Griff: ${g.name}`).join(". ");
         // +2 → Puck ganz links (bei dir), −2 → ganz rechts (bei ihm).
         const left = 50 - v * 20;
         const tone = v > 0 ? "p" : v < 0 ? "o" : "n";
         return (
           <div key={z}
             className={`k2-row tone-${tone}${isFocus ? " is-focus" : ""}${threat ? " is-threat" : ""}${onZoneTap ? " is-tappable" : ""}`}
-            aria-label={`${ZONE_QUESTION[z]} ${ownerWord(v)}${threat ? ". Er kann hier angreifen." : ""}`}
+            aria-label={`${ZONE_QUESTION[z]} ${ownerWord(v)}${threat ? ". Er kann hier angreifen." : ""}${gripTxt ? `. ${gripTxt}` : ""}`}
             title={ZONE_QUESTION[z]}
             role={onZoneTap ? "button" : "group"}
             tabIndex={onZoneTap ? 0 : undefined}
             onKeyDown={onZoneTap ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onZoneTap(z); } } : undefined}
             onClick={onZoneTap ? () => onZoneTap(z) : undefined}>
             <div className="k2-row-label">
-              <ZoneIcon zone={z} size={15} />
+              {/* Pro Zone liegt höchstens ein Griff (B33 verdrängt seinen) – die Griff-Marke ersetzt das Zonen-Symbol. */}
+              {zg.length ? zg.slice(0, 1).map((g) => (
+                <span key={`${g.owner}-${g.id}`} className={`k2-grip-tok ${g.owner === perspective ? "p" : "o"}`} title={`${g.owner === perspective ? "Dein" : "Sein"} Griff: ${g.name}`} aria-hidden>
+                  <GripIcon size={11} />
+                </span>
+              )) : <ZoneIcon zone={z} size={15} />}
               <span>{ZONE_LABEL[z]}</span>
             </div>
             <div className="k2-track">

@@ -29,9 +29,9 @@ function setup(c: Card2, extra: Partial<Record<Zone, number>> = {}): State2 {
 const ok = (s: State2, side: Side, id: string) => legalCards(s, side).find((l) => l.id === id)?.ok ?? false;
 
 describe("Glossar", () => {
-  it("acht Schlüsselwörter, eindeutig, je mit Regel, Hinweis, BJJ-Satz und Quelle oder Trainer-Prüfung", () => {
+  it("neun Schlüsselwörter, eindeutig, je mit Regel, Hinweis, BJJ-Satz und Quelle oder Trainer-Prüfung", () => {
     expect(KEYWORDS.length).toBeGreaterThanOrEqual(6);
-    expect(KEYWORDS.length).toBeLessThanOrEqual(8);
+    expect(KEYWORDS.length).toBeLessThanOrEqual(9);
     expect(new Set(KEYWORDS.map((k) => k.id)).size).toBe(KEYWORDS.length);
     expect(new Set(KEYWORDS.map((k) => k.name)).size).toBe(KEYWORDS.length);
     for (const k of KEYWORDS) {
@@ -54,10 +54,11 @@ describe("Glossar", () => {
   it("jedes Schlüsselwort hat mindestens eine Beispielkarte", () => {
     for (const k of KEYWORDS) expect(withKw(k.id).length, k.id).toBeGreaterThan(0);
   });
-  it("Labels: Zusatz nur bei Dilemma (Zone) und Atem (Zahl)", () => {
+  it("Labels: Zusatz nur bei Dilemma (Zone) und Atem (Zahl); Griff oder Griff lösen", () => {
     for (const c of CARDS2) for (const h of keywordsOf(c)) {
       if (h.id === "atem") expect(h.label).toBe(`Atem ${c.kraft}`);
       else if (h.id === "dilemma") expect(h.label).toMatch(/^Dilemma → (Kopf|Arme|Hüfte|Beine)$/);
+      else if (h.id === "griff") expect(h.label).toBe(c.grip ? "Griff" : "Griff lösen");
       else expect(h.label).toBe(KEYWORD[h.id].name);
     }
   });

@@ -6,7 +6,7 @@
 import type { Card2, Pos2, Zone } from "../types";
 import { SRC } from "../../data/sources";
 
-export type KeywordId = "keil" | "rahmen" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "atem";
+export type KeywordId = "keil" | "rahmen" | "griff" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "atem";
 
 export interface KeywordDef {
   id: KeywordId;
@@ -25,6 +25,7 @@ export interface KeywordDef {
 
 const GB_GAS = { title: "Gracie Barra – Gassing Out? 3 Tips", url: "https://graciebarra.com/gb-news/gassing-out" };
 const GFF = { title: "BJJ More – Danaher Pin Escapes: Go Further Faster (Review)", url: "https://bjjmore.com/john-danaher-pin-escapes-go-further-faster/" };
+const GRIP_GAME = { title: "Grapplearts – The Engagement Phase Game (Gripfighting)", url: "https://www.grapplearts.com/the-engagement-phase-game/" };
 const RNC_STEPS = { title: "Grapplearts – Preventing & Escaping the RNC", url: "https://www.grapplearts.com/preventing-escaping-the-rnc/" };
 
 /** Reihenfolge = Reihenfolge auf der Karte und im Glossar. */
@@ -44,6 +45,15 @@ export const KEYWORDS: KeywordDef[] = [
     source: GFF,
   },
   {
+    // Mechanik 2 (B31–B34). Quellen per WebFetch geprüft: Grapplearts („break the grip“, „This initial advantage can often
+    // determine the course of a whole match“), Evolve MMA No-Gi Grip Fighting („a dominant grip can control a match“).
+    id: "griff", name: "Griff",
+    rule: "Gelingt die Karte, bleibt dein Griff liegen: deine Angriffe in seiner Zone brauchen dort 1 weniger. Höchstens zwei Griffe; sein Griff in derselben Zone wird verdrängt. Er fällt durch seinen siegreichen Rahmen dort, durch „Griff lösen“ oder wenn die Position nicht passt.",
+    hint: "Griff: bleibt liegen – deine Angriffe dort brauchen 1 weniger.",
+    bjj: "Ein Griff bleibt, bis du ihn löst: Wer den dominanten Griff hält, bestimmt oft den ganzen Kampf.",
+    source: GRIP_GAME,
+  },
+  {
     id: "takedown", name: "Takedown",
     rule: "Gelingt der Angriff, geht es aus Stand, Clinch oder Kopfklammer zu Boden – und du liegst oben.",
     hint: "Takedown: aus dem Stand zu Boden, du oben.",
@@ -52,15 +62,15 @@ export const KEYWORDS: KeywordDef[] = [
   },
   {
     id: "pass", name: "Pass",
-    rule: "Gelingt der Angriff, bist du von oben an seinen Beinen vorbei. Sein Griff hält dich dabei nicht fest.",
+    rule: "Gelingt der Angriff, bist du von oben an seinen Beinen vorbei. Seine Aufgabe hält dich dabei nicht fest.",
     hint: "Pass: von oben an seinen Beinen vorbei.",
     bjj: "Nach IBJJF zählt ein Pass 3 Punkte: beide Beine überwunden, 3 Sekunden Seitkontrolle gehalten.",
     source: SRC.points,
   },
   {
     id: "flucht", name: "Flucht",
-    rule: "Bringt dich von unten raus: in den Stand, durch Umdrehen oder zurück in die Guard. Sitzt sein Griff (Schritt 2), ist sie gesperrt.",
-    hint: "Flucht: von unten raus – geht nicht mehr, wenn sein Griff sitzt.",
+    rule: "Bringt dich von unten raus: in den Stand, durch Umdrehen oder zurück in die Guard. Sitzt seine Aufgabe (Schritt 2), ist sie gesperrt.",
+    hint: "Flucht: von unten raus – geht nicht mehr, wenn seine Aufgabe sitzt.",
     bjj: "Danaher nennt drei Wege aus dem Pin: in den neutralen Stand, Umdrehen oder zurück in die Guard.",
     source: GFF,
   },
@@ -110,6 +120,8 @@ export function keywordsOf(c: Card2): KeywordHit[] {
   const out: KeywordHit[] = [];
   if (c.kind === "aufbauen") out.push({ id: "keil", label: "Keil" });
   if (c.kind === "rahmen") out.push({ id: "rahmen", label: "Rahmen" });
+  if (c.grip) out.push({ id: "griff", label: "Griff" });
+  else if (c.breaks?.length) out.push({ id: "griff", label: "Griff lösen" });
   if (isTakedown(c)) out.push({ id: "takedown", label: "Takedown" });
   if (isPass(c)) out.push({ id: "pass", label: "Pass" });
   if (c.to?.escape) out.push({ id: "flucht", label: "Flucht" });
@@ -120,7 +132,7 @@ export function keywordsOf(c: Card2): KeywordHit[] {
 }
 
 /** Schlüsselwörter, die neben Art-Label und Atem-Pille noch Platz auf der kleinen Handkarte brauchen. */
-export const HAND_EXTRA: KeywordId[] = ["takedown", "pass", "flucht", "aufgabe", "dilemma"];
+export const HAND_EXTRA: KeywordId[] = ["griff", "takedown", "pass", "flucht", "aufgabe", "dilemma"];
 
 // ---------------- Erstes Auftauchen (localStorage) ----------------
 export const KEYWORDS_SEEN_KEY = "mk.k2.keywords.v1";

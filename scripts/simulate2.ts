@@ -66,9 +66,11 @@ interface Agg {
   slotDec: Map<string, number>; slotPick: Map<string, number>;
   /** B29 Didaktik: gespielte Karten, davon Grundlage; Unten-Entscheidungen, davon Grundlage. */
   playedN: number; grundAll: number; bottomDec: number; grundBottom: number;
+  /** Mechanik 2: Griffe gelegt (je Griff), gelöst (je Grund), Matches mit mindestens einem Griff. */
+  gripOn: Map<string, number>; gripOff: Map<string, number>; gripMatches: number;
 }
 const inc = <K>(m: Map<K, number>, k: K, n = 1) => m.set(k, (m.get(k) ?? 0) + n);
-const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map(), playedN: 0, grundAll: 0, bottomDec: 0, grundBottom: 0 });
+const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map(), playedN: 0, grundAll: 0, bottomDec: 0, grundBottom: 0, gripOn: new Map(), gripOff: new Map(), gripMatches: 0 });
 const total = newAgg();
 
 function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
@@ -80,6 +82,7 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
   const reached = new Set<string>([s.pos]);
   let domRound = 0;
   let vorteil = false;
+  let gripped = false;
   while (!s.result) {
     if (guard++ > 50) { anomalies.push(`Match seed ${seed} endet nicht (>50 Runden).`); break; }
     const ids: Record<Side, string> = { p: "", o: "" };
@@ -105,6 +108,7 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
     if (round.why.split(/\s+/).length > 20) anomalies.push(`Why > 20 Wörter (${ids.p}/${ids.o}): "${round.why}"`);
     if (round.winner === "none") rec((a) => a.zeroAction++);
     for (const e of round.events) {
+      if (e.t === "grip") { gripped = true; if (e.on) rec((a) => inc(a.gripOn, e.name)); else rec((a) => inc(a.gripOff, e.why ?? "?")); }
       if (e.t === "tap") { const id = e.winner === "p" ? ids.p : ids.o; rec((a) => inc(a.decisive, id)); }
       if (e.t === "move") {
         // Wer hat den Wechsel ausgelöst? Die Seite, deren Karte genau dieses Ziel hat.
@@ -128,6 +132,7 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
     for (const p of reached) inc(agg.reach, p);
     if (domRound) { agg.domRoundSum += domRound; agg.domMatches++; }
     if (vorteil) agg.vorteil++;
+    if (gripped) agg.gripMatches++;
     if (!r) return;
     if (r.type === "tap") { agg.tap++; inc(agg.taps, r.sub); }
     else if (r.type === "goal") agg.goal++;
@@ -183,6 +188,14 @@ for (const [pos, role] of ESC_SLOTS) {
     return `${c.id} ${pct(n, dec)}`;
   });
   console.log(`  ${sk.padEnd(13)} (${dec} Entsch.)  ${parts.join(", ")}`);
+}
+{
+  const on = [...total.gripOn.values()].reduce((a, b) => a + b, 0);
+  console.log(`\nGriffe (Mechanik 2): in ${pct(total.gripMatches, M)} der Matches, ${(on / M).toFixed(2)} gelegt je Match`);
+  console.log(`  gelegt:  ${top(total.gripOn, 10).map(([k, v]) => `${k} ${pct(v, on)}`).join(", ")}`);
+  const off = [...total.gripOff.values()].reduce((a, b) => a + b, 0);
+  const WHY: Record<string, string> = { rahmen: "Rahmen stoppt Angriff", loesen: "Griff lösen", verdraengt: "verdrängt", position: "Positionswechsel", alt: "ältester ersetzt" };
+  console.log(`  gelöst:  ${top(total.gripOff, 10).map(([k, v]) => `${WHY[k] ?? k} ${pct(v, off)}`).join(", ")} (${pct(off, on)} aller gelegten)`);
 }
 const tapTot = [...total.taps.values()].reduce((a, b) => a + b, 0);
 const topTap = top(total.taps, 1)[0];
