@@ -10,7 +10,7 @@ export const ROLES: StuckRole[] = ["top", "bottom"];
 
 export const POS_LABEL: Record<Pos2, string> = {
   stand: "Stand", clinch: "Clinch", headlock: "Kopfklammer", guard: "Guard", half: "Halbe Guard",
-  turtle: "Turtle", side: "Side Control", mount: "Mount", back: "Rücken",
+  turtle: "Turtle", side: "Seitenkontrolle", mount: "Mount", back: "Rücken",
 };
 
 /** Im Stand und Clinch gibt es kein Oben/Unten – dort heißt es angreifen oder verteidigen. */

@@ -33,10 +33,10 @@ export interface StilPower {
 export const STIL_POWERS: StilPower[] = [
   { id: "ringer", power: "Level Change", zone: "beine", where: "im Stand und Clinch", like: "nd_level_change",
     slots: [{ pos: "stand", role: "neutral" }, { pos: "clinch", role: "neutral" }] },
-  { id: "guard", power: "Hüfte raus", zone: "huefte", where: "unten in Guard und Half Guard", like: "bot_elbow_knee",
+  { id: "guard", power: "Hüfte raus", zone: "huefte", where: "unten in Guard und halber Guard", like: "bot_elbow_knee",
     slots: [{ pos: "guard", role: "bottom" }, { pos: "half", role: "bottom" }] },
   // B46: auch oben in der Half Guard – Druck-Passen gehört zum A-Game des Drückers (Grapplearts, Pressure Passing System).
-  { id: "druecker", power: "Schwer machen", zone: "huefte", where: "oben in Half Guard, Side Control und Mount", like: "mt_heavy_hips",
+  { id: "druecker", power: "Schwer machen", zone: "huefte", where: "oben in der halben Guard, Seitenkontrolle und Mount", like: "mt_heavy_hips",
     slots: [{ pos: "half", role: "top" }, { pos: "side", role: "top" }, { pos: "mount", role: "top" }] },
   // B46: der Seatbelt hält ihn am Rücken – Arme +1 (JitsuIQ, Back Control: „Hooks, seatbelt grip, and chest-to-back connection“).
   { id: "ruecken", power: "Seatbelt zu", zone: "arme", where: "oben in Turtle und Rücken", like: "tt_seatbelt",

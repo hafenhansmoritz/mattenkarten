@@ -46,7 +46,7 @@ export const DEFAULT_PLANS: PlanDef[] = [
   },
   {
     id: "std-druecker", name: "Druck-Plan", stil: "druecker",
-    idea: "Runterbringen, schwer passieren, in Side Control drücken – Arm-Triangle oder Americana.",
+    idea: "Runterbringen, schwer passieren, in der Seitenkontrolle drücken – Arm-Triangle oder Americana.",
     cards: [
       "nd_double_leg", "nd_single_leg", "nd_clinch_entry", "cl_body_lock", "gt_body_lock", "gt_knee_slice", "ht_pass",
       "ht_knee_slide", "sct_to_mount", "sct_arm_triangle", "sct_americana", "mt_americana", "cl_snap_down", "gt_toreando", "hl_guillotine",

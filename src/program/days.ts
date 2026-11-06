@@ -81,7 +81,7 @@ export const DAYS: ProgramDay[] = [
   },
   {
     n: 2, title: "Raus aus dem Mount",
-    goal: "Unten im Mount: erst Rahmen, dann Elbow Escape oder Upa.",
+    goal: "Unten im Mount: erst Rahmen, dann wegrutschen (Elbow Escape) oder Upa.",
     why: "Erst schützen, dann raus: Die Schutzhaltung kommt vor jeder Befreiung.",
     lessons: [{ kind: "k2", id: "k2-raus-von-unten" }],
     warmup: ["q-pos-best", "q-pos-guard-name", "q-tap-how"],
@@ -109,9 +109,9 @@ export const DAYS: ProgramDay[] = [
     concept: "schutz",
   },
   {
-    n: 3, title: "Raus aus Side Control",
-    goal: "Unten in Side Control: Rahmen, Hüfte weg, Guard zurück.",
-    why: "Side Control kommt in jedem Training. Erst Schutzhaltung, dann Rahmen und Hüfte – so kommst du raus.",
+    n: 3, title: "Raus aus der Seitenkontrolle",
+    goal: "Unten in der Seitenkontrolle: Rahmen, Hüfte weg, Guard zurück.",
+    why: "Seitenkontrolle kommt in jedem Training. Erst Schutzhaltung, dann Rahmen und Hüfte – so kommst du raus.",
     lessons: [{ kind: "k2", id: "p-side-escape" }],
     warmup: ["q-mount-no-back", "q-mount-breathe", "q-pos-mount-name", "q-tap-dizzy"],
     puzzle: ["q-side-order", "q-side-goal", "q-side-underhook"],

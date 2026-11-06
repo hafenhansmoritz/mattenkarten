@@ -42,9 +42,9 @@ const PLACE: Partial<Record<PlanState, { wo: string; wohin: string; von: string 
   "headlock/top": { wo: "an seinem Kopf", wohin: "an seinen Kopf", von: "von seinem Kopf" },
   "guard/top": { wo: "in seiner Guard", wohin: "in seine Guard", von: "aus seiner Guard" },
   "guard/bottom": { wo: "in deiner Guard", wohin: "in deine Guard", von: "aus deiner Guard" },
-  "half/top": { wo: "in seiner Half Guard", wohin: "in seine Half Guard", von: "aus seiner Half Guard" },
+  "half/top": { wo: "in seiner halben Guard", wohin: "in seine halbe Guard", von: "aus seiner halben Guard" },
   "turtle/top": { wo: "hinter ihm (Turtle)", wohin: "hinter ihn (Turtle)", von: "von hinter ihm" },
-  "side/top": { wo: "in Side Control", wohin: "in Side Control", von: "aus Side Control" },
+  "side/top": { wo: "in der Seitenkontrolle", wohin: "in die Seitenkontrolle", von: "aus der Seitenkontrolle" },
   "mount/top": { wo: "im Mount", wohin: "in den Mount", von: "aus dem Mount" },
   "back/top": { wo: "an seinem Rücken", wohin: "an seinen Rücken", von: "von seinem Rücken" },
 };

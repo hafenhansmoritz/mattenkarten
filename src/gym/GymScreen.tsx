@@ -475,7 +475,7 @@ function Week({ gym, open, onClear }: { gym: StoredGym; open: (v: View) => void;
       </div>
 
       <section className="gy-sec">
-        <h3 className="gy-h3">1 · Vorbereiten: Lektionen</h3>
+        <h3 className="gy-h3">1 · Zur Vorbereitung: Lektionen</h3>
         {plan.lessons.map((id) => {
           const l = lessonDef(id)!;
           return (

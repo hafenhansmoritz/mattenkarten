@@ -17,7 +17,7 @@ export function PredictPicker({ value, onChange, disabled = false }: PredictPick
       <div className="lr-predict-head">
         <span className="lr-predict-q">Was spielt er? Tipp ab:</span>
         <span className="lr-predict-note">
-          Richtig getippt = +1 <IconPuste size={13} /> Puste
+          Richtig getippt = +1 <IconPuste size={13} /> Atem
         </span>
       </div>
       <div className="lr-predict-chips">

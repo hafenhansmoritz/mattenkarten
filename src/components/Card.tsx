@@ -279,7 +279,7 @@ function KindIcon({ kind }: { kind: CardKind }) {
   );
 }
 
-/** Puste: drei Luftstriche. */
+/** Atem: drei Luftstriche. */
 function BreathIcon() {
   return (
     <svg viewBox="0 0 16 16" focusable="false">

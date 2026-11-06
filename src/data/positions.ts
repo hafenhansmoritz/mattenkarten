@@ -113,23 +113,23 @@ export const KIND_VERB: Record<CardKind, { verb: string; short: string; explain:
   angriff: {
     verb: "Angreifen",
     short: "Angriff",
-    explain: "Angreifen schlägt Vorbereiten – wer zögert, wird erwischt.",
+    explain: "Angreifen schlägt Aufbauen – wer zögert, wird erwischt.",
   },
   setup: {
-    verb: "Vorbereiten",
-    short: "Vorbereiten",
-    explain: "Vorbereiten lockt Kontern ins Leere – er wartet, du baust auf.",
+    verb: "Aufbauen",
+    short: "Aufbauen",
+    explain: "Aufbauen lockt den Rahmen ins Leere – er wartet, du baust auf.",
   },
   reaktion: {
-    verb: "Kontern",
-    short: "Konter",
-    explain: "Kontern schlägt den passenden Angriff – aber nur den passenden.",
+    verb: "Rahmen",
+    short: "Rahmen",
+    explain: "Rahmen stoppt den passenden Angriff – aber nur den passenden.",
   },
 };
 
 /** Ressourcen in Alltagssprache (immer Icon + Wort zeigen). */
 export const RES = {
-  gas: { name: "Puste", explain: "Deine Ausdauer. Jede Karte kostet Puste – ohne Puste geht nichts." },
+  gas: { name: "Atem", explain: "Deine Ausdauer. Jede Karte kostet Atem – ohne Atem geht nichts." },
   control: { name: "Griff", explain: "Wie fest du ihn kontrollierst. Aufgabegriffe brauchen genug Griff." },
   opening: { name: "Lücke", explain: "Er ist offen: Dein nächster passender Angriff kommt schneller durch." },
 } as const;

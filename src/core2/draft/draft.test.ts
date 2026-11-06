@@ -111,10 +111,10 @@ describe("Hinweise (B71) und Coach-Tipp (B72)", () => {
   });
   it("Aufgabe, zweiter Weg, Folge-Lage – Texte erklären mit Positions-Logik", () => {
     const p = ["nd_double_leg", "gt_knee_slice"];
-    expect(h("sct_kimura", p).text).toBe("Passt, weil du in Side Control kommst – dort beendest du.");
-    expect(h("gt_toreando", p).text).toBe("Passt: zweiter Weg in Side Control neben „Knie schneidet durch“ – blockt er einen, nimmst du den anderen.");
-    expect(h("sct_to_mount", [...p, "mt_armbar"]).text).toBe("Passt, weil du aus Side Control in den Mount kommst – dort wartet schon „Arm strecken von oben“.");
-    expect(h("sct_americana", [...p, "sct_kimura"]).text).toMatch(/^Passt: zweite Aufgabe in Side Control/);
+    expect(h("sct_kimura", p).text).toBe("Passt, weil du in die Seitenkontrolle kommst – dort beendest du.");
+    expect(h("gt_toreando", p).text).toBe("Passt: zweiter Weg in die Seitenkontrolle neben „Knie schneidet durch“ – blockt er einen, nimmst du den anderen.");
+    expect(h("sct_to_mount", [...p, "mt_armbar"]).text).toBe("Passt, weil du aus der Seitenkontrolle in den Mount kommst – dort wartet schon „Arm strecken von oben“.");
+    expect(h("sct_americana", [...p, "sct_kimura"]).text).toMatch(/^Passt: zweite Aufgabe in der Seitenkontrolle/);
     const rnc = h("bt_rnc", p);
     expect(rnc.ok).toBe(false);
     expect(rnc.text).toMatch(/^Lücke: Du kommst noch nicht an seinen Rücken/);

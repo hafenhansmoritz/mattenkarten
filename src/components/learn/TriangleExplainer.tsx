@@ -6,7 +6,7 @@ import { KIND_ORDER, KIND_RULE, KIND_VERB } from "./kinds";
 export interface TriangleExplainerProps {
   /** Kleine Version: Mini-Dreieck + Regelzeile (für Reveal-Panel, HUD-Legende). */
   compact?: boolean;
-  /** Hebt den Pfeil hervor, der vom Typ ausgeht (z. B. "reaktion" = Kontern schlägt Angriff). */
+  /** Hebt den Pfeil hervor, der vom Typ ausgeht (z. B. "reaktion" = Rahmen schlägt Angriff). */
   highlight?: CardKind | null;
   className?: string;
 }
@@ -17,7 +17,7 @@ const COLOR: Record<CardKind, string> = {
   reaktion: "var(--k-reaktion)",
 };
 
-// Knoten im Uhrzeigersinn: Angreifen oben, Vorbereiten rechts unten, Kontern links unten.
+// Knoten im Uhrzeigersinn: Angreifen oben, Aufbauen rechts unten, Rahmen links unten.
 const ANGLE: Record<CardKind, number> = { angriff: -90, setup: 30, reaktion: 150 };
 
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -49,7 +49,7 @@ function geometry(cx: number, cy: number, r: number, gapDeg: number, labelPad = 
   });
 }
 
-/** Das Dreieck: Angreifen schlägt Vorbereiten → Vorbereiten lockt Kontern ins Leere → Kontern schlägt den passenden Angriff. */
+/** Das Dreieck: Angreifen schlägt Aufbauen → Aufbauen lockt den Rahmen ins Leere → Rahmen stoppt den passenden Angriff. */
 export function TriangleExplainer({ compact = false, highlight = null, className }: TriangleExplainerProps) {
   return compact ? <CompactTriangle highlight={highlight} className={className} /> : <BigTriangle highlight={highlight} className={className} />;
 }
@@ -62,7 +62,7 @@ function BigTriangle({ highlight, className }: { highlight: CardKind | null; cla
   const key = highlight ?? "all";
   return (
     <figure className={["lr-tri", className].filter(Boolean).join(" ")}>
-      <svg viewBox="0 0 320 272" className="lr-tri-svg" role="img" aria-label="Das Dreieck: Angreifen schlägt Vorbereiten. Vorbereiten lockt Kontern ins Leere. Kontern schlägt den passenden Angriff.">
+      <svg viewBox="0 0 320 272" className="lr-tri-svg" role="img" aria-label="Das Dreieck: Angreifen schlägt Aufbauen. Aufbauen lockt den Rahmen ins Leere. Rahmen stoppt den passenden Angriff.">
         {arcs.map((a, i) => {
           const on = !highlight || highlight === a.from;
           const strong = highlight === a.from;

@@ -33,18 +33,18 @@ export interface TutorialDef {
 }
 
 // ------------------------------------------------------------------
-// 1 – Bring ihn zu Boden: Dreieck erleben (Angreifen schlägt Vorbereiten)
+// 1 – Bring ihn zu Boden: Dreieck erleben (Angreifen schlägt Aufbauen)
 // Zug 1 (zeigen): beide bereiten vor → nichts passiert.
-// Zug 2 (zeigen): Beine schnappen schlägt sein Vorbereiten → du landest oben in der Guard (+2).
+// Zug 2 (zeigen): Beine schnappen schlägt sein Aufbauen → du landest oben in der Guard (+2).
 // Ab Zug 3 (frei): Er baut weiter nur auf – du findest selbst den Angriff (Vorbeigehen) → Ziel.
-// Ziel ist Seitkontrolle/Mount oben, damit nach den zwei gezeigten Zügen ein freier Zug folgt;
+// Ziel ist Seitenkontrolle/Mount oben, damit nach den zwei gezeigten Zügen ein freier Zug folgt;
 // läuft die Zeit ab, gewinnst du trotzdem nach Punkten (2:0), weil Tim nie angreift.
 // ------------------------------------------------------------------
 const T1: TutorialDef = {
   n: 1,
   archId: "w_partner",
   title: "Bring ihn zu Boden",
-  idea: "Angreifen schlägt Vorbereiten.",
+  idea: "Angreifen schlägt Aufbauen.",
   options: {
     startPos: "dist",
     handSize: 3,
@@ -62,21 +62,21 @@ const T1: TutorialDef = {
     { id: "t1-1-pick", when: "beforePick", turn: 1, point: "card", cardId: "level_change", requireCard: "level_change",
       text: "Geh erst mal in die Knie. Damit bereitest du einen Angriff vor (Setup)." },
     { id: "t1-1-reveal", when: "afterReveal", turn: 1, point: "fighters",
-      text: "Tim hat sich auch nur vorbereitet. Wenn beide vorbereiten, passiert nichts." },
+      text: "Tim hat auch nur aufgebaut. Wenn beide aufbauen, passiert nichts." },
     { id: "t1-2-pick", when: "beforePick", turn: 2, point: "card", cardId: "double_leg", requireCard: "double_leg",
       text: "Tim bereitet schon wieder vor. Jetzt greif an: Schnapp dir seine Beine (Double Leg)!" },
     { id: "t1-2-reveal", when: "afterReveal", turn: 2, point: "chain",
-      text: "Angreifen schlägt Vorbereiten! Er liegt unten, du bist zwischen seinen Beinen (Guard)." },
+      text: "Angreifen schlägt Aufbauen! Er liegt unten, du bist zwischen seinen Beinen (Guard)." },
     { id: "t1-3-pick", when: "beforePick", turn: 3, point: "hand",
       text: "Jetzt du allein. Er baut wieder nur auf – welche Karte schlägt das?" },
     { id: "t1-3-coach", when: "afterReveal", turn: 3, point: "coach",
-      text: "Merke: Wer nur vorbereitet, wird angegriffen. Hol dir Hilfe beim Coach, wenn du unsicher bist." },
+      text: "Merke: Wer nur aufbaut, wird angegriffen. Hol dir Hilfe beim Coach, wenn du unsicher bist." },
   ],
-  winText: "Geschafft! Du hast gelernt: Angreifen schlägt Vorbereiten.",
+  winText: "Geschafft! Du hast gelernt: Angreifen schlägt Aufbauen.",
 };
 
 // ------------------------------------------------------------------
-// 2 – Lies seinen Angriff: Kontern (Reaktion) + Tipp abgeben
+// 2 – Lies seinen Angriff: Rahmen (Reaktion) + Tipp abgeben
 // Zug 1: Tipp ab (Predict) → Konter-Karten passen nur zu bestimmten Angriffen → Sprawl erzwungen.
 // Ab Zug 2 frei mit Hinweis. Sichere Linie (vom Test geprüft): auf Abstand Sprawl,
 // im Clinch selbst Beine schnappen (schneller als sein Wurf, gegen seinen Shot nur Gerangel).
@@ -86,7 +86,7 @@ const T2: TutorialDef = {
   n: 2,
   archId: "w_ringer",
   title: "Lies seinen Angriff",
-  idea: "Kontern stoppt nur den passenden Angriff.",
+  idea: "Ein Rahmen stoppt nur den passenden Angriff.",
   options: {
     startPos: "dist",
     noResources: true,
@@ -97,11 +97,11 @@ const T2: TutorialDef = {
   maxTurns: 10,
   steps: [
     { id: "t2-start-goal", when: "start", point: "goal",
-      text: "Rico will dich ständig umwerfen. Heute lernst du, seinen Angriff abzufangen (Kontern)." },
+      text: "Rico will dich ständig umwerfen. Heute lernst du, seinen Angriff abzufangen (Rahmen)." },
     { id: "t2-1-predict", when: "beforePick", turn: 1, point: "predict",
       text: "Tipp zuerst ab, was er gleich spielt. Rico greift fast immer an." },
     { id: "t2-1-match", when: "beforePick", turn: 1, point: "card", cardId: "b_distance",
-      text: "Jede Konter-Karte stoppt nur bestimmte Angriffe. Abstand halten stoppt Schläge, Beine weg stoppt Angriffe auf die Beine." },
+      text: "Jede Rahmen-Karte stoppt nur bestimmte Angriffe. Abstand halten stoppt Schläge, Beine weg stoppt Angriffe auf die Beine." },
     { id: "t2-1-pick", when: "beforePick", turn: 1, point: "card", cardId: "sprawl", requireCard: "sprawl",
       text: "Rico geht am liebsten an deine Beine. Spiel Beine weg, Hüfte drauf (Sprawl)." },
     { id: "t2-1-reveal", when: "afterReveal", turn: 1, point: "fighters",
@@ -111,15 +111,15 @@ const T2: TutorialDef = {
     { id: "t2-2-pick", when: "beforePick", turn: 2, point: "coach",
       text: "Ab jetzt entscheidest du. Auf Abstand hilft Beine weg, steht ihr eng umklammert, schnapp selbst seine Beine." },
     { id: "t2-2-reveal", when: "afterReveal", turn: 2, point: "chain",
-      text: "Wer den Angriff kommen sieht, kann ihn kontern. Aber nur mit der Karte, die zu diesem Angriff passt." },
+      text: "Wer den Angriff kommen sieht, kann ihn abfangen. Aber nur mit der Karte, die zu diesem Angriff passt." },
   ],
-  winText: "Stark! Du hast ihn gelesen: Kontern stoppt nur den passenden Angriff.",
+  winText: "Stark! Du hast ihn gelesen: Ein Rahmen stoppt nur den passenden Angriff.",
 };
 
 // ------------------------------------------------------------------
-// 3 – Erst Griff, dann beenden: Ressourcen (Puste & Griff) + Aufgabegriff + Tap-Sicherheit
+// 3 – Erst Griff, dann beenden: Ressourcen (Atem & Griff) + Aufgabegriff + Tap-Sicherheit
 // Start oben im Mount (Griff 1). Zug 1+2: Grundlage (Setup) erzwungen → Griff 3.
-// Zug 3 frei: Americana (Griff 2) oder Armbar (Griff 3) – beide schlagen ihr Vorbereiten.
+// Zug 3 frei: Americana (Griff 2) oder Armbar (Griff 3) – beide schlagen ihr Aufbauen.
 // Kein winAt: Sieg nur durch Aufgabegriff. Gisela bereitet nur vor (befreit sich nie).
 // Die Grundlage (b_mount_base) ist eine Grundtechnik und daher immer spielbar,
 // deshalb steht sie nicht zusätzlich in der festen Hand (sonst doppelt angezeigt).
@@ -141,7 +141,7 @@ const T3: TutorialDef = {
     { id: "t3-start-goal", when: "start", point: "fighters",
       text: "Du sitzt schon auf ihr (Mount). Heute beendest du den Kampf mit einem Aufgabegriff (Submission)." },
     { id: "t3-start-res", when: "start", point: "resources",
-      text: "Neu sind Puste und Griff. Puste ist deine Kraft, Griff zeigt, wie fest du sie hältst." },
+      text: "Neu sind Atem und Griff. Atem ist deine Ausdauer, Griff zeigt, wie fest du ihn hältst." },
     { id: "t3-start-lock", when: "start", point: "hand",
       text: "Aufgabegriffe brauchen genug Griff. Noch sind sie gesperrt." },
     { id: "t3-1-pick", when: "beforePick", turn: 1, point: "card", cardId: "b_mount_base", requireCard: "b_mount_base",
@@ -151,7 +151,7 @@ const T3: TutorialDef = {
     { id: "t3-2-pick", when: "beforePick", turn: 2, point: "card", cardId: "b_mount_base", requireCard: "b_mount_base",
       text: "Noch einmal festmachen. Mit Griff 3 geht auch „Arm strecken“ (Armbar)." },
     { id: "t3-2-reveal", when: "afterReveal", turn: 2, point: "resources",
-      text: "Griff 3 – du sitzt fest. Jede Technik kostet etwas Puste, also nicht verschwenden." },
+      text: "Griff 3 – du sitzt fest. Jede Technik kostet etwas Atem, also nicht verschwenden." },
     { id: "t3-3-pick", when: "beforePick", turn: 3, point: "hand",
       text: "Jetzt du: Wähle einen Aufgabegriff. Sie bereitet nur vor, also kommst du durch." },
     { id: "t3-3-tap", when: "afterReveal", turn: 3, point: "coach",

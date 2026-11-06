@@ -13,7 +13,7 @@ import type {
 /** Positionsnamen mit Präposition für Log- und Lernsätze ("im Mount", "in der Guard"). */
 export const POS_IN: Record<PositionId, string> = {
   dist: "in der Distanz", clinch: "im Clinch", fhl: "im Front Headlock", guard: "in der Guard",
-  side: "in der Seitkontrolle", mount: "im Mount", back: "am Rücken",
+  side: "in der Seitenkontrolle", mount: "im Mount", back: "am Rücken",
 };
 
 const NEUTRAL: PositionId[] = ["dist", "clinch"];
@@ -84,7 +84,7 @@ function check(state: MatchState, side: Side, id: string): Playable {
   if (!card) return { id, playable: false, reason: "Unbekannte Karte" };
   if (!cardFitsSlot(card, state.pos, role)) return { id, playable: false, reason: "Passt nicht zur Position" };
   if (state.options?.noResources) return { id, playable: true };
-  if (f.gas < card.gas) return { id, playable: false, reason: `Braucht ${card.gas} Puste` };
+  if (f.gas < card.gas) return { id, playable: false, reason: `Braucht ${card.gas} Atem` };
   const req = requiredControl(card, f);
   if (f.control < req) return { id, playable: false, reason: `Braucht ${req} Griff` };
   return { id, playable: true };

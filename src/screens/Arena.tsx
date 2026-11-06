@@ -28,14 +28,14 @@ const INTENT: Record<CardKind, string> = {
   reaktion: "Er wartet ab und lauert auf deinen Angriff.",
 };
 const RULE_LABEL: Record<RevealOutcome["rule"], string> = {
-  "angriff>setup": "Angreifen schlägt Vorbereiten",
-  "setup>reaktion": "Vorbereiten lockt Kontern ins Leere",
-  "reaktion>angriff": "Kontern schlägt den passenden Angriff",
+  "angriff>setup": "Angreifen schlägt Aufbauen",
+  "setup>reaktion": "Aufbauen lockt den Rahmen ins Leere",
+  "reaktion>angriff": "Rahmen stoppt den passenden Angriff",
   tempo: "Beide greifen an – der Schnellere gewinnt",
   scramble: "Gleich schnell – Gerangel",
   "beide-setup": "Beide bereiten vor",
   patt: "Beide warten ab",
-  durch: "Konter passte nicht",
+  durch: "Rahmen passte nicht",
 };
 const RULE_KIND: Record<RevealOutcome["rule"], CardKind | null> = {
   "angriff>setup": "angriff", "setup>reaktion": "setup", "reaktion>angriff": "reaktion",
@@ -126,7 +126,7 @@ export function Arena({ arch, onExit }: { arch: Archetype; onExit: (won: boolean
   function doReveal() {
     if (!sel) return;
     const { state: next, outcome } = playTurn(match, sel, ai.card, rngRef.current);
-    // Richtig getippt: +1 Puste
+    // Richtig getippt: +1 Atem
     let n = next;
     if (predict && predict === CARD[ai.card].kind) n = { ...n, p: { ...n.p, gas: Math.min(12, n.p.gas + 1) } };
     setReveal({ pCard: sel, oCard: ai.card, outcome, next: n, flipped: false, shown: false, predicted: predict });
@@ -165,7 +165,7 @@ export function Arena({ arch, onExit }: { arch: Archetype; onExit: (won: boolean
         if (e.t === "points") floats.push({ text: `+${e.n} Punkte`, color: e.side === "p" ? "var(--gi-p)" : "var(--gi-o)", x: pt.x + (e.side === "p" ? -40 : 40), y: pt.y - 30 });
         if (e.t === "control" && e.delta > 0 && e.side === "p") floats.push({ text: `+${e.delta} Griff`, color: "var(--k-setup)", x: pt.x - 30, y: pt.y - 60 });
       }
-      if (predict && reveal.predicted === CARD[reveal.oCard].kind) floats.push({ text: "Gut gelesen! +1 Puste", color: "#59d39a", x: pt.x, y: pt.y - 90 });
+      if (predict && reveal.predicted === CARD[reveal.oCard].kind) floats.push({ text: "Gut gelesen! +1 Atem", color: "#59d39a", x: pt.x, y: pt.y - 90 });
       setFx({
         id: Date.now(),
         burst: winner || moved ? { x: pt.x, y: pt.y, color: winner === "o" ? "var(--gi-o)" : winner === "p" ? "var(--gi-p)" : "#fff" } : undefined,

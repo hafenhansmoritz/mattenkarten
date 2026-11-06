@@ -12,7 +12,7 @@ import {
 const distanz: CardDef[] = [
   {
     id: "jab_cross", name: "Jab-Cross (1-2)", de: "Führhand, dann Schlaghand", kind: "angriff", rarity: "selten",
-    plain: "Eins-zwei schlagen", plainDo: "Du schlägst zweimal hintereinander – er verliert viel Kraft.",
+    plain: "Eins-zwei schlagen", plainDo: "Du schlägst zweimal hintereinander – er verliert viel Atem.",
     slots: [DIST], tags: ["strike"], tempo: 3, gas: 2, drainGas: 3,
     desc: "Die Grundkombination: schneller Jab, dann der kräftige Cross mit der hinteren Hand durch die Mitte. Der Jab öffnet die Deckung für den Cross.",
     keys: ["Jab öffnet, Cross trifft", "Cross gerade durch die Mitte", "Kombination statt Einzelschlag"],
@@ -118,7 +118,7 @@ const side: CardDef[] = [
     plain: "Knie auf Bauch", plainDo: "Du stellst dein Knie auf seinen Bauch – Druck und Angriffe.",
     slots: [SIDE_TOP], gas: 1, controlGain: 2, drainGas: 1,
     opening: { tags: ["armlock", "shoulderlock", "advance"] },
-    desc: "Aus der Seitkontrolle das Knie auf Bauch oder unteres Brustbein, anderes Bein weit raus. Eine Übergangsposition: Wehrt er sich, folgen Armbar, Kimura/Americana oder Mount. Im IBJJF gibt sie 2 Punkte, im Spiel zählt sie als Druck (Kontrolle).",
+    desc: "Aus der Seitenkontrolle das Knie auf Bauch oder unteres Brustbein, anderes Bein weit raus. Eine Übergangsposition: Wehrt er sich, folgen Armbar, Kimura/Americana oder Mount. Im IBJJF gibt sie 2 Punkte, im Spiel zählt sie als Druck (Kontrolle).",
     keys: ["Druck durch das Knie, Gewicht nach vorn", "Fernes Bein weit als Stütze", "Nicht stehen bleiben – angreifen oder weiter"],
     mistakes: ["Zu aufrecht", "Enge Basis", "Knie zu hoch auf den Rippen"],
     safety: "Knie auf Bauch oder unteres Brustbein, nie auf die Rippen. Druck im Training dosieren.",

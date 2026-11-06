@@ -7,7 +7,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
   {
     id: "p-side-escape",
     title: "Rahmen, Hüfte, Guard zurück",
-    idea: "Unten in Side Control: erst Unterarm als Stütze, dann wegrutschen.",
+    idea: "Unten in der Seitenkontrolle: erst Unterarm als Stütze, dann wegrutschen.",
     // Kopf im Minus (sein Crossface). Arme und Hüfte +1: Ellbogen innen, Knie an der Hüfte –
     // so bleibt die Lektion bei wechselnder Engine-Balance lösbar (Test: ≥ 90 % über 30 Seeds).
     start: { pos: "side", top: "o", board: { kopf: -1, arme: 1, huefte: 1 } },
@@ -23,7 +23,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
     steps: [
       {
         round: 1, when: "start", highlightZone: "kopf",
-        text: "Er liegt quer auf dir (Side Control). Erst schützt du deinen Hals, dann schaffst du Platz.",
+        text: "Er liegt quer auf dir: Seitenkontrolle (Side Control). Erst schützt du deinen Hals, dann schaffst du Platz.",
       },
       {
         round: 1, when: "pick", requireCard: "scb_frame", highlightZone: "kopf",
@@ -129,7 +129,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
     title: "Rücken schützen",
     idea: "Er ist an deinem Rücken: erst die Hände, dann raus zur Seite.",
     // Kopf −1: sein Würgearm ist nah. Arme +1: deine Hände sind schon an seinen – sein RNC (braucht seine Arme +1) ist gesperrt.
-    // Quellen: Grapplearts RNC (Hände zuerst), BJJ Atlas Back Escapes (Seitkontrolle unten ist ein Erfolg).
+    // Quellen: Grapplearts RNC (Hände zuerst), BJJ Atlas Back Escapes (Seitenkontrolle unten ist ein Erfolg).
     start: { pos: "back", top: "o", board: { kopf: -1, arme: 1, huefte: 0, beine: 0 } },
     goal: [
       { pos: "side", role: "bottom" },
@@ -154,7 +154,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
       },
       {
         round: 2, when: "pick", highlightZone: "beine", predict: true,
-        text: "Steig über seinen oberen Haken und dreh dich zu ihm (Rausdrehen zur Seite). Seitkontrolle unten ist schon ein Erfolg.",
+        text: "Steig über seinen oberen Haken und dreh dich zu ihm (Rausdrehen zur Seite). Seitenkontrolle unten ist schon ein Erfolg.",
       },
       {
         round: 3, when: "start",

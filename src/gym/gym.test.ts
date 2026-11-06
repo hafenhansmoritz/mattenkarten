@@ -172,7 +172,7 @@ describe("Gym-Code (Schritt 60)", () => {
 
   it("Wochenplan: Titel, Lektionen, Fragen, Spiele", () => {
     const plan = weekPlan({ positions: ["side"], games: [] });
-    expect(plan.title).toBe("Side Control");
+    expect(plan.title).toBe("Seitenkontrolle");
     expect(plan.lessons.length).toBeGreaterThan(0);
     for (const id of plan.lessons) expect(lessonIds.has(id)).toBe(true);
     expect(plan.questions.length).toBeGreaterThan(0);
@@ -180,7 +180,7 @@ describe("Gym-Code (Schritt 60)", () => {
     expect(plan.games.map((g) => g.pos)).toEqual(gamesFor("side").map(() => "side"));
     // Ausgewählte Spiele haben Vorrang
     expect(weekPlan({ positions: ["side"], games: ["g-side-guard"] }).games.map((g) => g.id)).toEqual(["g-side-guard"]);
-    expect(themeTitle(["side", "mount", "back"])).toBe("Side Control, Mount und Rücken");
+    expect(themeTitle(["side", "mount", "back"])).toBe("Seitenkontrolle, Mount und Rücken");
   });
 
   it("älteres Thema wird erkannt", () => {

@@ -56,7 +56,7 @@ const DRAFTS: ArchDraft[] = [
   },
   {
     id: "w_ringer", name: "Rico", title: "Ringer", belt: "weiss", tutorial: 2,
-    blurb: "Rico schießt auf alles, was sich bewegt. Reaktionen kontern nur die passende Familie: Sprawl gegen Shots.",
+    blurb: "Rico schießt auf alles, was sich bewegt. Rahmen stoppen nur die passende Familie: Sprawl gegen Shots.",
     likes: { angriff: 1, shot: 2, legs: 1 },
     deck: deck(["double_leg", 2], ["single_leg", 2], ["level_change", 2], ["jab", 1], ["clinch_entry", 1],
       ["collar_tie", 2], ["sprawl", 1], ["go_behind", 1], ["stack_pass", 2], ["to_mount", 1], ["americana", 1],

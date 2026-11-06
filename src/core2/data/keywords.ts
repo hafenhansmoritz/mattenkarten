@@ -78,7 +78,7 @@ export const KEYWORDS: KeywordDef[] = [
     id: "pass", name: "Pass",
     rule: "Gelingt der Angriff, bist du von oben an seinen Beinen vorbei. Seine Aufgabe hält dich dabei nicht fest.",
     hint: "Pass: von oben an seinen Beinen vorbei.",
-    bjj: "Nach IBJJF zählt ein Pass 3 Punkte: beide Beine überwunden, 3 Sekunden Seitkontrolle gehalten.",
+    bjj: "Nach IBJJF zählt ein Pass 3 Punkte: beide Beine überwunden, 3 Sekunden Seitenkontrolle gehalten.",
     source: SRC.points,
   },
   {

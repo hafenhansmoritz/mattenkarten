@@ -39,7 +39,7 @@ describe("Match-Ablauf", () => {
     const s = stateAt("dist", null, { hand: ["rnc", "double_leg"], gas: 1 });
     const pl = playableCards(s, "p");
     expect(pl.find((x) => x.id === "rnc")!.reason).toBe("Passt nicht zur Position");
-    expect(pl.find((x) => x.id === "double_leg")!.reason).toBe("Braucht 2 Puste");
+    expect(pl.find((x) => x.id === "double_leg")!.reason).toBe("Braucht 2 Atem");
     expect(pl.some((x) => x.basic && x.playable)).toBe(true); // Grundtechniken bleiben
   });
 

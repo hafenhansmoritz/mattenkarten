@@ -30,7 +30,7 @@ function Svg({ size = 18, className, title, children }: IconProps & { children: 
   );
 }
 
-/** Puste: Windstoß (Atem). */
+/** Atem: Windstoß (Atem). */
 export function IconPuste(p: IconProps) {
   return (
     <Svg {...p}>
@@ -118,7 +118,7 @@ export function IconEye(p: IconProps) {
   );
 }
 
-/** Kartentyp als Verb-Symbol: Pfeile (Angreifen), Ringe (Vorbereiten), Schild (Kontern). */
+/** Kartentyp als Verb-Symbol: Pfeile (Angreifen), Ringe (Aufbauen), Schild (Rahmen). */
 export function KindIcon({ kind, ...p }: IconProps & { kind: CardKind }) {
   return (
     <Svg {...p}>

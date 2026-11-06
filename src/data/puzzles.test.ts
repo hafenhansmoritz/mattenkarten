@@ -94,10 +94,10 @@ describe("Tagesauswahl", () => {
   });
 
   it("Üben: nach Konzept, ungelöste zuerst", () => {
-    const set = practiceSet("Kontern");
-    expect(set.every((p) => p.concept === "Kontern")).toBe(true);
+    const set = practiceSet("Rahmen");
+    expect(set.every((p) => p.concept === "Rahmen")).toBe(true);
     const solvedFirst = set[0].id;
-    const resorted = practiceSet("Kontern", [solvedFirst]);
+    const resorted = practiceSet("Rahmen", [solvedFirst]);
     expect(resorted[resorted.length - 1].id).toBe(solvedFirst);
     expect(practiceSet(null).length).toBe(PUZZLES.length);
   });

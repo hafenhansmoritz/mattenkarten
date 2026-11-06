@@ -388,7 +388,7 @@ function anklePick(): DemoSequence {
       { p: p1, o: o1, caption: "1. Nacken greifen, nach vorn ziehen", focus: ["handF"] },
       { p: p2, o: o2, caption: "2. Er steppt vor: Ferse greifen", focus: ["handB"] },
       { p: p3, o: o3, caption: "3. Vorwärts treiben, Ferse hoch", focus: ["handB", "hip"] },
-      { ...SIDE_TOP, caption: "4. Durchgehen in die Seitkontrolle", hold: 1.3 },
+      { ...SIDE_TOP, caption: "4. Durchgehen in die Seitenkontrolle", hold: 1.3 },
     ],
   };
 }
@@ -431,7 +431,7 @@ function oGoshi(): DemoSequence {
       { p: p1, o: o1, caption: "1. Kuzushi: nach vorn ziehen", focus: ["handF", "handB"] },
       { p: p2, o: o2, caption: "2. Eindrehen, Hüfte tiefer als seine", focus: ["hip"] },
       { p: p3, o: withZ(o3, 2), caption: "3. Drehen statt heben", focus: ["hip", "neck"] },
-      { ...end, caption: "4. Kontrolliert ablegen, Seitkontrolle", hold: 1.3 },
+      { ...end, caption: "4. Kontrolliert ablegen, Seitenkontrolle", hold: 1.3 },
     ],
   };
 }
@@ -637,7 +637,7 @@ function stackPass(): DemoSequence {
       { p: p1, o: o1, caption: "1. Haltung, Arm unter sein Bein", focus: ["handF", "neck"] },
       { p: p2, o: o2, caption: "2. Aufstehen, Beine auf ihn stapeln", focus: ["hip", "footF"] },
       { p: p3, o: o3, caption: "3. Beine wegdrücken, herumgehen", focus: ["handF"] },
-      { ...SIDE_TOP, caption: "4. Brust auf Brust: Seitkontrolle", hold: 1.3 },
+      { ...SIDE_TOP, caption: "4. Brust auf Brust: Seitenkontrolle", hold: 1.3 },
     ],
   };
 }
@@ -765,7 +765,7 @@ function americana(): DemoSequence {
   });
   return {
     cardId: "americana",
-    start: { ...s, caption: "Oben in der Seitkontrolle" },
+    start: { ...s, caption: "Oben in der Seitenkontrolle" },
     frames: [
       { p: p1, o: o1, caption: "1. Arm 90° gebeugt auf die Matte", focus: ["elbowF", "handF"], focusSide: "o" },
       { p: p2, o: o1, caption: "2. Unter dem Arm: eigenes Handgelenk", focus: ["handB"] },

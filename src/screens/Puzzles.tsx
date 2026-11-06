@@ -23,14 +23,14 @@ const INTENT: Record<CardKind, string> = {
   reaktion: "Er lauert auf deinen Angriff.",
 };
 const RULE_LABEL: Record<RevealOutcome["rule"], string> = {
-  "angriff>setup": "Angreifen schlägt Vorbereiten",
-  "setup>reaktion": "Vorbereiten lockt Kontern ins Leere",
-  "reaktion>angriff": "Kontern schlägt den passenden Angriff",
+  "angriff>setup": "Angreifen schlägt Aufbauen",
+  "setup>reaktion": "Aufbauen lockt den Rahmen ins Leere",
+  "reaktion>angriff": "Rahmen stoppt den passenden Angriff",
   tempo: "Beide greifen an – der Schnellere gewinnt",
   scramble: "Gleich schnell – Gerangel",
   "beide-setup": "Beide bereiten vor",
   patt: "Beide warten ab",
-  durch: "Konter passte nicht",
+  durch: "Rahmen passte nicht",
 };
 const RULE_KIND: Record<RevealOutcome["rule"], CardKind | null> = {
   "angriff>setup": "angriff", "setup>reaktion": "setup", "reaktion>angriff": "reaktion",

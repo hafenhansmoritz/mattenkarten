@@ -5,13 +5,13 @@ import { IconGriff, IconOeffnung, IconPuste } from "./icons";
 export type ResourceType = "gas" | "control" | "opening";
 
 export const RESOURCE_WORD: Record<ResourceType, string> = {
-  gas: "Puste",
+  gas: "Atem",
   control: "Griff",
   opening: "Lücke",
 };
 
 export const RESOURCE_HELP: Record<ResourceType, string> = {
-  gas: "Puste = deine Ausdauer. Jede Karte kostet Puste.",
+  gas: "Atem = deine Ausdauer. Jede Karte kostet Atem.",
   control: "Griff = wie fest du ihn hältst. Starke Angriffe brauchen Griff.",
   opening: "Lücke = er ist offen. Dein nächster passender Angriff kommt schneller durch.",
 };

@@ -9,13 +9,13 @@ import { resolveReveal } from "../engine/resolve";
 import { mulberry32, shuffle } from "../engine/rng";
 import type { MatchState, PositionId, RevealOutcome, Role, Side } from "../engine/types";
 
-export type PuzzleConcept = "Dreieck" | "Kontern" | "Position vor Aufgabe" | "Dilemma" | "Fluchtweg" | "Punkte";
-export const PUZZLE_CONCEPTS: PuzzleConcept[] = ["Dreieck", "Kontern", "Position vor Aufgabe", "Dilemma", "Fluchtweg", "Punkte"];
+export type PuzzleConcept = "Dreieck" | "Rahmen" | "Position vor Aufgabe" | "Dilemma" | "Fluchtweg" | "Punkte";
+export const PUZZLE_CONCEPTS: PuzzleConcept[] = ["Dreieck", "Rahmen", "Position vor Aufgabe", "Dilemma", "Fluchtweg", "Punkte"];
 
 /** Ein Satz pro Konzept für die Übungsliste. */
 export const CONCEPT_INFO: Record<PuzzleConcept, string> = {
-  Dreieck: "Angreifen schlägt Vorbereiten, Vorbereiten schlägt Kontern, Kontern schlägt Angreifen.",
-  Kontern: "Der richtige Konter stoppt genau diesen Angriff – der falsche gar nichts.",
+  Dreieck: "Angreifen schlägt Aufbauen, Aufbauen lockt den Rahmen ins Leere, Rahmen stoppt Angreifen.",
+  Rahmen: "Der richtige Rahmen stoppt genau diesen Angriff – der falsche gar nichts.",
   "Position vor Aufgabe": "Erst die bessere Position, dann der Abschluss.",
   Dilemma: "Schützt er das eine, ist das andere offen.",
   Fluchtweg: "Unten zuerst raus – erst Platz, dann weg.",
@@ -53,19 +53,19 @@ export const PUZZLES: Puzzle[] = [
     id: "dist-sprawl-double", title: "Er taucht ab", difficulty: 1, pos: "dist", top: null,
     situation: "Er wirkt angriffslustig, senkt den Kopf und will an deine Beine.",
     oppCard: "double_leg", options: ["sprawl", "b_distance", "level_change"], answer: "sprawl",
-    why: "Beine weg, Hüfte drauf stoppt Beinangriffe – danach hast du seinen Kopf.", concept: "Kontern",
+    why: "Beine weg, Hüfte drauf stoppt Beinangriffe – danach hast du seinen Kopf.", concept: "Rahmen",
   }),
   P({
     id: "dist-distance-jab", title: "Schnelle Hand", difficulty: 1, pos: "dist", top: null,
     situation: "Er tänzelt vor dir und zuckt mit der vorderen Hand – gleich schlägt er.",
     oppCard: "jab", options: ["b_distance", "sprawl", "b_stance"], answer: "b_distance",
-    why: "Abstand halten lässt Schläge ins Leere gehen. Beine weg hilft nur gegen Beinangriffe.", concept: "Kontern",
+    why: "Abstand halten lässt Schläge ins Leere gehen. Beine weg hilft nur gegen Beinangriffe.", concept: "Rahmen",
   }),
   P({
     id: "dist-double-stance", title: "Er sammelt sich", difficulty: 1, pos: "dist", top: null,
     situation: "Er steht ruhig, sortiert seine Füße und bereitet sich vor.",
     oppCard: "b_stance", options: ["double_leg", "sprawl", "b_stance"], answer: "double_leg",
-    why: "Wer sich noch vorbereitet, wird erwischt. Beine schnappen bringt dich oben auf den Boden: 2 Punkte.", concept: "Punkte",
+    why: "Wer noch aufbaut, wird erwischt. Beine schnappen bringt dich oben auf den Boden: 2 Punkte.", concept: "Punkte",
   }),
   P({
     id: "dist-level-vs-sprawl", title: "Er lauert", difficulty: 2, pos: "dist", top: null,
@@ -77,23 +77,23 @@ export const PUZZLES: Puzzle[] = [
     id: "dist-distance-clinch", title: "Er rückt ran", difficulty: 2, pos: "dist", top: null,
     situation: "Er kommt mit hohen Armen nach vorne und will dich festhalten.",
     oppCard: "clinch_entry", options: ["b_distance", "sprawl", "double_leg"], answer: "b_distance",
-    why: "Abstand halten stoppt das Ranrücken. Sein Ranrücken ist schneller als dein Beinangriff.", concept: "Kontern",
+    why: "Abstand halten stoppt das Ranrücken. Sein Ranrücken ist schneller als dein Beinangriff.", concept: "Rahmen",
   }),
   P({
     id: "dist-clinch-vs-level", title: "Die Finte", difficulty: 2, pos: "dist", top: null,
     situation: "Er geht tief in die Knie und täuscht einen Beinangriff an – noch kommt er nicht.",
     oppCard: "level_change", options: ["sprawl", "clinch_entry", "b_stance"], answer: "clinch_entry",
-    why: "Er bereitet nur vor. Wer jetzt angreift, erwischt ihn – Kontern ginge ins Leere.", concept: "Dreieck",
+    why: "Er baut nur auf. Wer jetzt angreift, erwischt ihn – ein Rahmen ginge ins Leere.", concept: "Dreieck",
   }),
   P({
     id: "dist-sprawl-single", title: "Ein Bein im Visier", difficulty: 2, pos: "dist", top: null,
     situation: "Er schaut auf dein vorderes Bein und verlagert sein Gewicht nach vorne.",
     oppCard: "single_leg", options: ["sprawl", "b_distance", "jab"], answer: "sprawl",
-    why: "Der Schlag bremst ihn nur. Beine weg stoppt den Angriff und du landest oben am Kopf.", concept: "Kontern",
+    why: "Der Schlag bremst ihn nur. Beine weg stoppt den Angriff und du landest oben am Kopf.", concept: "Rahmen",
   }),
   P({
     id: "dist-jab-tempo", title: "Wer ist schneller?", difficulty: 3, pos: "dist", top: null,
-    situation: "Er spannt sich an und will an deine Beine. Ein Konter passt hier nicht.",
+    situation: "Er spannt sich an und will an deine Beine. Ein Rahmen passt hier nicht.",
     oppCard: "double_leg", options: ["jab", "single_leg", "b_stance"], answer: "jab",
     why: "Beide greifen an – der Schnellere gewinnt. Der Schlag kommt vor seinem Beinangriff an.", concept: "Dreieck",
   }),
@@ -103,19 +103,19 @@ export const PUZZLES: Puzzle[] = [
     id: "clinch-frames-ogoshi", title: "Hüfte rein", difficulty: 2, pos: "clinch", top: null,
     situation: "Er dreht sich ein und schiebt seine Hüfte vor deine – er will dich werfen.",
     oppCard: "o_goshi", options: ["frames_hips_back", "sprawl", "head_up"], answer: "frames_hips_back",
-    why: "Wegdrücken und Hüfte zurück stoppt Würfe. Beine weg hilft nur gegen Beinangriffe.", concept: "Kontern",
+    why: "Wegdrücken und Hüfte zurück stoppt Würfe. Beine weg hilft nur gegen Beinangriffe.", concept: "Rahmen",
   }),
   P({
     id: "clinch-headup-snap", title: "Hand im Nacken", difficulty: 1, pos: "clinch", top: null,
     situation: "Seine Hand liegt schwer in deinem Nacken. Er will deinen Kopf runterziehen.",
     oppCard: "snap_down", options: ["head_up", "sprawl", "whizzer"], answer: "head_up",
-    why: "Kopf hoch bleiben stoppt das Runterziehen. Die anderen Konter passen nicht dazu.", concept: "Kontern",
+    why: "Kopf hoch bleiben stoppt das Runterziehen. Die anderen Rahmen passen nicht dazu.", concept: "Rahmen",
   }),
   P({
     id: "clinch-whizzer-single", title: "Er will ein Bein", difficulty: 2, pos: "clinch", top: null,
     situation: "Er senkt die Schulter und greift nach deinem vorderen Bein.",
     oppCard: "single_leg", options: ["whizzer", "frames_hips_back", "head_up"], answer: "whizzer",
-    why: "Arm überhaken und Hüfte rein stoppt ein Bein – und du hast danach seinen Kopf.", concept: "Kontern",
+    why: "Arm überhaken und Hüfte rein stoppt ein Bein – und du hast danach seinen Kopf.", concept: "Rahmen",
   }),
   P({
     id: "clinch-snap-collar", title: "Er sucht Griffe", difficulty: 1, pos: "clinch", top: null,
@@ -127,25 +127,25 @@ export const PUZZLES: Puzzle[] = [
     id: "clinch-underhook-headup", title: "Steifer Nacken", difficulty: 2, pos: "clinch", top: null,
     situation: "Er hält den Kopf steif und wartet, dass du am Kopf ziehst.",
     oppCard: "head_up", options: ["snap_down", "underhook", "b_hips_back"], answer: "underhook",
-    why: "Er wartet auf deinen Angriff. Vorbereiten lockt ihn ins Leere und bringt dir Griff.", concept: "Dreieck",
+    why: "Er wartet auf deinen Angriff. Aufbauen lockt ihn ins Leere und bringt dir Griff.", concept: "Dreieck",
   }),
   P({
     id: "clinch-frames-bodylock", title: "Arme um die Hüfte", difficulty: 2, pos: "clinch", top: null,
     situation: "Er schließt beide Arme um deinen Bauch und stellt sein Bein hinter deins.",
     oppCard: "body_lock_trip", options: ["frames_hips_back", "b_hips_back", "whizzer"], answer: "frames_hips_back",
-    why: "Gegen Umklammern hilft nur Wegdrücken mit Hüfte zurück. Die anderen stoppen Beinangriffe.", concept: "Kontern",
+    why: "Gegen Umklammern hilft nur Wegdrücken mit Hüfte zurück. Die anderen stoppen Beinangriffe.", concept: "Rahmen",
   }),
   P({
     id: "clinch-hipsback-ankle", title: "Blick zum Fuß", difficulty: 3, pos: "clinch", top: null,
     situation: "Er zieht deinen Kopf etwas runter und schielt auf deinen Fuß.",
     oppCard: "ankle_pick", options: ["b_hips_back", "head_up", "frames_hips_back"], answer: "b_hips_back",
-    why: "Er will deinen Fuß, nicht den Kopf. Hüfte zurück stoppt Angriffe auf die Beine.", concept: "Kontern",
+    why: "Er will deinen Fuß, nicht den Kopf. Hüfte zurück stoppt Angriffe auf die Beine.", concept: "Rahmen",
   }),
   P({
     id: "clinch-armdrag-osoto", title: "Bein von hinten", difficulty: 3, pos: "clinch", top: null,
-    situation: "Er tritt neben dich und holt mit dem Bein aus. Kein Konter stoppt dieses Sicheln.",
+    situation: "Er tritt neben dich und holt mit dem Bein aus. Kein Rahmen stoppt dieses Sicheln.",
     oppCard: "o_soto", options: ["frames_hips_back", "arm_drag", "b_pummel"], answer: "arm_drag",
-    why: "Wenn kein Konter passt, sei schneller: Arm ziehen geht vor seinem Wurf durch – du bist hinten.", concept: "Dreieck",
+    why: "Wenn kein Rahmen passt, sei schneller: Arm ziehen geht vor seinem Wurf durch – du bist hinten.", concept: "Dreieck",
   }),
   P({
     id: "clinch-dilemma-double", title: "Kopf oder Beine", difficulty: 3, pos: "clinch", top: null,
@@ -164,7 +164,7 @@ export const PUZZLES: Puzzle[] = [
     id: "clinch-ankle-vs-frames", title: "Er rechnet mit dem Wurf", difficulty: 3, pos: "clinch", top: null,
     situation: "Er hält dich mit gestreckten Armen weg und zieht die Hüfte zurück – gegen jeden Wurf.",
     oppCard: "frames_hips_back", options: ["o_goshi", "body_lock_trip", "ankle_pick"], answer: "ankle_pick",
-    why: "Sein Konter stoppt Würfe, nicht den Griff zum Fuß. Greif an, wo er nicht schützt.", concept: "Kontern",
+    why: "Sein Rahmen stoppt Würfe, nicht den Griff zum Fuß. Greif an, wo er nicht schützt.", concept: "Rahmen",
   }),
 
   // ---------------- Kopf unterm Arm (oben) ----------------
@@ -172,7 +172,7 @@ export const PUZZLES: Puzzle[] = [
     id: "fhl-hold-situp", title: "Er will raussitzen", difficulty: 1, pos: "fhl", top: "p",
     situation: "Sein Kopf steckt unter deinem Arm. Er zappelt und will rausrutschen.",
     oppCard: "sit_out", options: ["b_fhl_sprawl_hold", "b_fhl_pressure", "guillotine"], answer: "b_fhl_sprawl_hold",
-    why: "Er will entkommen. Hüfte schwer, Beine hinten hält ihn genau dort fest.", concept: "Kontern",
+    why: "Er will entkommen. Hüfte schwer, Beine hinten hält ihn genau dort fest.", concept: "Rahmen",
   }),
   P({
     id: "fhl-gobehind-chin", title: "Kinn eingezogen", difficulty: 2, pos: "fhl", top: "p",
@@ -198,13 +198,13 @@ export const PUZZLES: Puzzle[] = [
     id: "fhlb-chin-guillo", title: "Arm um den Hals", difficulty: 1, pos: "fhl", top: "o",
     situation: "Dein Kopf steckt unter seinem Arm. Er schiebt den Unterarm unter dein Kinn.",
     oppCard: "guillotine", options: ["b_fhl_chin", "elbow_block", "sit_out"], answer: "b_fhl_chin",
-    why: "Er will dich würgen. Kinn ein, Ellbogen eng – sein Würger scheitert.", concept: "Kontern",
+    why: "Er will dich würgen. Kinn ein, Ellbogen eng – sein Würger scheitert.", concept: "Rahmen",
   }),
   P({
     id: "fhlb-elbow-gobehind", title: "Er läuft rum", difficulty: 2, pos: "fhl", top: "o",
     situation: "Er lockert den Griff am Kopf und macht einen Schritt zur Seite.",
     oppCard: "go_behind", options: ["elbow_block", "b_fhl_chin", "b_fhl_handfight"], answer: "elbow_block",
-    why: "Er will hinter dich. Ellbogen zu und mitdrehen blockiert den Weg.", concept: "Kontern",
+    why: "Er will hinter dich. Ellbogen zu und mitdrehen blockiert den Weg.", concept: "Rahmen",
   }),
   P({
     id: "fhlb-sitout-pressure", title: "Er drückt nur", difficulty: 1, pos: "fhl", top: "o",
@@ -224,19 +224,19 @@ export const PUZZLES: Puzzle[] = [
     id: "guard-posture-armbar", title: "Sein Bein klettert", difficulty: 1, pos: "guard", top: "p",
     situation: "Du kniest in seinen Beinen. Er greift deinen Arm und schwingt ein Bein hoch.",
     oppCard: "armbar_guard", options: ["posture_defense", "base_post", "stack_pass"], answer: "posture_defense",
-    why: "Er will deinen Arm strecken. Aufrecht bleiben, Ellbogen eng – sein Hebel greift nicht.", concept: "Kontern",
+    why: "Er will deinen Arm strecken. Aufrecht bleiben, Ellbogen eng – sein Hebel greift nicht.", concept: "Rahmen",
   }),
   P({
     id: "guard-base-hipbump", title: "Hüfte hoch", difficulty: 2, pos: "guard", top: "p",
     situation: "Er setzt sich auf und schiebt seine Hüfte gegen dich – er will dich umwerfen.",
     oppCard: "hip_bump", options: ["base_post", "posture_defense", "stack_pass"], answer: "base_post",
-    why: "Er will dich umdrehen. Breit stehen, Hand abstützen – du bleibst oben.", concept: "Kontern",
+    why: "Er will dich umdrehen. Breit stehen, Hand abstützen – du bleibst oben.", concept: "Rahmen",
   }),
   P({
     id: "guard-posture-triangle", title: "Beine um den Hals", difficulty: 3, pos: "guard", top: "p",
     situation: "Er zieht deinen Kopf runter und schiebt ein Bein über deine Schulter.",
     oppCard: "triangle", options: ["posture_defense", "b_guard_elbows", "base_post"], answer: "posture_defense",
-    why: "Ellbogen eng stoppt nur Armhebel. Gegen den Beinwürger hilft nur: aufrecht bleiben.", concept: "Kontern",
+    why: "Ellbogen eng stoppt nur Armhebel. Gegen den Beinwürger hilft nur: aufrecht bleiben.", concept: "Rahmen",
   }),
   P({
     id: "guard-slice-breakposture", title: "Er zieht dich runter", difficulty: 1, pos: "guard", top: "p",
@@ -268,7 +268,7 @@ export const PUZZLES: Puzzle[] = [
     id: "guardb-frame-slice", title: "Knie schneidet", difficulty: 1, pos: "guard", top: "o",
     situation: "Er drückt ein Knie über deinen Oberschenkel und will vorbei.",
     oppCard: "knee_slice", options: ["b_guard_frame", "hip_bump", "triangle"], answer: "b_guard_frame",
-    why: "Er will vorbei. Hüfte raus, Knie dazwischen – er kommt nicht durch.", concept: "Kontern",
+    why: "Er will vorbei. Hüfte raus, Knie dazwischen – er kommt nicht durch.", concept: "Rahmen",
   }),
   P({
     id: "guardb-dilemma-armbar", title: "Dreieck verteidigt", difficulty: 3, pos: "guard", top: "o",
@@ -294,7 +294,7 @@ export const PUZZLES: Puzzle[] = [
     id: "guardb-frame-stack", title: "Er stapelt dich", difficulty: 2, pos: "guard", top: "o",
     situation: "Er hebt deine Beine an und drückt dich auf die Schultern.",
     oppCard: "stack_pass", options: ["b_guard_frame", "b_break_posture", "scissor_sweep"], answer: "b_guard_frame",
-    why: "Er will vorbei. Hüfte raus, Knie dazwischen stoppt jeden Pass.", concept: "Kontern",
+    why: "Er will vorbei. Hüfte raus, Knie dazwischen stoppt jeden Pass.", concept: "Rahmen",
   }),
 
   // ---------------- Quer drauf (oben) ----------------
@@ -302,7 +302,7 @@ export const PUZZLES: Puzzle[] = [
     id: "side-hips-shrimp", title: "Er rutscht weg", difficulty: 1, pos: "side", top: "p",
     situation: "Du liegst quer auf ihm. Er drückt mit den Armen und will mit der Hüfte weg.",
     oppCard: "shrimp_recover", options: ["b_side_hips", "b_side_crossface", "americana"], answer: "b_side_hips",
-    why: "Er will entkommen. Knie an seine Hüfte – er kommt nicht raus.", concept: "Kontern",
+    why: "Er will entkommen. Knie an seine Hüfte – er kommt nicht raus.", concept: "Rahmen",
   }),
   P({
     id: "side-mount-frames", title: "Er stemmt nur", difficulty: 1, pos: "side", top: "p",
@@ -328,7 +328,7 @@ export const PUZZLES: Puzzle[] = [
     id: "sideb-arms-americana", title: "Er dreht deinen Arm", difficulty: 1, pos: "side", top: "o",
     situation: "Er liegt quer auf dir, drückt dein Handgelenk auf die Matte und will drehen.",
     oppCard: "americana", options: ["b_side_arms", "underhook_knees", "b_side_frames"], answer: "b_side_arms",
-    why: "Er will die Schulter drehen. Ellbogen eng, Hände zusammen – der Hebel greift nicht.", concept: "Kontern",
+    why: "Er will die Schulter drehen. Ellbogen eng, Hände zusammen – der Hebel greift nicht.", concept: "Rahmen",
   }),
   P({
     id: "sideb-shrimp-crossface", title: "Er drückt mit der Brust", difficulty: 1, pos: "side", top: "o",
@@ -354,7 +354,7 @@ export const PUZZLES: Puzzle[] = [
     id: "mount-post-upa", title: "Er brückt", difficulty: 1, pos: "mount", top: "p",
     situation: "Du sitzt auf ihm. Er klemmt deinen Arm ein und drückt die Hüfte hoch.",
     oppCard: "upa", options: ["b_mount_post", "b_mount_base", "armbar_mount"], answer: "b_mount_post",
-    why: "Er will dich abwerfen. Hand weit abstützen – du bleibst oben.", concept: "Kontern",
+    why: "Er will dich abwerfen. Hand weit abstützen – du bleibst oben.", concept: "Rahmen",
   }),
   P({
     id: "mount-americana-frames", title: "Er schafft Platz", difficulty: 1, pos: "mount", top: "p",
@@ -387,13 +387,13 @@ export const PUZZLES: Puzzle[] = [
     id: "mountb-elbows-armbar", title: "Er greift deinen Arm", difficulty: 1, pos: "mount", top: "o",
     situation: "Er sitzt auf dir, packt deinen Arm und will ein Bein über deinen Kopf schwingen.",
     oppCard: "armbar_mount", options: ["b_mount_elbows", "wrist_free", "b_mount_frames"], answer: "b_mount_elbows",
-    why: "Arme nie strecken! Bleiben sie eng, rutscht er beim Versuch sogar von dir runter.", concept: "Kontern",
+    why: "Arme nie strecken! Bleiben sie eng, rutscht er beim Versuch sogar von dir runter.", concept: "Rahmen",
   }),
   P({
     id: "mountb-wrist-americana", title: "Handgelenk auf der Matte", difficulty: 2, pos: "mount", top: "o",
     situation: "Er drückt dein Handgelenk neben deinem Kopf auf die Matte.",
     oppCard: "americana", options: ["wrist_free", "b_mount_elbows", "b_mount_shrimp"], answer: "wrist_free",
-    why: "Er will die Schulter drehen. Handgelenk hochholen stoppt das – Ellbogen eng hilft nur gegen Strecken.", concept: "Kontern",
+    why: "Er will die Schulter drehen. Handgelenk hochholen stoppt das – Ellbogen eng hilft nur gegen Strecken.", concept: "Rahmen",
   }),
   P({
     id: "mountb-upa-base", title: "Er rückt zurecht", difficulty: 1, pos: "mount", top: "o",
@@ -419,7 +419,7 @@ export const PUZZLES: Puzzle[] = [
     id: "back-hooks-escape", title: "Er rutscht weg", difficulty: 1, pos: "back", top: "p",
     situation: "Du klebst an seinem Rücken. Er schiebt die Schultern zur Matte und will raus.",
     oppCard: "back_escape", options: ["b_back_hooks_hold", "rnc", "b_back_seatbelt"], answer: "b_back_hooks_hold",
-    why: "Er will entkommen. Hüfte folgt ihm – deine Beine bleiben drin.", concept: "Kontern",
+    why: "Er will entkommen. Hüfte folgt ihm – deine Beine bleiben drin.", concept: "Rahmen",
   }),
   P({
     id: "back-rnc-handfight", title: "Hände gegen Hände", difficulty: 1, pos: "back", top: "p",
@@ -445,7 +445,7 @@ export const PUZZLES: Puzzle[] = [
     id: "backb-chin-rnc", title: "Arm um den Hals", difficulty: 1, pos: "back", top: "o",
     situation: "Er ist hinter dir und schiebt seinen Arm unter dein Kinn.",
     oppCard: "rnc", options: ["b_back_chin", "back_escape", "b_back_handfight"], answer: "b_back_chin",
-    why: "Er will würgen. Kinn auf die Brust – sein Arm kommt nicht durch.", concept: "Kontern",
+    why: "Er will würgen. Kinn auf die Brust – sein Arm kommt nicht durch.", concept: "Rahmen",
   }),
   P({
     id: "backb-escape-seatbelt", title: "Er umarmt dich", difficulty: 1, pos: "back", top: "o",

@@ -14,8 +14,8 @@ const plainName = (id: string) => CARD[id]?.plain ?? CARD[id]?.name;
 
 /** Ein Satz: Was lernt man in diesem Kampf? */
 export function learnLine(a: Archetype): string {
-  if (a.tutorial === 1) return "Du lernst: Angreifen schlägt Vorbereiten";
-  if (a.tutorial === 2) return "Du lernst: Kontern";
+  if (a.tutorial === 1) return "Du lernst: Angreifen schlägt Aufbauen";
+  if (a.tutorial === 2) return "Du lernst: Rahmen";
   if (a.tutorial === 3) return "Du lernst: Erst Griff, dann beenden";
   const rewards = a.reward.map(plainName).filter(Boolean).join(", ");
   const who = a.boss ? "die Gürtelprüfung" : a.title;

@@ -5,7 +5,7 @@ import { KIND_VERB } from "./kinds";
 import { TriangleExplainer } from "./TriangleExplainer";
 
 export interface RevealExplainProps {
-  /** Kurzlabel der Regel, z. B. "Kontern schlägt Angriff" oder "Schneller gewinnt". */
+  /** Kurzlabel der Regel, z. B. "Rahmen schlägt Angriff" oder "Schneller gewinnt". */
   ruleLabel: string;
   /** Welcher Dreieckspfeil hat gegriffen (null bei Tempo/Patt/Scramble). */
   highlightKind: CardKind | null;
@@ -58,7 +58,7 @@ export function RevealExplain({ ruleLabel, highlightKind, headline, lesson, pred
             <>
               <IconCheck size={18} />
               <span>
-                <b>Gut gelesen!</b> +1 <IconPuste size={14} /> Puste
+                <b>Gut gelesen!</b> +1 <IconPuste size={14} /> Atem
               </span>
             </>
           ) : (

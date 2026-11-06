@@ -108,7 +108,7 @@ describe("Tutorials: Daten", () => {
 });
 
 describe("Tutorials: mit echter Engine durchspielbar", () => {
-  it("T1: Zug 1 beide vorbereiten (nichts passiert), Zug 2 Angriff schlägt Vorbereiten, Sieg", () => {
+  it("T1: Zug 1 beide vorbereiten (nichts passiert), Zug 2 Angriff schlägt Aufbauen, Sieg", () => {
     for (const seed of SEEDS) {
       const { s, log } = run(TUTORIALS[1], seed);
       expect(log[0].rule, `seed ${seed}`).toBe("beide-setup");

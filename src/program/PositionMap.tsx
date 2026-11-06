@@ -14,9 +14,9 @@ export interface MapSpot { id: string; pos: Pos2; top: Side | null; name: string
 export const LADDER: MapSpot[] = [
   { id: "back-top", pos: "back", top: "p", name: "Rücken", you: "du hinter ihm" },
   { id: "mount-top", pos: "mount", top: "p", name: "Mount", you: "du sitzt oben" },
-  { id: "side-top", pos: "side", top: "p", name: "Side Control", you: "du liegst quer oben" },
+  { id: "side-top", pos: "side", top: "p", name: "Seitenkontrolle", you: "du liegst quer oben" },
   { id: "guard", pos: "guard", top: "o", name: "Guard", you: "du unten, Beine um ihn" },
-  { id: "side-bottom", pos: "side", top: "o", name: "Side Control", you: "du liegst unten" },
+  { id: "side-bottom", pos: "side", top: "o", name: "Seitenkontrolle", you: "du liegst unten" },
   { id: "mount-bottom", pos: "mount", top: "o", name: "Mount", you: "er sitzt auf dir" },
 ];
 
@@ -56,7 +56,7 @@ export function PositionMap({ onDone }: { onDone: () => void }) {
           {phase === "done" && (
             <div className="pg-panel center">
               <h3 className="display pg-h">Landkarte sitzt!</h3>
-              <p>Gute Lagen oben: Rücken, Mount, Side Control. Unten ist die Guard dein Zuhause.</p>
+              <p>Gute Lagen oben: Rücken, Mount, Seitenkontrolle. Unten ist die Guard dein Zuhause.</p>
               <button className="btn primary big" onClick={onDone}>Weiter zum Rätsel</button>
             </div>
           )}
@@ -136,9 +136,9 @@ function hintFor(i: number): string {
   switch (i) {
     case 0: return "Tipp: Am stärksten bist du hinter ihm – er sieht dich kaum.";
     case 1: return "Tipp: Danach kommt Draufsitzen (Mount).";
-    case 2: return "Tipp: Danach kommt quer oben liegen (Side Control).";
+    case 2: return "Tipp: Danach kommt quer oben liegen: Seitenkontrolle (Side Control).";
     case 3: return "Tipp: Ausgeglichen ist die Guard. Deine Beine schützen dich.";
-    case 4: return "Tipp: Unter Side Control ist schlecht, unter dem Mount noch schlechter.";
+    case 4: return "Tipp: Unter der Seitenkontrolle ist schlecht, unter dem Mount noch schlechter.";
     default: return "Tipp: Was bleibt übrig?";
   }
 }

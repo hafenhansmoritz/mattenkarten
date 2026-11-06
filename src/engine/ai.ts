@@ -23,7 +23,7 @@ export function predictKind(history: CardKind[]): CardKind | null {
 
 /**
  * Kontext-Read: Was hat der Gegner zuletzt in GENAU dieser Lage (Position + Rolle) gespielt?
- * Muster sind lageabhängig (oben in der Guard angreifen, oben in der Seitkontrolle erst festmachen) –
+ * Muster sind lageabhängig (oben in der Guard angreifen, oben in der Seitenkontrolle erst festmachen) –
  * ein Read über alle Lagen gemischt rät oft falsch. Ab 2 Zügen in dieser Lage gilt der Kontext, sonst predictKind.
  */
 export function predictKindIn(state: MatchState, opp: Side): CardKind | null {

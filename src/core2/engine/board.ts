@@ -22,10 +22,10 @@ export function emptyBoard(): Board {
   return { kopf: 0, arme: 0, huefte: 0, beine: 0 };
 }
 
-export const ZONE_LABEL: Record<Zone, string> = { kopf: "Kopf", arme: "Arme", huefte: "Hüfte", beine: "Beine" };
+export const ZONE_LABEL: Record<Zone, string> = { kopf: "Kopf/Nacken", arme: "Arme", huefte: "Hüfte", beine: "Beine" };
 export const POS_LABEL: Record<Pos2, string> = {
-  stand: "Stand", clinch: "Clinch", headlock: "Front Headlock", guard: "Guard", half: "Half Guard", turtle: "Turtle",
-  side: "Side Control", mount: "Mount", back: "Rücken",
+  stand: "Stand", clinch: "Clinch", headlock: "Kopfklammer (Front Headlock)", guard: "Guard", half: "Halbe Guard", turtle: "Turtle",
+  side: "Seitenkontrolle", mount: "Mount", back: "Rücken",
 };
 
 /** Positionswert für Heuristik/Statistik (oben positiv, unten negativ). */

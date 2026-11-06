@@ -14,7 +14,7 @@ import { POS_LABEL } from "./meta";
 import type { Card2, Pos2, StilId } from "../types";
 
 const POS_ORDER: Pos2[] = ["stand", "clinch", "headlock", "guard", "half", "turtle", "side", "mount", "back"];
-const POS_SHORT: Record<Pos2, string> = { stand: "Stand", clinch: "Clinch", headlock: "Kopfklammer", guard: "Guard", half: "Half Guard", turtle: "Turtle", side: "Side", mount: "Mount", back: "Rücken" };
+const POS_SHORT: Record<Pos2, string> = { stand: "Stand", clinch: "Clinch", headlock: "Kopfklammer", guard: "Guard", half: "Halbe Guard", turtle: "Turtle", side: "Side", mount: "Mount", back: "Rücken" };
 type Phase = "boden" | "vorn" | "aufgabe";
 const PHASE_LABEL: Record<Phase, string> = { boden: "Zum Boden", vorn: "Nach vorn", aufgabe: "Aufgabe" };
 const STANDING = new Set<Pos2>(["stand", "clinch", "headlock"]);

@@ -3,17 +3,17 @@ import type { CardDef, CardKind } from "../../engine/types";
 /** Kartentypen als Verben (Neulinge). */
 export const KIND_VERB: Record<CardKind, string> = {
   angriff: "Angreifen",
-  setup: "Vorbereiten",
-  reaktion: "Kontern",
+  setup: "Aufbauen",
+  reaktion: "Rahmen",
 };
 
 export const KIND_ORDER: CardKind[] = ["angriff", "setup", "reaktion"];
 
 /** Das Dreieck in Alltagssprache: Regel, die vom jeweiligen Typ ausgeht. */
 export const KIND_RULE: Record<CardKind, { verb: string; short: string; long: string; beats: CardKind }> = {
-  angriff: { verb: "schlägt", short: "Angreifen schlägt Vorbereiten", long: "Wer angreift, erwischt den, der sich noch vorbereitet.", beats: "setup" },
-  setup: { verb: "lockt ins Leere", short: "Vorbereiten lockt Kontern ins Leere", long: "Wer kontern will, wartet umsonst. Du baust in Ruhe auf.", beats: "reaktion" },
-  reaktion: { verb: "schlägt", short: "Kontern schlägt den passenden Angriff", long: "Der richtige Konter stoppt genau diesen Angriff.", beats: "angriff" },
+  angriff: { verb: "schlägt", short: "Angreifen schlägt Aufbauen", long: "Wer angreift, erwischt den, der noch aufbaut.", beats: "setup" },
+  setup: { verb: "lockt ins Leere", short: "Aufbauen lockt den Rahmen ins Leere", long: "Wer nur abwehren will, wartet umsonst. Du baust in Ruhe auf.", beats: "reaktion" },
+  reaktion: { verb: "schlägt", short: "Rahmen stoppt den passenden Angriff", long: "Der richtige Rahmen stoppt genau diesen Angriff.", beats: "angriff" },
 };
 
 /** Alltagsname einer Karte: plain → Fachbegriff. */

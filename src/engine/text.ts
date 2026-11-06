@@ -171,12 +171,12 @@ export function fixFor(atk: CardDef, re?: CardDef): CardDef | null {
 // Feste Lernsätze (≤ 20 Wörter, Alltagswörter zuerst, Begriff in Klammern)
 // ------------------------------------------------------------------
 export const LESSON = {
-  angriffSetup: "Wer nur vorbereitet (Setup), steht still – ein direkter Angriff trifft genau dann.",
-  setupReaktion: "Die Finte lockt die Abwehr ins Leere (Setup) – wer zu früh reagiert, verliert Kraft und öffnet eine Lücke.",
+  angriffSetup: "Wer nur aufbaut (Setup), steht still – ein direkter Angriff trifft genau dann.",
+  setupReaktion: "Die Finte lockt die Abwehr ins Leere (Setup) – wer zu früh reagiert, verliert Atem und öffnet eine Lücke.",
   reaktionAngriff: "Abwehr stoppt nur den passenden Angriff (Reaktion) – du musst erkennen, was kommt.",
-  scramble: "Gleich schnell angegriffen: Beide verlieren Kraft, keiner kommt weiter (Scramble).",
+  scramble: "Gleich schnell angegriffen: Beide verlieren Atem, keiner kommt weiter (Scramble).",
   beideSetup: "Beide bereiten vor: Jeder sammelt Kontrolle, aber erst ein Angriff bringt Position (Setup).",
-  patt: "Nur abwehren bringt Puste zurück, aber keine Position – einer muss etwas wagen (Patt).",
+  patt: "Nur abwehren bringt Atem zurück, aber keine Position – einer muss etwas wagen (Patt).",
   subDefended: "Wer zum Aufgabegriff greift, lockert seinen Halt: Abgewehrt ist die Kontrolle weg (Submission).",
   dilemma: "Wer das eine abwehrt, öffnet das andere – greif in Paaren an (Dilemma).",
   subWin: (ctrl: number) => ctrl > 0
@@ -184,7 +184,7 @@ export const LESSON = {
     : "Nichts stand im Weg: Ohne passende Abwehr sitzt der Aufgabegriff sofort (Submission).",
   hooks: "Rücken-Punkte gibt es erst, wenn beide Füße innen sitzen (Hooks) – nie die Füße kreuzen.",
   opening: (tw: number, tl: number) => `Die Lücke von vorhin (Öffnung) machte den Angriff 2 schneller – Tempo ${tw} gegen ${tl}.`,
-  tired: (tw: number, tl: number) => `Ohne Puste wird man langsam (wenig Gas = Tempo +1) – ${tw} gegen ${tl}.`,
+  tired: (tw: number, tl: number) => `Ohne Atem wird man langsam (wenig Gas = Tempo +1) – ${tw} gegen ${tl}.`,
   tempo: (tw: number, tl: number) => `Zwei Angriffe gleichzeitig: Der schnellere trifft zuerst – kleine Zahl gewinnt (Tempo ${tw} gegen ${tl}).`,
 };
 
@@ -206,8 +206,8 @@ export function textAngriffSetup(a: Side, atk: CardDef, _set: CardDef, tap: bool
   }
   return {
     headline: fit(H,
-      `${done(atk, a)} – ${du(b, "du hast", "er hat")} nur vorbereitet!`,
-      `${du(a, "Du triffst", "Er trifft")} mitten ins Vorbereiten!`),
+      `${done(atk, a)} – ${du(b, "du hast", "er hat")} nur aufgebaut!`,
+      `${du(a, "Du triffst", "Er trifft")} mitten ins Aufbauen!`),
     lesson: addIfFits(LESSON.angriffSetup, pointsWhy(atk)),
   };
 }

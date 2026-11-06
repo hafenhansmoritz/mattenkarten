@@ -53,7 +53,7 @@ export const GAME_SOURCES = {
     title: "r/bjj: Which positional round is simple and fun for new students?",
     url: "https://www.reddit.com/r/bjj/comments/1in41nq/which_positional_round_is_simple_and_fun_for_new/",
     mark: "ungeprüft",
-    note: "Forum: Mount mit Händen auf der Matte, Side ohne Griffe, Fuß-Tippen, Half Guard mit Underhook.",
+    note: "Forum: Mount mit Händen auf der Matte, Side ohne Griffe, Fuß-Tippen, Halbe Guard mit Underhook.",
   },
   evolve: {
     title: "Evolve MMA: 11 Things You Should Know Before You Start Sparring BJJ",
@@ -170,9 +170,9 @@ export const GAMES: PositionalGame[] = [
   },
   {
     id: "g-side-guard", code: 3, pos: "side", top: "p", month: 1,
-    title: "Side Control: Guard zurück",
-    idea: "Unten in Side Control baust du Rahmen und holst die Beine zurück.",
-    a: { role: "Oben", goal: "Halte Side Control 60 Sekunden. Hände nur zum Balancieren, keine Griffe." },
+    title: "Seitenkontrolle: Guard zurück",
+    idea: "Unten in der Seitenkontrolle baust du Rahmen und holst die Beine zurück.",
+    a: { role: "Oben", goal: "Halte die Seitenkontrolle 60 Sekunden. Hände nur zum Balancieren, keine Griffe." },
     b: { role: "Unten", goal: "Rahmen bauen, Hüfte weg, Knie rein. Beine vor ihm heißt: geschafft." },
     rules: [
       "Kein Unterarm quer über das Gesicht, kein Knie auf den Bauch.",
@@ -187,8 +187,8 @@ export const GAMES: PositionalGame[] = [
   },
   {
     id: "g-side-aufstehen", code: 4, pos: "side", top: "p", month: 2,
-    title: "Side Control: Auf die Knie",
-    idea: "Unten in Side Control drehst du dich auf die Knie und stehst auf.",
+    title: "Seitenkontrolle: Auf die Knie",
+    idea: "Unten in der Seitenkontrolle drehst du dich auf die Knie und stehst auf.",
     a: { role: "Oben", goal: "Halte ihn 60 Sekunden mit dem Rücken auf der Matte." },
     b: { role: "Unten", goal: "Komm auf beide Knie. Dann bist du raus und ihr startet neu." },
     rules: [

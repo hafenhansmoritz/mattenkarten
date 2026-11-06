@@ -73,7 +73,7 @@ export const QUESTIONS: Question[] = [
   {
     id: "q-pos-mount-name", day: 1, topic: "positionen",
     q: "Er sitzt rittlings auf deinem Bauch. Wie heißt das?",
-    options: ["Mount", "Side Control", "Guard"],
+    options: ["Mount", "Seitenkontrolle", "Guard"],
     answer: 0, scene: { pos: "mount", top: "o" }, src: "KB 3.2",
     why: "Mount heißt: Er sitzt auf dir. Unten ist das eine der schlechtesten Lagen.",
   },
@@ -93,7 +93,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "q-pos-goal-top", day: 1, topic: "positionen",
-    q: "Du liegst oben quer auf ihm (Side Control). Was ist dein Ziel?",
+    q: "Du liegst oben quer auf ihm: Seitenkontrolle (Side Control). Was ist dein Ziel?",
     options: ["Ruhig halten, dann aufsteigen oder beenden", "Sofort aufstehen und weggehen", "Loslassen und neu anfangen"],
     answer: 0, scene: { pos: "side", top: "p" }, src: "KB 3.2",
     why: "Oben heißt: stabil halten, seine Flucht verhindern, aufsteigen. Erst dann beenden.",
@@ -101,9 +101,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "q-pos-side-vs-guard", day: 1, topic: "positionen",
     q: "Wo bist du unten besser dran?",
-    options: ["In der Guard", "Unter Side Control", "Unter dem Mount"],
+    options: ["In der Guard", "Unter der Seitenkontrolle", "Unter dem Mount"],
     answer: 0, src: "KB 3.2",
-    why: "In der Guard sind deine Beine zwischen euch. Unter Side Control und Mount fehlt dir dieser Schutz.",
+    why: "In der Guard sind deine Beine zwischen euch. Unter der Seitenkontrolle und Mount fehlt dir dieser Schutz.",
   },
   // ---------- Tag 1: Abklopfen ----------
   {
@@ -169,7 +169,7 @@ export const QUESTIONS: Question[] = [
     q: "Er stützt sich breit mit beiden Händen ab. Was passt jetzt besser?",
     options: ["Wegrutschen, Knie dazwischen (Elbow Escape)", "Weiter brücken und rollen (Upa)", "Abwarten, bis er müde wird"],
     answer: 0, src: "KB 4.5", check: true,
-    why: "Steht er breit, rollt er schwer. Dann wechselst du zum Elbow Escape.",
+    why: "Steht er breit, rollt er schwer. Dann wechselst du zu „Wegrutschen, Knie dazwischen“ (Elbow Escape).",
   },
   {
     id: "q-mount-breathe", day: 2, topic: "mount",
@@ -189,7 +189,7 @@ export const QUESTIONS: Question[] = [
   // ---------- Tag 3: Raus aus Side Control ----------
   {
     id: "q-side-order", day: 3, topic: "side",
-    q: "Er liegt quer auf dir (Side Control). Welche Reihenfolge stimmt?",
+    q: "Er liegt quer auf dir: Seitenkontrolle (Side Control). Welche Reihenfolge stimmt?",
     options: ["Rahmen, dann Brücke, dann wegrutschen", "Erst wegrutschen, dann Rahmen", "Sofort aufspringen"],
     answer: 0, scene: { pos: "side", top: "o" }, src: "KB 4.5 (BJJ Atlas)",
     why: "Erst Rahmen, dann Brücke, dann Shrimp. Ohne Rahmen fehlt dir der Platz.",
@@ -290,7 +290,7 @@ export const QUESTIONS: Question[] = [
   {
     id: "q-guard-butterfly", day: 4, topic: "guard",
     q: "Du sitzt vor ihm, deine Füße haken innen an seinen Oberschenkeln. Wie heißt das?",
-    options: ["Butterfly Guard", "Mount", "Side Control"],
+    options: ["Butterfly Guard", "Mount", "Seitenkontrolle"],
     answer: 0, src: "KB 8.12 (Gymdesk), BJJ Atlas Butterfly Sweep",
     why: "Deine Füße sind Haken (Butterfly). Ohne Gi funktioniert sie besser als viele andere offene Guards.",
   },
@@ -464,9 +464,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "q-back-escape-side", day: 6, topic: "ruecken",
     q: "Er ist an deinem Rücken. Wohin befreist du dich?",
-    options: ["Zur Seite, notfalls in Side Control unten", "Nach vorn auf den Bauch", "Gar nicht – still halten"],
+    options: ["Zur Seite, notfalls in der Seitenkontrolle unten", "Nach vorn auf den Bauch", "Gar nicht – still halten"],
     answer: 0, scene: { pos: "back", top: "o" }, src: "Karte bb_escape_side (BJJ Atlas Back Escapes)",
-    why: "Erst die Hände, dann raus zur Seite. Side Control unten ist besser, als den Rücken abzugeben.",
+    why: "Erst die Hände, dann raus zur Seite. Seitenkontrolle unten ist besser, als den Rücken abzugeben.",
   },
 
   // ---------- Grundkonzept Schutzhaltung (Tag 2, src/program/concepts.ts) ----------
@@ -503,7 +503,7 @@ export const IMAGE_QUESTIONS: Question[] = [
     q: "Wo bist du?",
     options: ["Unten, er liegt quer auf dir", "Oben, du sitzt auf ihm", "Unten, deine Beine sind um ihn"],
     answer: 0, src: "KB 3.2",
-    why: "Er liegt quer über deiner Brust: Side Control, du unten. Dein Ziel: schützen und raus.",
+    why: "Er liegt quer über deiner Brust: Seitenkontrolle, du unten. Dein Ziel: schützen und raus.",
   },
   {
     id: "qi-where-back", day: 1, topic: "positionen", kind: "image",
@@ -541,9 +541,9 @@ export const IMAGE_QUESTIONS: Question[] = [
     id: "qi-where-half", day: 3, topic: "side", kind: "image",
     image: { pos: "half", top: "o", mark: { side: "p", part: "legs" } },
     q: "Deine Beine (gelb) halten eins seiner Beine fest. Wo bist du?",
-    options: ["Unten in der halben Guard", "Oben im Mount", "Unten in Side Control"],
+    options: ["Unten in der halben Guard", "Oben im Mount", "Unten in der Seitenkontrolle"],
     answer: 0, src: "KB 3.2",
-    why: "Ein Bein von ihm ist gefangen: halbe Guard. Besser als Side Control unten, schlechter als volle Guard.",
+    why: "Ein Bein von ihm ist gefangen: halbe Guard. Besser als Seitenkontrolle unten, schlechter als volle Guard.",
   },
   {
     id: "qi-guard-posture", day: 4, topic: "guard", kind: "image",
@@ -576,7 +576,7 @@ export const EXPLAIN_QUESTIONS: Question[] = [
     ["Ellbogen und Knie bilden einen Rahmen (Schutz)", "Gestreckte Arme laden zum Armhebel ein", "Erst schützen, dann befreien"],
     "KB 4.5; Karten mb_knee_inside, mb_elbows_tight"),
   ex("qe-side-frame", 3, "side",
-    "Erklär in einem Satz, warum du unten in Side Control erst rahmst und dann wegrutschst.",
+    "Erklär in einem Satz, warum du unten in der Seitenkontrolle erst rahmst und dann wegrutschst.",
     "Der Rahmen hält Abstand. So hast du den Platz, den deine Hüfte zum Wegrutschen braucht.",
     ["Der Rahmen (Unterarm) hält Abstand", "Platz für die Hüfte zum Wegrutschen (Shrimp)"],
     "KB 2.4, 4.5 (BJJ Atlas: Frame first)"),

@@ -44,9 +44,9 @@ interface Config { names: Record<Side, string>; decks: Record<Side, string> }
 
 const CHAIN = ["Abstand", "Umklammern", "Zu Boden", "Kontrolle", "Aufgabe"];
 const RULE_LABEL: Record<RevealOutcome["rule"], string> = {
-  "angriff>setup": "Angreifen schlägt Vorbereiten",
-  "setup>reaktion": "Vorbereiten lockt Kontern ins Leere",
-  "reaktion>angriff": "Kontern schlägt den passenden Angriff",
+  "angriff>setup": "Angreifen schlägt Aufbauen",
+  "setup>reaktion": "Aufbauen lockt den Rahmen ins Leere",
+  "reaktion>angriff": "Rahmen stoppt den passenden Angriff",
   tempo: "Beide greifen an – der Schnellere gewinnt",
   scramble: "Gleich schnell – Gerangel",
   "beide-setup": "Beide bereiten vor",
@@ -81,7 +81,7 @@ function neutralHeadline(o: RevealOutcome, names: Record<Side, string>): string 
   if (o.winner === "p" || o.winner === "o") {
     const W = names[o.winner], L = names[other(o.winner)];
     switch (o.rule) {
-      case "angriff>setup": return `${W} greift an – ${L} hat nur vorbereitet!`;
+      case "angriff>setup": return `${W} greift an – ${L} hat nur aufgebaut!`;
       case "setup>reaktion": return `${L} kontert zu früh – Lücke für ${W}!`;
       case "reaktion>angriff": return `${W} stoppt den Angriff von ${L}!`;
       case "durch": return `Konter von ${L} passte nicht – ${W} kommt durch!`;
@@ -389,7 +389,7 @@ function Duel({ config, onBack, onRematch, onSetup }: {
               <ul className="hs-reads">
                 {SIDES.filter((s) => reveal.read[s] !== null).map((s) => (
                   <li key={s} className={reveal.read[s] ? "ok" : "miss"}>
-                    <b>{names[s]}</b> {reveal.read[s] ? "hat richtig getippt: +1 Puste." : `lag daneben – ${names[other(s)]} spielte ${KIND_VERB[CARD[s === "p" ? reveal.oCard : reveal.pCard].kind]}.`}
+                    <b>{names[s]}</b> {reveal.read[s] ? "hat richtig getippt: +1 Atem." : `lag daneben – ${names[other(s)]} spielte ${KIND_VERB[CARD[s === "p" ? reveal.oCard : reveal.pCard].kind]}.`}
                   </li>
                 ))}
               </ul>

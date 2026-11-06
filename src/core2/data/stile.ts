@@ -51,14 +51,14 @@ export const STILE: StilDef[] = [
   {
     id: "guard", name: "Guard-Spieler", tagline: "Gefährlich von unten",
     agame: "Du kämpfst gern von unten: Hüfte bewegen, Winkel holen, dann sweepen oder beenden.",
-    powerDo: "Hüfte +1 unten in Guard und Half Guard.",
+    powerDo: "Hüfte +1 unten in Guard und halber Guard.",
     bjj: "Rutschst du mit der Hüfte raus, bekommst du den Winkel für Sweeps und Aufgaben aus der Guard.",
     source: STIL_SRC.shrimp, scene: { pos: "guard", top: "o" },
   },
   {
     id: "druecker", name: "Drücker", tagline: "Schwer von oben",
     agame: "Du kommst nach oben und drückst: Gewicht auf seine Hüfte, vorbei, dann beenden.",
-    powerDo: "Hüfte +1 oben in Half Guard, Side Control und Mount.",
+    powerDo: "Hüfte +1 oben in der halben Guard, Seitenkontrolle und Mount.",
     bjj: "Druck kommt nicht von Masse: Wer sein Gewicht genau auf die Hüfte legt, wird schwer.",
     source: STIL_SRC.pressure, scene: { pos: "side", top: "p" },
   },

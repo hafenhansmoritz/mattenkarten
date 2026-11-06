@@ -36,7 +36,7 @@ export const POS_LABEL: Record<PositionId, string> = {
   clinch: "Clinch",
   fhl: "Front Headlock",
   guard: "Guard",
-  side: "Side Control",
+  side: "Seitenkontrolle",
   mount: "Mount",
   back: "Rücken",
 };
@@ -115,6 +115,6 @@ export function effectText(card: CardDef): string {
     }
   }
 
-  if (card.drainGas) parts.push("Er verliert Puste");
+  if (card.drainGas) parts.push("Er verliert Atem");
   return parts.join(" · ");
 }

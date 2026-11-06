@@ -147,7 +147,7 @@ export const BOSSES: BossDef[] = [
       // Mechanik 4: Rahmen bauen, bevor die Keile sitzen – Knie davor, Arme eng, vorbereitet.
       konter: { scb_v_frame: 3, scb_protect_arms: 3, mb_elbows_tight: 3, hb_knee_shield: 2 },
     },
-    likes: "Er kommt nach oben und drückt: Kopf wegdrehen (Crossface), Hüfte keilen. Dann Side Control, Mount, Americana und Kimura.",
+    likes: "Er kommt nach oben und drückt: Kopf wegdrehen (Crossface), Hüfte keilen. Dann Seitenkontrolle, Mount, Americana und Kimura.",
     howTo: "Rahmen bauen, bevor die Keile sitzen. Ellbogen eng, Arme nicht weggeben. Dann wegrutschen (Shrimp) und die Guard zurückholen.",
     lesson: "Unten zählt der erste Rahmen – je früher, desto leichter raus.",
     scene: { pos: "side", top: "o" },

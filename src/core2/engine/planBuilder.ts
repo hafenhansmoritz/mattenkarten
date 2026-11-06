@@ -70,10 +70,10 @@ export interface SystemResult {
 const DEAD_END_TEXT: Partial<Record<PlanState, { stage: StageId; text: string }>> = {
   "guard/bottom": { stage: "kontrolle", text: "Du hast keinen Weg aus der Guard nach oben – nimm einen Sweep." },
   "guard/top": { stage: "kontrolle", text: "Du kommst in seine Guard, aber nicht vorbei – nimm einen Pass." },
-  "half/top": { stage: "kontrolle", text: "Du kommst in die Half Guard, aber nicht vorbei – nimm einen Pass." },
+  "half/top": { stage: "kontrolle", text: "Du kommst in die halbe Guard, aber nicht vorbei – nimm einen Pass." },
   "turtle/top": { stage: "kontrolle", text: "Er liegt in der Turtle, aber du hast nichts – nimm eine Rückennahme." },
   "headlock/top": { stage: "kontrolle", text: "Du hast seinen Kopf, aber keinen Weg weiter – nimm Rumgehen oder eine Guillotine." },
-  "side/top": { stage: "aufgabe", text: "In Side Control hast du keine Aufgabe – nimm eine Aufgabe oder steig auf." },
+  "side/top": { stage: "aufgabe", text: "In der Seitenkontrolle hast du keine Aufgabe – nimm eine Aufgabe oder steig auf." },
   "mount/top": { stage: "aufgabe", text: "Im Mount hast du keine Aufgabe – nimm eine Aufgabe." },
   "back/top": { stage: "aufgabe", text: "Am Rücken hast du keine Aufgabe – nimm den Würger von hinten." },
 };
