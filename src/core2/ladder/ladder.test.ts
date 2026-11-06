@@ -198,6 +198,9 @@ describe("B82 Belohnung (Ethik)", () => {
 describe("Ehrlichkeit", () => {
   it("der Satz zu echten Gürteln steht im Code und auf den Bildschirmen", () => {
     expect(HONESTY).toBe("Das ist ein Spielrang, kein echter Gürtel – den vergibt nur dein Trainer.");
+    // Rangliste ist erst nach Tag 7 offen (UX-Review 2, Punkt 2)
+    expect(renderToStaticMarkup(createElement(Rangliste, { onBack: () => {} }))).toContain("nach Tag 7");
+    mem.set("mk.program.v1", JSON.stringify({ done: [1, 2, 3, 4, 5, 6, 7], doneOn: {}, drills: {}, checklist: [] }));
     const html = renderToStaticMarkup(createElement(Rangliste, { onBack: () => {} }));
     expect(html).toContain(HONESTY);
     expect(html).toContain("Saison November 2026".slice(0, 6));
