@@ -4,6 +4,7 @@ import { ArenaK2 } from "../core2/ui/ArenaK2";
 import { TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD } from "../core2/data/tutorials";
 import { Bosse, readBeaten } from "../core2/ui/Bosse";
 import { BOSSES } from "../core2/data/bosses";
+import { Glossar } from "../core2/ui/Glossar";
 
 const KEY = "mk.k2.done";
 function readDone(): string[] {
@@ -13,7 +14,7 @@ function writeDone(ids: string[]) {
   try { localStorage.setItem(KEY, JSON.stringify(ids)); } catch { /* egal */ }
 }
 
-type Run = { kind: "tut"; id: string } | { kind: "free"; level: 1 | 2 | 3 } | { kind: "bosses" } | null;
+type Run = { kind: "tut"; id: string } | { kind: "free"; level: 1 | 2 | 3 } | { kind: "bosses" } | { kind: "glossar" } | null;
 const ALL_TUTS = [...TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD];
 
 /** Prototyp „Körperkarte“: drei Lektionen nach Danaher-Reihenfolge, dann freies Spiel. */
@@ -33,6 +34,7 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
     );
   }
   if (run?.kind === "bosses") return <Bosse onBack={() => setRun(null)} />;
+  if (run?.kind === "glossar") return <Glossar onBack={() => setRun(null)} />;
   if (run?.kind === "free") {
     return <ArenaK2 key={"free" + seed} mode="free" aiLevel={run.level} seed={seed} onExit={() => { setSeed(seed + 1); setRun(null); }} />;
   }
@@ -78,6 +80,13 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
         <button className="more-item" onClick={() => setRun({ kind: "bosses" })}>
           <strong className="display">Bosse · {readBeaten().filter((id) => BOSSES.some((b) => b.id === id)).length}/{BOSSES.length} besiegt</strong>
           <span className="muted small">Vier Gegner mit eigenem Stil: Ringer, Guard, Druck, Rücken. Lern, wie du dagegen spielst.</span>
+        </button>
+      </div>
+      <h3 className="display" style={{ marginTop: 18 }}>Glossar</h3>
+      <div className="more-list">
+        <button className="more-item" onClick={() => setRun({ kind: "glossar" })}>
+          <strong className="display">Schlüsselwörter</strong>
+          <span className="muted small">Keil, Rahmen, Takedown, Pass, Flucht, Aufgabe, Dilemma, Atem – jedes Wort heißt immer dieselbe Regel.</span>
         </button>
       </div>
     </div>

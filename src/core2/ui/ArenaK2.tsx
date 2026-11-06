@@ -24,6 +24,8 @@ import { Sammlung } from "../collection/Sammlung";
 import { RarityGem } from "./frame";
 import { rarityOf } from "./rarity";
 import { ChainStrip } from "./ChainStrip";
+import { firstUnseen, markKeywordSeen, readSeenKeywords, type KeywordId } from "../data/keywords";
+import { KeywordPopover, KeywordToast } from "./Keywords";
 import type { BossDef } from "../data/bosses";
 import "../../styles/core2.css";
 
@@ -196,6 +198,23 @@ export function ArenaK2(props: ArenaK2Props) {
   // Schrittweises Aufdecken: nur Zonen der Lektion aktiv (reiner UI-Filter).
   const hidZones = useMemo(() => hiddenZones(tut?.zones), [tut]);
   const handShown = useMemo(() => filterHandByZones(hand, legal, tut?.zones, requireCard), [hand, legal, tut, requireCard]);
+
+  // Schlüsselwörter: beim ersten Auftauchen eine Zeile (höchstens eine pro Runde; nicht in Lektionen – die erklären selbst).
+  const [kwSeen, setKwSeen] = useState<KeywordId[]>(readSeenKeywords);
+  const [kwToast, setKwToast] = useState<KeywordId | null>(null);
+  const [kwPop, setKwPop] = useState<KeywordId | null>(null);
+  const kwRound = useRef(0);
+  useEffect(() => {
+    if (tut || phase !== "pick" || kwToast || kwRound.current === s.round + matchNo * 100) return;
+    const id = firstUnseen(handShown, kwSeen);
+    if (!id) return;
+    kwRound.current = s.round + matchNo * 100;
+    markKeywordSeen(id);
+    setKwSeen((k) => [...k, id]);
+    setKwToast(id);
+  }, [tut, phase, handShown, kwSeen, kwToast, s.round, matchNo]);
+  useEffect(() => { if (phase !== "pick") setKwToast(null); }, [phase]);
+  const closeKwToast = useCallback(() => setKwToast(null), []);
 
   // ---------- Aufdecken ----------
   const reveal = () => {
@@ -474,6 +493,9 @@ export function ArenaK2(props: ArenaK2Props) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <KeywordToast id={kwToast} onOpen={(id) => { setKwPop(id); setKwToast(null); }} onDone={closeKwToast} />
+      <KeywordPopover ids={kwPop ? [kwPop] : null} onClose={() => setKwPop(null)} />
 
       {showSammlung && (
         <div className="k2-sm-layer"><Sammlung onBack={() => setShowSammlung(false)} /></div>

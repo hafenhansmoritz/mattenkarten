@@ -81,6 +81,7 @@ export const SCREENS = [
   { id: "trainer", go: more("Für Trainer") },
   { id: "daily", go: more("Tages-Challenge") },
   { id: "sammlung", go: more("Sammlung") },
+  { id: "glossar", go: more("Schlüsselwörter wie") },
   { id: "gym", go: more("Fürs Gym") },
   { id: "impressum", go: seq(tab("Mehr"), clickText(/^Impressum$/)) },
 ];

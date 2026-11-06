@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Board, Card2, MmaFlag, Zone } from "../types";
 import { ZONES } from "../types";
@@ -6,6 +6,8 @@ import { KIND_LABEL, KraftIcon, LockIcon, ZONE_LABEL, ZONE_SHORT, ZoneIcon, fmtS
 import { Pulse } from "../../components/fx";
 import { Foil, KindIcon, RarityGem } from "./frame";
 import { RARITY_LABEL, rarityOf } from "./rarity";
+import { HAND_EXTRA, keywordsOf, type KeywordId } from "../data/keywords";
+import { KeywordChips, KeywordPopover, KeywordTags } from "./Keywords";
 
 export interface Hand2Props {
   /** Alle Karten des Slots (cardsFor(pos, role)). */
@@ -47,6 +49,15 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
   const hidden = sorted.length - visible.length;
   const visibleSet = new Set(visible.map((c) => c.id));
   const sel = selected ? cards.find((c) => c.id === selected) ?? null : null;
+  // Schlüsselwörter: Antippen im Detail oder langes Drücken auf der Karte öffnet das Glossar.
+  const [kwOpen, setKwOpen] = useState<{ ids: KeywordId[]; labels: Partial<Record<KeywordId, string>> } | null>(null);
+  const openKw = (c: Card2, only?: KeywordId) => {
+    const hits = keywordsOf(c).filter((h) => !only || h.id === only);
+    if (hits.length) setKwOpen({ ids: hits.map((h) => h.id), labels: Object.fromEntries(hits.map((h) => [h.id, h.label])) });
+  };
+  const lp = useRef<{ t?: ReturnType<typeof setTimeout>; fired: boolean }>({ fired: false });
+  const lpStart = (c: Card2) => { lp.current.fired = false; clearTimeout(lp.current.t); lp.current.t = setTimeout(() => { lp.current.fired = true; openKw(c); }, 480); };
+  const lpEnd = () => clearTimeout(lp.current.t);
 
   return (
     <div lang="de" className={["k2-hand", className].filter(Boolean).join(" ")}>
@@ -69,6 +80,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                 const tooExpensive = c.kraft != null && kraft != null && c.kraft > kraft;
                 const reqs = reqList(c);
                 const rar = rarityOf(c);
+                const kws = keywordsOf(c);
                 return (
                   <Pulse key={c.id} active={requireCard === c.id && !isSel} radius="8px" className="k2-hcard-pulse">
                     <motion.button type="button"
@@ -76,17 +88,20 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                       disabled={disabled}
                       data-card={c.id}
                       aria-pressed={isSel}
-                      aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}`).join("")}${c.kraft ? `, ${c.kraft} Kraft nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
+                      aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${kws.filter((k) => HAND_EXTRA.includes(k.id)).map((k) => ` ${k.label}`).join("")}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}`).join("")}${c.kraft ? `, ${c.kraft} Atem nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
                       title={!ok ? l?.reason : blockedByTut ? "Erst die markierte Karte" : c.plainDo}
                       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.9 }}
                       animate={{ opacity: 1, y: isSel && !reduced ? -4 : 0, scale: 1 }}
                       transition={{ type: "spring", stiffness: 380, damping: 26, delay: reduced ? 0 : i * 0.04 }}
                       whileTap={disabled || reduced ? undefined : { scale: 0.95 }}
-                      onClick={() => onSelect(isSel ? null : c.id)}>
+                      onPointerDown={() => lpStart(c)} onPointerUp={lpEnd} onPointerLeave={lpEnd} onPointerCancel={lpEnd}
+                      onContextMenu={(e) => { e.preventDefault(); lpEnd(); lp.current.fired = true; openKw(c); }}
+                      onClick={() => { if (lp.current.fired) { lp.current.fired = false; return; } onSelect(isSel ? null : c.id); }}>
                       <Foil />
                       <span className="k2-hcard-kind"><KindIcon kind={c.kind} size={9} />{KIND_LABEL[c.kind]}</span>{" "}
                       <RarityGem rarity={rar} size={10} className="k2-hcard-gem" />
                       <span className="k2-hcard-t">{c.plain}</span>{" "}
+                      <KeywordTags hits={kws.filter((k) => HAND_EXTRA.includes(k.id))} />{" "}
                       {(reqs.length > 0 || c.kraft) && (
                         <span className="k2-hcard-reqs">
                           {reqs.map((r) => {
@@ -117,6 +132,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
             <b>{sel.plain}</b><RarityGem rarity={rarityOf(sel)} size={10} /><span className="k2-rar-t">{RARITY_LABEL[rarityOf(sel)]}</span> <span className="k2-term">{sel.term}</span>
             {sel.mma && <MmaChip mma={sel.mma} note={sel.mmaNote} />}
             <p>{sel.plainDo}</p>
+            <KeywordChips card={sel} onOpen={(id) => openKw(sel, id)} />
           </motion.div>
         ) : (
           <motion.div key="none" className="k2-hand-info is-empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -124,6 +140,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
           </motion.div>
         )}
       </AnimatePresence>
+      <KeywordPopover ids={kwOpen?.ids ?? null} labels={kwOpen?.labels} onClose={() => setKwOpen(null)} />
     </div>
   );
 }

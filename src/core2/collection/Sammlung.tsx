@@ -8,6 +8,8 @@ import { KIND_LABEL, POS_LABEL, ZONE_LABEL, ZoneIcon } from "../ui/meta";
 import { Foil, KindIcon, RarityGem } from "../ui/frame";
 import { RARITIES, RARITY_HINT, RARITY_LABEL, mmaNote, rarityOf } from "../ui/rarity";
 import { markSeen, useCollection } from "./store";
+import { keywordsOf, type KeywordId } from "../data/keywords";
+import { KeywordChips, KeywordPopover, KeywordTags } from "../ui/Keywords";
 import { sfx } from "../../sound";
 import "../../styles/core2.css";
 import "../../styles/sammlung.css";
@@ -128,6 +130,8 @@ export function BigCard({ card: c, owned, onClose }: { card: Card2; owned: boole
   const mma = mmaNote(c);
   const keys = c.keys.filter((k) => !/^MMA:/i.test(k.trim()));
   const flip = () => { if (!owned) return; sfx.flip(); setBack((b) => !b); };
+  const kws = keywordsOf(c);
+  const [kw, setKw] = useState<KeywordId | null>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -161,6 +165,7 @@ export function BigCard({ card: c, owned, onClose }: { card: Card2; owned: boole
               <span className="sm-big-t display">{c.plain}</span>
               <span className="sm-big-term">{c.term}</span>
               <span className="sm-big-zone"><ZoneIcon zone={c.zone} size={14} /> {ZONE_LABEL[c.zone]}</span>
+              <KeywordTags hits={kws} className="sm-big-kw" />
               <p className="sm-big-do">{c.plainDo}</p>
               <span className="sm-big-slots">{slotText(c)}</span>
               <span className="sm-big-art" aria-hidden="true"><KindIcon kind={c.kind} size={120} className="sm-big-art-kind" /><ZoneIcon zone={c.zone} size={56} /></span>
@@ -178,7 +183,9 @@ export function BigCard({ card: c, owned, onClose }: { card: Card2; owned: boole
             </div>
           </motion.div>
         )}
+        {owned && kws.length > 0 && <KeywordChips card={c} onOpen={setKw} className="sm-big-chips" />}
         <button type="button" className="btn small sm-close" onClick={onClose}>Schließen</button>
+        <KeywordPopover ids={kw ? [kw] : null} labels={Object.fromEntries(kws.map((h) => [h.id, h.label]))} onClose={() => setKw(null)} />
       </motion.div>
     </motion.div>
   );

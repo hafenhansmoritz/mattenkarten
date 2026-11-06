@@ -85,6 +85,20 @@ Ergebnis B21–B27 (`npx tsx scripts/simulate2.ts 500`, 4500 Matches; neue Ziele
 - **Sim in CI**: `engine/balance.test.ts` (60 Matches je Paarung, feste Seeds: Taps 8–32 %, L3 > L1 ≥ 60 %, jede Position ≥ 2 %, kein Griff > 30 %, Grundlage ≥ 25 %) und `data/bosses.test.ts` (Boss schlägt L1 ≥ 65 %, Signatur-Lagen häufiger als Stufe 3 ohne Stil – Matches und Runden –, Konter-Spieler (L2 + Konter-Profil) gewinnt ≥ 10 % und nimmt dem Boss Siege oder Signatur-Lagen).
 
 
+### Schlüsselwörter (Mechanik 1, `src/core2/data/keywords.ts`)
+Keine neue Regel, keine Balance-Änderung: acht fette Schlüsselwörter benennen bestehende Regeln. `keywordsOf(card)` leitet sie nur aus den Kartendaten ab (Art, `to`, `escape`, `submission`, `dilemmaOpens`, `kraft`), `keywords.test.ts` prüft jede Behauptung per Engine an allen Karten. Chips in Hand (Handkarte: Takedown/Pass/Flucht/Aufgabe/Dilemma; Detail: alle, antippbar; langes Drücken auf die Karte) und großer Sammlungskarte, Glossar unter „Mehr“ und im Körperkarte-Hub, Hinweis beim ersten Auftauchen (nicht in Lektionen, `mk.k2.keywords.v1`).
+
+| Wort | Daten | Regel im Spiel | Im echten Grappling |
+|---|---|---|---|
+| Keil | `kind: aufbauen` | +1 in seiner Zone, bleibt liegen; gegen Rahmen +2, gegen Angriff verloren. | Danaher: pinnen mit Keilen, nicht mit Gewicht (BJJ More, Go Further Faster). |
+| Rahmen | `kind: rahmen` | Stoppt Angriff in derselben Zone, +1 (nicht gegen Dilemma); sonst verpufft er. | Unterarm und Ellbogen bei etwa 90° (ebd.). |
+| Takedown | aus Stand/Clinch/Kopfklammer → Boden, oben | Zu Boden, du oben. | IBJJF: 2 Punkte nach 3 s oben (Gymdesk). |
+| Pass | oben in Guard/Half → andere Lage, oben | An seinen Beinen vorbei; sein Griff hält dich nicht (B4 gilt nur unten). | IBJJF: 3 Punkte, 3 s Seitkontrolle (Gymdesk). |
+| Flucht | `to.escape` | Von unten raus; gesperrt ab Schritt 2 seines Griffs (B4). | Danaher: drei Wege aus dem Pin. |
+| Aufgabe | `submission` | Leiste Isolieren → Kontrollieren → Beenden; ungerahmt 2 Schritte (B2), Rahmen −1, Positionswechsel löscht. | Würger als Folge von Schritten (Grapplearts, RNC). |
+| Dilemma | `dilemmaOpens` | Gerahmt: +1 in der geöffneten Zone, Rahmen gewinnt nichts (B1). | Danaher: Angriffe in Paaren (BJJEE). |
+| Atem X | `kraft` | Preis beim Aufdecken, +1 je Runde, höchstens 5. | Hebel statt Kraft spart Energie (Gracie Barra, Gassing Out). |
+
 ### Glossar (B19, `TERMS2` in `src/core2/data/cards.ts`)
 | Deutsch (Karte) | No-Gi-Fachbegriff | nicht verwenden |
 |---|---|---|

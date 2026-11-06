@@ -1,0 +1,63 @@
+/* Kern 2 – Schlüsselwörter (Mechanik 1): fette Chips, Glossar-Popover, Hinweis beim ersten Auftauchen. */
+.kw-tags, .kw-chips { --kwc: var(--text-3, #8090b4); }
+.kw-keil { --kwc: var(--k-setup, #f2b33d); }
+.kw-rahmen { --kwc: var(--k-reaktion, #3e8bff); }
+.kw-takedown, .kw-pass { --kwc: #4fc3a1; }
+.kw-flucht { --kwc: #6cc3ff; }
+.kw-aufgabe { --kwc: var(--points, #ffd166); }
+.kw-dilemma { --kwc: #c792ff; }
+.kw-atem { --kwc: #9fb4e0; }
+
+/* Kleine Handkarte: nur Text, eng. */
+.kw-tags { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 2px; }
+.kw-tag { font-size: 8.5px; font-weight: 800; letter-spacing: 0.02em; line-height: 1.25; padding: 0 3px; border-radius: 3px;
+  color: var(--text, #eef2ff); background: color-mix(in srgb, var(--kwc) 22%, transparent); box-shadow: inset 2px 0 0 var(--kwc); white-space: nowrap; }
+
+/* Antippbare Chips: 44 px Tap-Fläche über Padding und Mindesthöhe. */
+.kw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.kw-chip { font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0.01em; color: var(--text, #eef2ff); cursor: pointer;
+  min-height: 44px; padding: 4px 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--kwc) 70%, transparent);
+  background: color-mix(in srgb, var(--kwc) 18%, var(--surface, #141c31)); display: inline-flex; align-items: center; position: relative; }
+
+.kw-chip:focus-visible { outline: 2px solid var(--points, #ffd166); outline-offset: 2px; }
+.kw-chip.is-static { cursor: default; min-height: 0; padding: 2px 10px; }
+.kw-chip.is-static::after { display: none; }
+.k2-hand-info .kw-chips { margin-top: 6px; }
+
+/* Popover */
+.kw-pop-layer { position: fixed; inset: 0; z-index: 90; background: rgba(5, 8, 15, 0.6); display: flex; align-items: flex-end; justify-content: center; padding: 12px; }
+.kw-pop { width: min(460px, 100%); max-height: 80vh; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 12px;
+  border-radius: 16px; background: var(--surface-2, #1a2440); border: 1px solid var(--line-strong, rgba(140,170,255,.28)); box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+.kw-pop-h { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3, #8090b4); }
+.kw-pop-btns { display: flex; justify-content: flex-end; gap: 8px; }
+.kw-pop-btns .btn { min-height: 44px; }
+.kw-explain { display: flex; flex-direction: column; gap: 5px; padding-left: 10px; border-left: 3px solid var(--kwc); }
+.kw-explain p { margin: 0; font-size: 13.5px; line-height: 1.4; }
+.kw-rule { color: var(--text, #eef2ff); }
+.kw-bjj { color: var(--text-2, #a9b6d6); }
+.kw-src { font-size: 12px; color: var(--text-2, #a9b6d6); min-height: 44px; display: flex; align-items: center; }
+.kw-check { font-size: 12px; color: var(--warn, #e0a33a); }
+
+/* Hinweis beim ersten Auftauchen */
+.kw-toast { position: fixed; left: 0; right: 0; margin: 0 auto; top: calc(env(safe-area-inset-top, 0px) + 10px); z-index: 80;
+  width: min(440px, calc(100% - 20px)); display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 10px; border-radius: 12px;
+  background: var(--surface-2, #1a2440); border: 1px solid var(--line-strong, rgba(140,170,255,.28)); box-shadow: 0 10px 26px rgba(0,0,0,.45); font-size: 13px; }
+.kw-toast-new { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #10131c; background: var(--points, #ffd166); border-radius: 4px; padding: 1px 5px; }
+.kw-toast-t { flex: 1; line-height: 1.3; }
+.kw-toast-more, .kw-toast-x { font: inherit; font-weight: 700; min-width: 44px; min-height: 44px; border-radius: 10px; border: 1px solid var(--line, rgba(140,170,255,.14));
+  background: var(--surface, #141c31); color: var(--text, #eef2ff); cursor: pointer; }
+.kw-toast-x { font-size: 18px; }
+
+/* Glossar-Bildschirm */
+.gl-list { display: flex; flex-direction: column; gap: 12px; margin: 12px 0 18px; padding: 0; list-style: none; }
+.gl-item { padding: 12px; border-radius: var(--radius, 14px); background: var(--surface, #141c31); border: 1px solid var(--line, rgba(140,170,255,.14)); }
+.gl-ex { margin: 8px 0 0 13px; font-size: 12.5px; color: var(--text-2, #a9b6d6); }
+.gl-ex b { color: var(--text, #eef2ff); }
+.gl-terms { width: 100%; border-collapse: collapse; font-size: 13px; }
+.gl-terms th, .gl-terms td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line, rgba(140,170,255,.14)); vertical-align: top; }
+.gl-terms th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3, #8090b4); }
+@media (prefers-reduced-motion: reduce) { .kw-chip, .kw-toast { transition: none; } }
+/* Sammlung: große Karte */
+.sm-big .kw-tags.sm-big-kw { gap: 4px; margin: 2px 0 0; }
+.sm-big .kw-tags.sm-big-kw .kw-tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+.kw-chips.sm-big-chips { justify-content: center; }
