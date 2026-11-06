@@ -10,7 +10,19 @@ import { TermText } from "./TermText";
 
 export interface QuizResult { id: string; ok: boolean }
 
-interface Item { q: Question; retry: boolean; key: number }
+export interface QuizItem { q: Question; retry: boolean; key: number }
+type Item = QuizItem;
+
+/**
+ * Warteschlange nach einer Antwort (UX-Review 2, Punkt 1): Richtig → raus. Falsch (oder „Weiß ich nicht“) →
+ * genau einmal ans Ende. Eine Wiederholung kommt nie ein zweites Mal – sonst entsteht eine Endlosschleife.
+ */
+export function afterAnswer(queue: readonly QuizItem[], ok: boolean): QuizItem[] {
+  const [item, ...rest] = queue;
+  if (!item) return [];
+  if (ok || item.retry) return rest;
+  return [...rest, { q: item.q, retry: true, key: item.key + 1000 }];
+}
 
 function hash(s: string): number {
   let h = 2166136261;
@@ -84,8 +96,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
   }
 
   function next() {
-    const rest = queue.slice(1);
-    const nq = ok ? rest : [...rest, { q, retry: true, key: item.key + 1000 }];
+    const nq = afterAnswer(queue, ok);
     if (item.retry) setRetryDone((n) => n + 1);
     setPicked(null);
     setLate(false);
@@ -128,7 +139,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
           )}
           <h3 className="pg-q"><TermText text={q.q} /></h3>
           {isExplain && (
-            <FreeRecall key={item.key} q={q} onNext={next} onResult={(right) => {
+            <FreeRecall key={item.key} q={q} onNext={next} repeats={!item.retry} onResult={(right) => {
               if (exOk !== null) return;
               setExOk(right);
               if (right) sfx.points(); else sfx.lose();
@@ -153,7 +164,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
               <motion.div className={`pg-why ${ok ? "ok" : safety ? "no safety" : "no"}`} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
                 <strong className="display">{ok ? "Richtig!" : safety ? "Achtung – Sicherheitsregel:" : late ? "Zu spät – so ist es:" : "Fast – so ist es:"}</strong>
                 <p><TermText text={q.why} /></p>
-                {!ok && <p className="muted small">Die Frage kommt gleich noch einmal.</p>}
+                {!ok && !item.retry && <p className="muted small">Die Frage kommt gleich noch einmal.</p>}
                 <button type="button" className="btn primary big pg-next" onClick={next}>Weiter</button>
               </motion.div>
             )}

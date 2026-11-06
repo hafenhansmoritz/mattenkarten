@@ -14,12 +14,14 @@ type Phase =
   | { kind: "grading" }
   | { kind: "coach"; verdict: GradeVerdict }
   | { kind: "self"; reason: "consent" | "off" | "error" | "skip" }
-  | { kind: "done"; ok: boolean; by: "coach" | "self" };
+  | { kind: "done"; ok: boolean; by: "coach" | "self" | "skip" };
 
 const MIN_CHARS = 8;
 
-export function FreeRecall({ q, onResult, onNext, grade = gradeAnswer }: {
+export function FreeRecall({ q, onResult, onNext, repeats = true, grade = gradeAnswer }: {
   q: Question;
+  /** Kommt die Frage bei „falsch“ noch einmal? (Nur beim ersten Mal – Quiz.afterAnswer.) */
+  repeats?: boolean;
   /** Erster Versuch bewertet (genau einmal pro Anzeige). */
   onResult: (ok: boolean) => void;
   onNext: () => void;
@@ -54,10 +56,11 @@ export function FreeRecall({ q, onResult, onNext, grade = gradeAnswer }: {
     setPhase({ kind: "done", ok, by: "self" });
   }
 
+  /** „Weiß ich nicht“: Musterantwort zeigen, einmal als falsch zählen (Fehlerdeck) – keine Selbstbewertung nötig. */
   function skip() {
     setText("");
     onResult(false);
-    setPhase({ kind: "done", ok: false, by: "self" });
+    setPhase({ kind: "done", ok: false, by: "skip" });
   }
 
   const writing = phase.kind === "write" || phase.kind === "grading";
@@ -127,12 +130,14 @@ export function FreeRecall({ q, onResult, onNext, grade = gradeAnswer }: {
 
           {phase.kind === "done" && (
             <>
-              {phase.by === "self" && (
+              {phase.by !== "coach" && (
                 <p className={`pg-fr-self-res ${phase.ok ? "ok" : "no"}`}>
                   <strong className="display">{phase.ok ? "Gut erklärt!" : "Kein Problem – merk dir die Kernpunkte."}</strong>
                 </p>
               )}
-              {!phase.ok && <p className="muted small">Die Frage kommt gleich noch einmal.</p>}
+              {!phase.ok && (repeats
+                ? <p className="muted small">Die Frage kommt gleich noch einmal.</p>
+                : <p className="muted small">Sie landet in deinem Fehlerdeck unter „Wiederholen“.</p>)}
               <button type="button" className="btn primary big pg-next" onClick={onNext}>Weiter</button>
             </>
           )}
