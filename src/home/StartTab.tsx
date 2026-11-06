@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FightersK2 } from "../core2/ui/FightersK2";
 import { DAYS } from "../program/days";
-import { currentDay, useProgram } from "../program/store";
+import { RESUME_LABEL, currentDay, resumeFor, useProgram } from "../program/store";
+import { LegDiagram } from "../leglock/LegDiagram";
+import { useBackLayer } from "./backstack";
+import { GYM_TIPS, GYM_TIPS_SRC } from "./finish";
 import { ReadyChecklist, checklistCount } from "../program/ReadyChecklist";
 import { known, syncFromProgram, journeyVisible } from "../journey/ReviewCard";
 import { useJourney } from "../journey/store";
@@ -27,6 +30,8 @@ export function StartTab({ go }: { go: (t: Target) => void }) {
   const rw = useRewards();
   const daily = useDailyLog();
   const [listOpen, setListOpen] = useState(false);
+  // Android-Zurück schließt die aufgeklappte Checkliste.
+  useBackLayer(listOpen, () => setListOpen(false));
   useEffect(() => { syncFromProgram(true); }, []);
   const cur = currentDay(p);
   const un = unlocks(unlockInput(p, shared));
@@ -36,12 +41,13 @@ export function StartTab({ go }: { go: (t: Target) => void }) {
   const cl = checklistCount(p);
 
   // Großer Knopf: Tag N – oder nach Tag 7 der nächste sinnvolle Schritt.
-  let hero: { kicker: string; title: string; text: string; target: Target };
+  let hero: { kicker: string; title: string; text: string; target: Target; fig?: "leg" };
   if (cur <= 7) {
     const d = DAYS[cur - 1];
-    hero = { kicker: p.done.length ? "7-Tage-Start" : "15 Minuten am Tag", title: `Heute: Tag ${cur}`, text: d.title, target: "program" };
+    const r = resumeFor(p, cur);
+    hero = { kicker: p.done.length ? "7-Tage-Start" : "15 Minuten am Tag", title: `Heute: Tag ${cur}`, text: r ? `${d.title} · weiter bei: ${RESUME_LABEL[r.step]}` : d.title, target: "program" };
   } else if (!loadLeglock().check?.passed) {
-    hero = { kicker: "7-Tage-Start geschafft", title: "Weiter: Beinhebel-Woche", text: "4 kurze Lektionen: Regeln, Verteidigung, früh abklopfen.", target: "leglock" };
+    hero = { kicker: "7-Tage-Start geschafft", title: "Weiter: Beinhebel-Woche", text: "4 kurze Lektionen: Regeln, Verteidigung, früh abklopfen.", target: "leglock", fig: "leg" };
   } else if (due > 0) {
     hero = { kicker: "Dranbleiben", title: "Weiter: Wiederholen", text: `${Math.min(due, 8)} ${due === 1 ? "Frage" : "Fragen"} bereit. Etwa 3 Minuten.`, target: { journey: "review" } };
   } else {
@@ -56,19 +62,37 @@ export function StartTab({ go }: { go: (t: Target) => void }) {
       <motion.button type="button" className="hm-hero" onClick={() => go(hero.target)}
         initial={{ opacity: 0, y: 14, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.35, ease: [0.2, 0.7, 0.2, 1] }}>
-        <span className="hm-hero-fig" aria-hidden="true"><FightersK2 pos="mount" top="o" /></span>
+        {/* Beinhebel-Woche: neutrale Bein-Skizze statt Mount-Bild (UX-Review 2, Punkt 10). */}
+        <span className={`hm-hero-fig${hero.fig === "leg" ? " is-leg" : ""}`} aria-hidden="true">
+          {hero.fig === "leg" ? <LegDiagram id="knee-safe" /> : <FightersK2 pos="mount" top="o" />}
+        </span>
+        {/* Die Tagespunkte stehen schon in der Kopfzeile – hier nicht doppelt. */}
         <span className="hm-hero-txt">
           <span className="label hm-kicker">{hero.kicker}</span>
           <strong className="display">{hero.title}</strong>
           <span className="small">{hero.text}</span>
-          {cur <= 7 && (
-            <span className="hm-knots" aria-label={`${p.done.length} von 7 Tagen geschafft`}>
-              {DAYS.map((d) => <i key={d.n} className={p.done.includes(d.n) ? "on" : d.n === cur ? "now" : ""} />)}
-            </span>
-          )}
         </span>
         <span className="hm-go" aria-hidden="true">›</span>
       </motion.button>
+
+      {cur > 7 && (
+        <section className="hm-finish" aria-labelledby="hm-finish-h">
+          <span className="label hm-kicker">7 von 7 Tagen ✓</span>
+          <h2 id="hm-finish-h" className="display">Bereit fürs Probetraining</h2>
+          <div className="hm-finish-bar" role="progressbar" aria-label="Checkliste" aria-valuemin={0} aria-valuemax={cl.total} aria-valuenow={cl.done}>
+            <i style={{ width: `${(cl.done / cl.total) * 100}%` }} />
+          </div>
+          <button type="button" className="hm-check-head" aria-expanded={listOpen} onClick={() => setListOpen((v) => !v)}>
+            <span><span className="label">Checkliste · {cl.done}/{cl.total}</span><strong className="display">{cl.done === cl.total ? "Alles abgehakt" : "Abhaken, was du schon hast"}</strong></span>
+            <span aria-hidden="true" className={`hm-chev ${listOpen ? "open" : ""}`}>›</span>
+          </button>
+          {listOpen && <div className="hm-check-body"><ReadyChecklist p={p} update={update} /></div>}
+          <h3 className="display hm-finish-sub">So findest du ein Gym</h3>
+          <ul className="hm-finish-tips">{GYM_TIPS.map((t) => <li key={t}>{t}</li>)}</ul>
+          <p className="small muted">{GYM_TIPS_SRC}</p>
+          <button type="button" className="btn" onClick={() => go("program")}>Startwoche wiederholen (Tag 1–7)</button>
+        </section>
+      )}
 
       <NoGiIntro />
 
@@ -91,16 +115,16 @@ export function StartTab({ go }: { go: (t: Target) => void }) {
         )}
       </div>
 
-      <section className="hm-check" aria-labelledby="hm-check-h">
+      {cur <= 7 && <section className="hm-check" aria-labelledby="hm-check-h">
         <button type="button" className="hm-check-head" aria-expanded={listOpen} onClick={() => setListOpen((v) => !v)}>
           <span>
             <span className="label">Checkliste · {cl.done}/{cl.total}</span>
-            <strong id="hm-check-h" className="display">{cur > 7 ? "Bereit fürs erste Training" : "Vor deinem ersten Training"}</strong>
+            <strong id="hm-check-h" className="display">Vor deinem ersten Training</strong>
           </span>
           <span aria-hidden="true" className={`hm-chev ${listOpen ? "open" : ""}`}>›</span>
         </button>
         {listOpen && <div className="hm-check-body"><ReadyChecklist p={p} update={update} /></div>}
-      </section>
+      </section>}
 
       {un.startExtras && (
         <>

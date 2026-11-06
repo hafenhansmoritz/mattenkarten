@@ -75,6 +75,27 @@
 .hm-about p { margin: 0; }
 .hm-klassik { align-self: center; margin-top: 18px; min-height: 44px; padding: 8px 14px; background: none; border: 0; color: var(--text-3); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }
 .hm-klassik-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.hm-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.hm-seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
 .hm-seg button { min-height: 44px; border: 0; border-radius: 9px; background: none; color: var(--text-2); font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }
 .hm-seg button.on { background: var(--surface-3); color: var(--text); }
+
+/* Üben (UX-Review 2, Punkt 3): Fragen des 7-Tage-Starts, Themen nach Tagen gesperrt */
+.hm-ueben { gap: 14px; }
+.hm-ueben-h { font-size: 30px; margin: 0; }
+.hm-ueben-sub { margin: 6px 0 4px; }
+.hm-ueben section > .small { margin: 0 0 8px; }
+.hm-tile.hm-locked { opacity: .5; cursor: not-allowed; border-style: dashed; }
+.hm-mix { margin-top: 10px; width: 100%; }
+
+/* Abschluss nach Tag 7 (UX-Review 2, Punkt 9) */
+.hm-finish { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px 16px; border-radius: var(--radius-lg); border: 1px solid color-mix(in srgb, var(--points) 45%, transparent); background: linear-gradient(160deg, #1d2b4f, #121a30); }
+.hm-finish h2 { font-size: 26px; margin: 0; }
+.hm-finish .hm-check-head { padding: 8px 0; }
+.hm-finish .hm-check-body { padding: 0; }
+.hm-finish-bar { height: 8px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.hm-finish-bar i { display: block; height: 100%; background: var(--points); border-radius: inherit; transition: width .3s; }
+.hm-finish-sub { font-size: 18px; margin: 6px 0 0; }
+.hm-finish-tips { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.hm-finish .btn { align-self: flex-start; }
+.hm-hero-fig.is-leg { display: grid; place-items: center; padding: 4px; }
+.hm-hero-fig.is-leg svg { transform: none; }
