@@ -12,7 +12,9 @@ export type LearningEvent =
   | { type: "boss_first_win"; boss: string; name?: string }
   | { type: "leglock_badge" }
   /** Mechanik 9: Draft-Lauf beendet (gemeldet nur ab 3 Siegen). */
-  | { type: "draft_run"; wins: number };
+  | { type: "draft_run"; wins: number }
+  /** Mechanik 10: neuer Gürtel in der Rangliste (Spielrang) – je Gürtel einmal pro Saison. */
+  | { type: "ladder_belt"; belt: string; season: string; name?: string };
 
 export type LearningEventType = LearningEvent["type"];
 

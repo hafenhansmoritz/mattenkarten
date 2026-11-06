@@ -12,6 +12,8 @@ import { sfx } from "../../sound";
 import { openPack, useRewards, type OpenResult } from "./store";
 import { packPool } from "./pool";
 import type { PackCard } from "./table";
+import { activeFrame } from "../ladder/store";
+import { BELT_COLOR, BELT_IDS } from "../ladder/ladder";
 import "../../styles/core2.css";
 import "../../styles/sammlung.css";
 import "../../styles/rewards.css";
@@ -126,9 +128,16 @@ export function PackOpening({ onClose, onCard }: { onClose: () => void; onCard?:
   );
 }
 
+/** Mechanik 10 (B81): Saison-Rahmen aus der Rangliste färbt den Kartenrücken – reine Optik. */
+function frameStyle(): Record<string, string> | undefined {
+  const f = activeFrame();
+  return f === null ? undefined : { "--fr": BELT_COLOR[BELT_IDS[f]].c, "--fr-a": BELT_COLOR[BELT_IDS[f]].a };
+}
+
 function PackSlot({ i, c, shown, reduced, onReveal, onCard }: {
   i: number; c: PackCard; shown: boolean; reduced: boolean; onReveal: () => void; onCard?: (c: Card2) => void;
 }) {
+  const [fr] = useState(frameStyle);
   const card = cardById(c.id);
   if (!card) return null;
   return (
@@ -138,8 +147,8 @@ function PackSlot({ i, c, shown, reduced, onReveal, onCard }: {
       transition={reduced ? { duration: 0.2 } : { type: "spring", stiffness: 220, damping: 20, delay: i * 0.12 }}>
       <motion.div className="rw-flip" animate={reduced ? undefined : { rotateY: shown ? 180 : 0 }}
         transition={{ duration: 0.55, ease: [0.2, 0.7, 0.2, 1] }}>
-        <button type="button" className={`rw-back rar-${c.rarity}`} onClick={onReveal} aria-hidden={shown} tabIndex={shown ? -1 : 0}
-          style={reduced ? { opacity: shown ? 0 : 1, transition: "opacity .25s", pointerEvents: shown ? "none" : undefined } : undefined}>
+        <button type="button" className={`rw-back rar-${c.rarity}${fr ? " has-frame" : ""}`} onClick={onReveal} aria-hidden={shown} tabIndex={shown ? -1 : 0}
+          style={{ ...fr, ...(reduced ? { opacity: shown ? 0 : 1, transition: "opacity .25s", pointerEvents: shown ? "none" : undefined } : {}) }}>
           <span className="rw-back-glow" aria-hidden="true" />
           <span className="sr-only">Karte {i + 1} aufdecken, Seltenheit</span>
           <span className="rw-back-logo display" aria-hidden="true">M<b>K</b></span>

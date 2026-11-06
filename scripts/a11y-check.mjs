@@ -96,6 +96,7 @@ export const SCREENS = [
   { id: "share", go: more("Deck teilen") },
   { id: "trainer", go: more("Für Trainer") },
   { id: "daily", go: more("Tages-Challenge") },
+  { id: "rangliste", go: more("Spielränge Weiß bis Schwarz") },
   { id: "sammlung", go: more("Sammlung") },
   { id: "glossar", go: more("Schlüsselwörter wie") },
   { id: "gym", go: more("Fürs Gym") },

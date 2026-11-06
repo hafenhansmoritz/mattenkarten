@@ -22,6 +22,7 @@ import { RUN_WINS, applyNotfall, matchLog, newRun, pickCard, recordMatch, type D
 import { stilCards } from "../src/core2/data/plans";
 import { BOSS } from "../src/core2/data/bosses";
 import { DRAFT_REWARD_MIN_WINS } from "../src/core2/rewards/table";
+import { BELT_IDS, GATE_LEN, STRIPES, beltName, foeStyle, newLadder, recordResult, type LadderState } from "../src/core2/ladder/ladder";
 import type { Pos2, Role2, Side, StilId, State2 } from "../src/core2/types";
 import { ZONES } from "../src/core2/types";
 
@@ -569,6 +570,58 @@ if (!noStil && !useFix && !args.includes("--noplan")) {
   const avgLen = len / NR;
   console.log(`  Läufe (${NR}, Spieler L3 mit Coach-Draft): Ø ${avgLen.toFixed(1)} Kämpfe · 7 Siege ${pct(seven, NR)} · ≥ 3 Siege (Belohnung) ${pct(three, NR)} · Boss besiegt ${pct(bossW, Math.max(1, bossN))} · Siege 0–7: ${winsHist.join("/")}`);
   checks.push(["Draft: Lauf Ø 4–10 Kämpfe", avgLen >= 4 && avgLen <= 10, avgLen.toFixed(1)]);
+}
+
+// ---- Mechanik 10 (B76–B82): Gürtel-Rangliste ----
+// Spieler L3 und L2 (je mit Spielstil, freies Spiel) klettern 200 Kämpfe. Ziel: L3 Lila–Braun, L2 um Blau, nie hängen unter Weiß 2.
+if (!useFix) {
+  const NL = Math.max(12, Math.round(N / 25));
+  const ML = 200;
+  const rank = (s: LadderState) => s.belt * (STRIPES + 1) + s.stripes;
+  const short = (b: number) => ["W", "Bl", "Li", "Br", "S"][b];
+  const climb: Record<2 | 3, { ends: number[]; gate: Map<number, [number, number]>; stuck: number; at: Record<number, number[]>; maxGames: number }> = {
+    2: { ends: [0, 0, 0, 0, 0], gate: new Map(), stuck: 0, at: { 50: [], 100: [], 200: [] }, maxGames: 0 },
+    3: { ends: [0, 0, 0, 0, 0], gate: new Map(), stuck: 0, at: { 50: [], 100: [], 200: [] }, maxGames: 0 },
+  };
+  for (const lv of [3, 2] as const) {
+    const c = climb[lv];
+    for (let i = 0; i < NL; i++) {
+      const stil = STIL_IDS[i % STIL_IDS.length];
+      let s = newLadder(70000 + i, "2026-11-06", stil);
+      for (let g = 1; g <= ML; g++) {
+        const f = s.next;
+        const me: SimPlayer = stilPlayer(lv, stil);
+        const st = foeStyle(f, stil, (x) => BOSS[x].counter);
+        const foe: SimPlayer = f.boss ? { level: f.level, style: BOSS[f.boss].style, stil: f.boss } : { ...stilPlayer(f.level, f.stil), ...(st ? { style: st } : {}) };
+        const pp = g % 2 === 0;
+        const m = pp ? simMatch(me, foe, f.seed) : simMatch(foe, me, f.seed);
+        const w = m.state.result?.winner;
+        const res = !w ? "draw" : (w === "p") === pp ? "win" : "loss";
+        if (f.gate) { const e = c.gate.get(s.belt) ?? [0, 0]; e[0] += res === "win" ? 1 : 0; e[1]++; c.gate.set(s.belt, e); }
+        s = recordResult(s, res).state;
+        if (g >= 30 && rank(s) < 2) c.stuck++;
+        if (c.at[g]) c.at[g].push(rank(s));
+      }
+      c.ends[s.belt]++;
+      c.maxGames = Math.max(c.maxGames, s.games);
+    }
+    const gates = [...c.gate.entries()].sort((a, b) => a[0] - b[0]).map(([b, [w, n]]) => `${beltName(b)}→${beltName(b + 1)} (${GATE_LEN[b]} Boss${GATE_LEN[b] > 1 ? "e" : ""}) ${pct(w, n)} von ${n}`);
+    console.log(`\nRangliste: Spieler L${lv} (${NL} Spieler × ${ML} Kämpfe, freies Spiel mit Stil)`);
+    console.log(`  Endgürtel W/Bl/Li/Br/S: ${c.ends.join("/")} · Boss-Siege in der Prüfung: ${gates.join(", ") || "–"}`);
+    for (const g of [50, 100, 200]) console.log(`  nach ${String(g).padStart(3)}: ${c.at[g].sort((a, b) => a - b).map((x) => `${short(Math.floor(x / (STRIPES + 1)))}${x % (STRIPES + 1)}`).join(" ")}`);
+  }
+  const share = (lv: 2 | 3, from: number, to: number) => climb[lv].ends.slice(from, to + 1).reduce((a, b) => a + b, 0) / NL;
+  const gateRate = (lv: 2 | 3, b: number) => { const e = climb[lv].gate.get(b); return e && e[1] >= 10 ? e[0] / e[1] : null; };
+  checks.push(["Rangliste: L3 endet meist auf Lila–Braun (≥ 60%)", share(3, 2, 3) >= 0.6, `${pct(share(3, 2, 3), 1)} (Schwarz ${pct(share(3, 4, 4), 1)})`]);
+  checks.push(["Rangliste: L2 endet meist auf Blau (≥ 60%), nie über Lila", share(2, 1, 1) >= 0.6 && share(2, 3, 4) === 0, `${pct(share(2, 1, 1), 1)} Blau, ${pct(share(2, 2, 2), 1)} Lila`]);
+  checks.push(["Rangliste: nach 30 Kämpfen nie unter Weiß 2 Streifen", climb[2].stuck + climb[3].stuck === 0, `${climb[2].stuck + climb[3].stuck} Kämpfe`]);
+  checks.push(["Rangliste: keine Schleife (jeder Kampf zählt)", climb[2].maxGames === ML && climb[3].maxGames === ML, `${ML} Kämpfe`]);
+  // Faire Prüfung: Boss-Sieg 35–65 % für die dort erwartete Stufe (Weiß → Blau: L2, ab Blau: L3).
+  const expLv: Record<number, 2 | 3> = { 0: 2, 1: 3, 2: 3, 3: 3 };
+  for (let b = 0; b < BELT_IDS.length - 1; b++) {
+    const r = gateRate(expLv[b], b);
+    checks.push([`Rangliste: Prüfung ${beltName(b)}→${beltName(b + 1)} fair für L${expLv[b]} (35–65%)`, r === null || (r >= 0.35 && r <= 0.65), r === null ? "zu wenige Kämpfe" : pct(r, 1)]);
+  }
 }
 
 // ---- B28 Bosse: Spielstil auf Stufe 2/3 ----

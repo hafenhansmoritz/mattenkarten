@@ -32,6 +32,7 @@ import { ChainStrip } from "./ChainStrip";
 import { firstUnseen, markKeywordSeen, readSeenKeywords, type KeywordId } from "../data/keywords";
 import { KeywordPopover, KeywordToast } from "./Keywords";
 import type { BossDef } from "../data/bosses";
+import type { AiStyle } from "../engine/ai";
 import "../../styles/core2.css";
 
 export interface ArenaK2Props {
@@ -59,6 +60,8 @@ export interface ArenaK2Props {
   /** Mechanik 9 (Draft-Lauf): keine Revanche – jeder Kampf zählt einmal; eigener Text für „Zurück“. */
   noRematch?: boolean;
   exitLabel?: string;
+  /** Mechanik 10 (Rangliste): eigene KI-Gewichte für den Gegner (z. B. „kennt deinen Stil“). Boss-Gewichte gehen vor. */
+  foeStyle?: AiStyle;
 }
 
 type Phase = "mulligan" | "pick" | "predict" | "flip" | "impact" | "result" | "tap" | "release" | "end";
@@ -331,7 +334,7 @@ export function ArenaK2(props: ArenaK2Props) {
     const pId = stilOn && stilCombo?.ok ? withStil(withK) : withK;
     // Erst die KI-Karte, dann das Ergebnis auf dem (unveränderten) Zustand berechnen.
     // Freies Match: die KI spielt das A-Game ihres Stils (B47); ein Boss sein volles Profil.
-    const oId = aiChoose(s, "o", aiLevel, rng, boss?.style ?? (s.stil?.o && aiLevel > 1 ? stilAi(s.stil.o) : undefined));
+    const oId = aiChoose(s, "o", aiLevel, rng, boss?.style ?? props.foeStyle ?? (s.stil?.o && aiLevel > 1 ? stilAi(s.stil.o) : undefined));
     const { state: next, round: r } = playRound(s, pId, oId);
     if (shouldPredict(tut, s.round)) {
       setPending({ pId, oId, next, r });

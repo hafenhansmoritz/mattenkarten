@@ -12,6 +12,7 @@ import { unlockAudio } from "./sound";
 import type { GymStart } from "./gym/GymScreen";
 import { RewardToasts } from "./core2/rewards/RewardToasts";
 import { useRewards } from "./core2/rewards/store";
+import { LadderCard } from "./core2/ladder/LadderBelt";
 
 // Code-Splitting (Bauplan 76): Startseite (Kampagne) lädt sofort, alles andere als eigener Chunk.
 // Der Service Worker precacht alle Chunks – offline bleibt alles verfügbar.
@@ -37,6 +38,7 @@ const LeglockScreen = named(() => import("./leglock/LeglockScreen"), "LeglockScr
 const Sammlung = named(() => import("./core2/collection/Sammlung"), "Sammlung");
 const PaketeScreen = named(() => import("./core2/rewards/PaketeScreen"), "PaketeScreen");
 const Glossar = named(() => import("./core2/ui/Glossar"), "Glossar");
+const Rangliste = named(() => import("./core2/ui/Rangliste"), "Rangliste");
 const DailyScreen = named(() => import("./core2/daily/DailyScreen"), "DailyScreen");
 const GymScreen = named(() => import("./gym/GymScreen"), "GymScreen");
 const JourneyScreen = named(() => import("./journey/JourneyScreen"), "JourneyScreen");
@@ -54,7 +56,7 @@ export function ScreenFallback() {
 }
 
 type Tab = "kampagne" | "raetsel" | "deck" | "mehr";
-type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "glossar" | "daily" | "warmup" | "gym" | "pakete";
+type Screen = null | "bibliothek" | "hotseat" | "coach" | "share" | "trainer" | "k2" | "start" | "impressum" | "datenschutz" | "journey" | "training" | "leglock" | "sammlung" | "glossar" | "daily" | "warmup" | "gym" | "pakete" | "rangliste";
 const TAB_LABEL: Record<Tab, string> = { kampagne: "Kampagne", raetsel: "Rätsel", deck: "Deck", mehr: "Mehr" };
 
 /** Mechanik 8: Belohnungs-Hinweise liegen über jedem Bildschirm. */
@@ -117,6 +119,7 @@ function AppScreens({ openPakete }: { openPakete: number }) {
   if (screen === "trainer") return <TrainerCheck onBack={back} />;
   if (screen === "k2") return <KoerperkarteHub onBack={back} />;
   if (screen === "daily") return <DailyScreen onBack={back} />;
+  if (screen === "rangliste") return <Rangliste onBack={back} />;
   if (screen === "sammlung") return <div className="app"><div className="main"><Sammlung onBack={back} onPakete={() => setScreen("pakete")} /></div></div>;
   if (screen === "pakete") return <div className="app"><div className="main"><PaketeScreen onBack={back} /></div></div>;
   if (screen === "glossar") return <div className="app"><div className="main"><Glossar onBack={back} /></div></div>;
@@ -145,7 +148,7 @@ function AppScreens({ openPakete }: { openPakete: number }) {
               <div className="screen"><button className="btn small ghost" onClick={back}>← Zurück</button><Library /></div>
             ) : (
               <>
-                {tab === "kampagne" && <><StartHero onOpen={() => setScreen("start")} /><ReviewCard onOpen={openJourney} /><Campaign onFight={setFight} /></>}
+                {tab === "kampagne" && <><StartHero onOpen={() => setScreen("start")} /><ReviewCard onOpen={openJourney} /><LadderCard onOpen={() => setScreen("rangliste")} /><Campaign onFight={setFight} /></>}
                 {tab === "raetsel" && <Puzzles onBack={() => setTab("kampagne")} />}
                 {tab === "deck" && <DeckBuilder />}
                 {tab === "mehr" && <MoreMenu open={setScreen} />}
@@ -182,6 +185,7 @@ function MoreMenu({ open }: { open: (s: Screen) => void }) {
     { s: "gym", title: "Fürs Gym", text: "Positionsspiele für den Trainer, Partner-Modus zum Vorlesen, Beamer-Ansicht und Wochenthema per Code." },
     { s: "share", title: "Deck teilen", text: "Dein Deck als Code oder Link verschicken – oder eins übernehmen." },
     { s: "trainer", title: "Für Trainer", text: "Prüfliste aller Inhalte, die eine Trainer-Bestätigung brauchen." },
+    { s: "rangliste", title: "Rangliste", text: "Spielränge Weiß bis Schwarz gegen die KI, mit Streifen und Saison. Spielrang, kein echter Gürtel." },
     { s: "daily", title: "Tages-Challenge", text: "Jeden Tag eine neue Lage aus der Körperkarte. Ein Versuch zählt, üben darfst du immer." },
     { s: "sammlung", title: "Sammlung", text: "Alle Körperkarten-Karten nach Position. Umdrehen zeigt das Kurzwissen." },
     { s: "pakete", title: rw.packs ? `Pakete & Staub · ${rw.packs} ${rw.packs === 1 ? "Paket wartet" : "Pakete warten"}` : "Pakete & Staub",

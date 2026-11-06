@@ -45,11 +45,16 @@ export const REWARDS: Record<LearningEventType, RewardRule> = {
     packs: 1, staub: 0, perDay: 1, onceKey: null, what: "Draft-Lauf mit 3+ Siegen (7 Siege: +5 Staub)", limit: "1 Lauf pro Tag",
     amount: (e) => draftAmount((e as { wins: number }).wins),
   },
+  // B82: Beförderung in der Rangliste – ein Paket je Gürtel und Saison. Da der Gürtel nie sinkt, sind das höchstens 4 Pakete insgesamt.
+  ladder_belt: {
+    packs: 1, staub: 0, perDay: null, onceKey: (e) => { const x = e as { belt: string; season: string }; return `ladder:${x.season}:${x.belt}`; },
+    what: "Neuen Gürtel in der Rangliste erreichen (Spielrang)", limit: "je Gürtel einmal pro Saison",
+  },
 };
 
 /** Reihenfolge in der Tabelle: echtes Training zuerst – Mattenzeit zählt am meisten. */
 export const REWARD_ORDER: LearningEventType[] = [
-  "training_logged", "program_day", "exam_passed", "review_done", "error_cleared", "daily_won", "draft_run", "boss_first_win", "leglock_badge",
+  "training_logged", "program_day", "exam_passed", "review_done", "error_cleared", "daily_won", "draft_run", "ladder_belt", "boss_first_win", "leglock_badge",
 ];
 
 /** Grund im Hinweis („Für deine Wiederholung“). */
@@ -64,6 +69,7 @@ export function rewardReason(e: LearningEvent): string {
     case "boss_first_win": return `Für deinen ersten Sieg gegen ${e.name ?? "den Boss"}`;
     case "leglock_badge": return "Für dein Abzeichen „Beinhebel sicher“";
     case "draft_run": return `Für deinen Draft-Lauf mit ${e.wins} Siegen`;
+    case "ladder_belt": return `Für deinen neuen Gürtel in der Rangliste${e.name ? ` (${e.name}, Spielrang)` : ""}`;
   }
 }
 

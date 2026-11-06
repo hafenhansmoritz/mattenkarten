@@ -162,3 +162,7 @@
   .rw-slot .rw-face { transform: none; }
   .rw-pack-flap { transition: none; }
 }
+
+/* Mechanik 10: Saison-Rahmen aus der Rangliste (reine Optik) */
+.rw-back.has-frame { box-shadow: inset 0 0 0 4px var(--fr), inset 0 0 0 6px var(--fr-a), 0 8px 18px rgba(0, 0, 0, 0.5); }
+.rw-back.has-frame::after { content: ""; position: absolute; left: 14%; right: 14%; top: 12px; height: 7px; border-radius: 2px; background: linear-gradient(90deg, var(--fr) 0 62%, #111 62% 88%, var(--fr) 88%); }

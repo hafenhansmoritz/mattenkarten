@@ -1,0 +1,39 @@
+/* Mechanik 10 – Gürtel-Rangliste */
+.lad-honest { margin: 8px 0; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface-2); font-size: 14px; }
+.lad-season { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line-strong); }
+.lad-season p { margin: 0; flex: 1 1 220px; font-size: 14px; }
+.lad-rank { margin: 10px 0; }
+.lad-rank h3 { margin: 0 0 4px; font-size: 22px; }
+.lad-belt { display: block; width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4)); }
+.lad-belt-big { max-width: 360px; }
+.lad-belt-small { max-width: 140px; }
+.lad-gate-mark { font: 700 11px/1 system-ui, sans-serif; fill: var(--text-2); letter-spacing: .04em; text-transform: uppercase; }
+.lad-mode h3, .lad-next h3 { margin: 6px 0; }
+.lad-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lad-seg button, .lad-stile button, .lad-frame { cursor: pointer; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface-2); color: inherit; padding: 10px; text-align: left; font: inherit; }
+.lad-seg button strong { display: block; }
+.lad-seg button span { font-size: 13px; color: var(--text-2); }
+.lad-seg button.on, .lad-stile button.on, .lad-frame.on { border-color: var(--points); box-shadow: 0 0 0 2px color-mix(in srgb, var(--points) 50%, transparent); }
+.lad-stile { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.lad-stile button { padding: 8px 12px; min-height: 44px; }
+.lad-next { margin: 14px 0; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); }
+.lad-next.is-boss { border-color: var(--danger); background: linear-gradient(160deg, rgba(229, 72, 77, 0.16), var(--surface-2)); }
+.lad-next p { margin: 4px 0 10px; }
+.lad-rules { margin: 10px 0; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line-strong); }
+.lad-rules summary { cursor: pointer; font-weight: 700; min-height: 32px; display: flex; align-items: center; }
+.lad-rules ul { margin: 6px 0; padding-left: 18px; font-size: 14px; }
+.lad-frames { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.lad-frame { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; width: 82px; font-size: 12px; text-align: center; }
+.lad-frame:disabled { opacity: .5; cursor: not-allowed; }
+.lad-frame-card { width: 40px; height: 56px; border-radius: 6px; background: linear-gradient(160deg, #24304a, #10162a); position: relative; box-shadow: inset 0 0 0 3px var(--fr, transparent), inset 0 0 0 5px var(--fr-a, transparent); }
+.lad-hist { margin: 6px 0; padding-left: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+.lad-hist li.is-win b { color: var(--gas); }
+.lad-hist li.is-loss b { color: var(--danger); }
+.lad-hist-d { display: block; font-size: 12px; color: var(--text-2); }
+.lad-promo-bg { position: fixed; inset: 0; z-index: 60; background: rgba(5, 8, 16, 0.78); display: grid; place-items: center; padding: 16px; }
+.lad-promo { width: min(420px, 100%); padding: 18px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line-strong); text-align: center; display: flex; flex-direction: column; gap: 8px; }
+.lad-promo h2 { font-size: 26px; margin: 0; }
+.lad-promo .lad-belt { margin: 6px auto; }
+.lad-home { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 10px 0; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); color: inherit; cursor: pointer; text-align: left; font: inherit; }
+.lad-home > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.lad-home .lad-belt { flex: none; width: 110px; }
