@@ -14,6 +14,8 @@ import { LESSONS_PROGRAM } from "./lessons";
 import { PositionMap } from "./PositionMap";
 import { HealthGate } from "./HealthGate";
 import { Quiz, type QuizResult } from "./Quiz";
+import { DEMOS, TechniqueDemo, hasDemo } from "../components/demo";
+import { TermText } from "./TermText";
 import { AREAS, buildExam, scoreExam } from "./exam";
 import { AREA_LABEL, explainFor } from "./questions";
 import {
@@ -97,8 +99,8 @@ export function ProgramScreen({ onBack, onJourney, onLeglock, onGym }: { onBack:
             <span className="label">Tag {day.n}{st === "done" ? " · geschafft ✓" : st === "locked" ? " · gesperrt" : " · heute"}</span>
             <h3 className="display">{day.title}</h3>
           </div>
-          <p className="pg-goal">{day.goal}</p>
-          <p className="pg-whyday small"><b>Warum heute das?</b> {day.why}</p>
+          <p className="pg-goal"><TermText text={day.goal} /></p>
+          <p className="pg-whyday small"><b>Warum heute das?</b> <TermText text={day.why} /></p>
           {day.recall?.includes("schutz") && <SchutzCard />}
           <ol className="pg-parts">
             {day.n === 7 ? (
@@ -377,7 +379,7 @@ function LessonIntro({ t, idx, count, lost, onStart, onSkip }: {
     <div className="pg-panel">
       <span className="label">Lektion{count > 1 ? ` ${idx + 1} von ${count}` : ""} · Körperkarte</span>
       <h3 className="display pg-h">{t.title}</h3>
-      <p className="pg-idea">{t.idea}</p>
+      <p className="pg-idea"><TermText text={t.idea} /></p>
       <ul className="pg-howto small">
         <li>Du spielst <b style={{ color: "var(--gi-p)" }}>blau</b>. Ihr wählt gleichzeitig eine Karte.</li>
         <li>Der Coach zeigt dir die ersten Züge. Danach spielst du allein.</li>
@@ -390,7 +392,27 @@ function LessonIntro({ t, idx, count, lost, onStart, onSkip }: {
   );
 }
 
-function DrillCard({ day, onChoose }: { day: ProgramDay; onChoose: (d: "done" | "later") => void }) {
+/** „So geht's“ im Drill: animierte Solo-Vorführung (components/demo), bei mehreren Übungen umschaltbar. */
+function DrillDemos({ ids }: { ids: string[] }) {
+  const list = ids.filter(hasDemo);
+  const [cur, setCur] = useState(list[0]);
+  if (!list.length) return null;
+  return (
+    <section className="pg-drill-demo" aria-label="So geht's">
+      {list.length > 1 && (
+        <div className="chips" role="tablist" aria-label="Übung wählen">
+          {list.map((id) => (
+            <button key={id} type="button" role="tab" aria-selected={cur === id} className={`chip ${cur === id ? "on" : ""}`}
+              onClick={() => { sfx.select(); setCur(id); }}>{DEMOS[id].title ?? id}</button>
+          ))}
+        </div>
+      )}
+      <TechniqueDemo key={cur} cardId={cur} autoPlay />
+    </section>
+  );
+}
+
+export function DrillCard({ day, onChoose }: { day: ProgramDay; onChoose: (d: "done" | "later") => void }) {
   const [ticked, setTicked] = useState<number[]>([]);
   const { checks, mistakes } = day.drill;
   const allTicked = checks.length > 0 && ticked.length === checks.length;
@@ -400,9 +422,10 @@ function DrillCard({ day, onChoose }: { day: ProgramDay; onChoose: (d: "done" | 
       <h3 className="display pg-h">{day.drill.title}</h3>
       <ol className="pg-drill-steps">
         {day.drill.steps.map((s, i) => (
-          <motion.li key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.08 }}>{s}</motion.li>
+          <motion.li key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.08 }}><TermText text={s} /></motion.li>
         ))}
       </ol>
+      {day.drill.demos?.length ? <DrillDemos ids={day.drill.demos} /> : null}
       <p className="pg-safety small"><b>Sicherheit:</b> {day.drill.safety}</p>
       <DrillTimer title="Drill-Timer" config={day.drill.timer} />
       <section className="pg-selfcheck" aria-label="Selbst-Check">

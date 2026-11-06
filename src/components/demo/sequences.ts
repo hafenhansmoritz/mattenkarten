@@ -24,6 +24,11 @@ export interface DemoFrame {
 
 export interface DemoSequence {
   cardId: string;
+  /** Solo-Drill (Matten-Drill im Startprogramm): nur der blaue Kämpfer, kein Partner. */
+  solo?: boolean;
+  /** Titel/Untertitel, wenn die Demo keine Karte ist (Drills). */
+  title?: string;
+  sub?: string;
   /** Ausgangslage (wird vor Schritt 1 gezeigt, ohne Nummer). */
   start: { p: Pose; o: Pose; caption: string };
   frames: DemoFrame[];
@@ -848,6 +853,120 @@ function seatbeltHooks(): DemoSequence {
 }
 
 // ============================================================
+// Solo-Drills (7-Tage-Start, Matten-Drill): Brücke, Shrimp, Technical Stand-up, Sprawl.
+// Nur p wird gezeigt; o ist eine unsichtbare Kopie (solo: true). Kernpunkte aus src/program/days.ts
+// (Grapplearts Solo Drills, JitsuIQ Technical Stand-up, KB 4.5 Frame → Bridge → Shrimp).
+// ============================================================
+
+/** Rückenlage, Kopf links, Füße nah am Po. */
+function supine(hipX: number, o: Partial<Spec> = {}): Pose {
+  return mk({
+    hip: pt(hipX, 177), torso: 180, headAng: 178, face: -1, z: 0,
+    armF: { to: pt(hipX - 6, ON_MAT), bend: "up" }, armB: { to: pt(hipX - 12, ON_MAT), bend: "up" },
+    legF: foot(hipX + 30, "up"), legB: foot(hipX + 36, "up"),
+    ...o,
+  });
+}
+const solo = (p: Pose) => ({ p, o: p });
+
+function drillBridge(): DemoSequence {
+  const p0 = supine(190);
+  // Hüfte hoch: Schultern bleiben auf der Matte (Nacken entlastet), Füße drücken.
+  const up = mk({
+    hip: pt(192, 146), torso: 149, headAng: 172, face: -1, z: 0,
+    armF: { to: pt(170, ON_MAT), bend: "up" }, armB: { to: pt(164, ON_MAT), bend: "up" },
+    legF: foot(220, "up"), legB: foot(226, "up"),
+  });
+  return {
+    cardId: "drill_bridge", solo: true, title: "Brücke", sub: "Bridge",
+    start: { ...solo(p0), caption: "Auf dem Rücken, Füße nah am Po" },
+    frames: [
+      { ...solo(up), caption: "1. Hüfte hoch – über Schultern und Füße", focus: ["hip", "footF"] },
+      { ...solo(up), caption: "2. Kurz halten, ausatmen", focus: ["shoulderF"], hold: 1.4 },
+      { ...solo(p0), caption: "3. Langsam ablegen – nie auf den Nacken", focus: ["neck"], hold: 1.2 },
+    ],
+  };
+}
+
+function drillShrimp(): DemoSequence {
+  const p0 = supine(206);
+  // Auf die Seite, ein Fuß drückt ab.
+  const p1 = mk({
+    hip: pt(204, 172), torso: 186, headAng: 182, face: -1, z: 0,
+    armF: { to: pt(214, 150), bend: "down" }, armB: { to: pt(208, 146), bend: "down" },
+    legF: foot(240, "up"), legB: { mid: pt(226, 150), end: pt(250, 164) },
+  });
+  // Hüfte weg (Richtung Kopf), Körper als C, Hände als Rahmen vorn.
+  const p2 = mk({
+    hip: pt(172, 176), torso: 192, headAng: 186, face: -1, z: 0,
+    armF: { to: pt(198, 146), bend: "down" }, armB: { to: pt(192, 142), bend: "down" },
+    legF: { mid: pt(200, 150), end: pt(214, 176) }, legB: { mid: pt(204, 156), end: pt(224, 172) },
+  });
+  return {
+    cardId: "drill_shrimp", solo: true, title: "Shrimp", sub: "Wegrutschen",
+    start: { ...solo(p0), caption: "Auf dem Rücken, Füße aufgestellt" },
+    frames: [
+      { ...solo(p1), caption: "1. Auf die Seite, Fuß drückt ab", focus: ["footF"] },
+      { ...solo(p2), caption: "2. Hüfte weg – Körper wie ein C", focus: ["hip"], hold: 1.3 },
+      { ...solo(supine(172)), caption: "3. Zurück auf den Rücken, andere Seite", hold: 1.2 },
+    ],
+  };
+}
+
+function drillStandUp(): DemoSequence {
+  // Sitz: hintere Hand stützt, vorderer Fuß steht, andere Hand schützt vorn.
+  const sit = mk({
+    hip: pt(196, 177), torso: -118, headAng: -100, face: 1, z: 0,
+    armF: { to: pt(222, 128), bend: "down" }, armB: { to: pt(156, ON_MAT), bend: "left" },
+    legF: foot(236, "up"), legB: { mid: pt(232, 180), end: pt(266, ON_MAT) },
+  });
+  // Hüfte hoch auf Hand + Fuß, hinteres Bein zieht unter dem Körper nach hinten durch.
+  const lift = mk({
+    hip: pt(192, 144), torso: -128, headAng: -96, face: 1, z: 0,
+    armF: { to: pt(226, 112), bend: "down" }, armB: { to: pt(156, ON_MAT), bend: "left" },
+    legF: foot(232, "up"), legB: { mid: pt(176, 172), end: pt(150, ON_MAT) },
+  });
+  const back = mk({
+    hip: pt(176, 136), torso: -82, headAng: -70, face: 1, z: 0,
+    armF: { to: pt(220, 100), bend: 1 }, armB: { to: pt(212, 92), bend: 1 },
+    legF: foot(214, "right"), legB: foot(132, "right"),
+  });
+  return {
+    cardId: "drill_standup", solo: true, title: "Technical Stand-up", sub: "Sicher aufstehen",
+    start: { ...solo(sit), caption: "Im Sitz: Hand hinten, Fuß vorn" },
+    frames: [
+      { ...solo(sit), caption: "1. Vordere Hand schützt den Kopf", focus: ["handF"] },
+      { ...solo(lift), caption: "2. Hüfte hoch auf Hand und Fuß", focus: ["handB", "footF", "hip"] },
+      { ...solo(lift), caption: "3. Bein weit nach hinten durchziehen", focus: ["footB"] },
+      { ...solo(back), caption: "4. Aufstehen – Hände vorn, Abstand", hold: 1.3 },
+    ],
+  };
+}
+
+function drillSprawl(): DemoSequence {
+  const st = stance(200, 1);
+  const down = mk({
+    hip: pt(206, 138), torso: -40, headAng: -20, face: 1, z: 0,
+    armF: { to: pt(250, ON_MAT), bend: "down" }, armB: { to: pt(244, ON_MAT), bend: "down" },
+    legF: foot(222, "right"), legB: foot(178, "right"),
+  });
+  const flat = mk({
+    hip: pt(190, 168), torso: -16, headAng: -6, face: 1, z: 0,
+    armF: { to: pt(250, ON_MAT), bend: "down" }, armB: { to: pt(244, ON_MAT), bend: "down" },
+    legF: foot(112, "right"), legB: foot(122, "right"),
+  });
+  return {
+    cardId: "drill_sprawl", solo: true, title: "Sprawl solo", sub: "Beine weg, Hüfte drauf",
+    start: { ...solo(st), caption: "Kampfstellung" },
+    frames: [
+      { ...solo(down), caption: "1. Hände runter zur Matte", focus: ["handF", "handB"] },
+      { ...solo(flat), caption: "2. Beine weit nach hinten, Hüfte runter", focus: ["hip", "footF"], hold: 1.3 },
+      { ...solo(st), caption: "3. Sofort zurück in die Stellung", hold: 1.2 },
+    ],
+  };
+}
+
+// ============================================================
 // Registry
 // ============================================================
 
@@ -869,6 +988,10 @@ const BUILDERS: Record<string, () => DemoSequence> = {
   americana,
   rnc,
   seatbelt_hooks: seatbeltHooks,
+  drill_bridge: drillBridge,
+  drill_shrimp: drillShrimp,
+  drill_standup: drillStandUp,
+  drill_sprawl: drillSprawl,
 };
 
 /** Alle Demos, einmalig beim Laden berechnet (reine Geometrie, ~1 ms). */

@@ -25,6 +25,8 @@ export interface Drill {
   mistakes: DrillPoint[];
   /** Solo-Drill-Timer (Runden, Arbeit/Pause in s, Seitenwechsel). */
   timer: TimerConfig;
+  /** Animierte Vorführung im Drill-Schritt (IDs aus src/components/demo, z. B. "drill_bridge"). */
+  demos?: string[];
 }
 
 export interface ProgramDay {
@@ -61,7 +63,7 @@ export const DAYS: ProgramDay[] = [
     puzzle: ["q-pos-goal-bottom", "q-tap-when", "q-tap-release"],
     pics: ["qi-where-side", "qi-where-back"],
     drill: {
-      title: "Brücke",
+      title: "Brücke", demos: ["drill_bridge"],
       steps: [
         "Leg dich auf den Rücken, Füße nah am Po.",
         "Hüfte hoch, kurz halten, langsam ablegen.",
@@ -90,7 +92,7 @@ export const DAYS: ProgramDay[] = [
     puzzle: ["q-mount-first", "q-mount-progress", "q-mount-switch"],
     pics: ["qi-mount-elbows", "qi-mount-turn"],
     drill: {
-      title: "Shrimp am Platz",
+      title: "Shrimp am Platz", demos: ["drill_shrimp"],
       steps: [
         "Auf den Rücken, Füße aufgestellt.",
         "Mit einem Fuß abdrücken, Hüfte zur Seite schieben.",
@@ -119,7 +121,7 @@ export const DAYS: ProgramDay[] = [
     puzzle: ["q-side-order", "q-side-goal", "q-side-underhook"],
     pics: ["qi-side-flat", "qi-where-half"],
     drill: {
-      title: "Shrimp über die Matte + Brücke-Shrimp",
+      title: "Shrimp über die Matte + Brücke-Shrimp", demos: ["drill_shrimp", "drill_bridge"],
       steps: [
         "Shrimp hintereinander die Matte entlang, dann zurück.",
         "Danach: erst brücken, dann zur Seite shrimpen.",
@@ -146,7 +148,7 @@ export const DAYS: ProgramDay[] = [
     puzzle: ["q-guard-nogi-grip", "q-guard-top-posture", "q-guard-guillotine-top"],
     pics: ["qi-guard-posture", "qi-guard-flat"],
     drill: {
-      title: "Guard-Haltung + Technical Stand-up",
+      title: "Guard-Haltung + Technical Stand-up", demos: ["drill_standup"],
       steps: [
         "Knie breit, Rücken gerade, Hände auf einem Kissen: Haltung 30 Sekunden halten.",
         "Dann Technical Stand-up: Hand hinten, Hand vorn, Bein durchziehen, aufstehen.",
@@ -174,7 +176,7 @@ export const DAYS: ProgramDay[] = [
     warmup: ["q-guard-elbows", "q-side-drill", "q-pos-goal-top", "q-guard-best-bottom"],
     puzzle: ["q-stand-wrist", "q-stand-underhook", "q-stand-sprawl"],
     drill: {
-      title: "Sprawl solo + Fallen aus dem Sitz",
+      title: "Sprawl solo + Fallen aus dem Sitz", demos: ["drill_sprawl"],
       steps: [
         "Aus dem Stand: Hände runter, Beine nach hinten, Hüfte zur Matte. Aufstehen. 10 Mal.",
         "Im Sitz: Kinn zur Brust, nach hinten abrollen, Arme schlagen auf. 10 Mal.",
@@ -200,7 +202,7 @@ export const DAYS: ProgramDay[] = [
     warmup: ["q-stand-orthodox", "q-stand-breakfall", "q-guard-standup", "q-mount-switch"],
     puzzle: ["q-sub-rnc-def", "q-back-headlock", "q-back-seatbelt"],
     drill: {
-      title: "Stand-up + Shrimp-Flow",
+      title: "Stand-up + Shrimp-Flow", demos: ["drill_shrimp", "drill_standup"],
       steps: [
         "Shrimp links, Shrimp rechts, dann Technical Stand-up.",
         "Wieder hinsetzen und von vorn. 3 Runden à 1 Minute.",
@@ -226,7 +228,7 @@ export const DAYS: ProgramDay[] = [
     warmup: [],
     puzzle: [],
     drill: {
-      title: "Alles einmal",
+      title: "Alles einmal", demos: ["drill_bridge", "drill_shrimp", "drill_standup"],
       steps: [
         "Je 1 Minute: Brücke, Shrimp, Technical Stand-up, Fallen aus dem Sitz.",
         "Ruhig atmen, sauber statt schnell.",

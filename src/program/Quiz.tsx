@@ -6,6 +6,7 @@ import { sfx } from "../sound";
 import { Q_BY_ID, TOPIC_LABEL, isSafetyQuestion, type Question } from "./questions";
 import { emitQuizAnswer, newQuizSession } from "../journey/events";
 import { FreeRecall } from "./FreeRecall";
+import { TermText } from "./TermText";
 
 export interface QuizResult { id: string; ok: boolean }
 
@@ -125,7 +126,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
               <span className="pg-you small">Du bist <b style={{ color: "var(--gi-p)" }}>blau</b></span>
             </div>
           )}
-          <h3 className="pg-q">{q.q}</h3>
+          <h3 className="pg-q"><TermText text={q.q} /></h3>
           {isExplain && (
             <FreeRecall key={item.key} q={q} onNext={next} onResult={(right) => {
               if (exOk !== null) return;
@@ -151,7 +152,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
             {answered && !isExplain && (
               <motion.div className={`pg-why ${ok ? "ok" : safety ? "no safety" : "no"}`} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
                 <strong className="display">{ok ? "Richtig!" : safety ? "Achtung – Sicherheitsregel:" : late ? "Zu spät – so ist es:" : "Fast – so ist es:"}</strong>
-                <p>{q.why}</p>
+                <p><TermText text={q.why} /></p>
                 {!ok && <p className="muted small">Die Frage kommt gleich noch einmal.</p>}
                 <button type="button" className="btn primary big pg-next" onClick={next}>Weiter</button>
               </motion.div>

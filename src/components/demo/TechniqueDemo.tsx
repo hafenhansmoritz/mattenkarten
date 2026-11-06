@@ -80,15 +80,15 @@ export function TechniqueDemo({ cardId, autoPlay = true, onClose, initialStep = 
       className={`dm-demo${reduced ? " dm-reduced" : ""}${className ? ` ${className}` : ""}`}
       role="group"
       aria-roledescription="Technik-Demo"
-      aria-label={`So geht's: ${card?.name ?? cardId}`}
+      aria-label={`So geht's: ${seq.title ?? card?.name ?? cardId}`}
       tabIndex={-1}
       onKeyDown={onKey}
     >
       <header className="dm-head">
         <div className="dm-titles">
           <span className="dm-kicker">So geht's</span>
-          <h3 className="dm-title">{card?.name ?? cardId}</h3>
-          {card?.de && <span className="dm-sub">{card.de}</span>}
+          <h3 className="dm-title">{seq.title ?? card?.name ?? cardId}</h3>
+          {(seq.sub ?? card?.de) && <span className="dm-sub">{seq.sub ?? card?.de}</span>}
         </div>
         {onClose && (
           <button type="button" className="dm-close" onClick={onClose} aria-label="Demo schließen">
@@ -98,7 +98,7 @@ export function TechniqueDemo({ cardId, autoPlay = true, onClose, initialStep = 
       </header>
 
       <div className="dm-stage">
-        <DemoStage step={step} reduced={reduced} slow={slow} />
+        <DemoStage step={step} reduced={reduced} slow={slow} solo={!!seq.solo} />
         {slow && !reduced && <span className="dm-slowtag" aria-hidden>Zeitlupe</span>}
       </div>
 
@@ -174,14 +174,15 @@ function Icon({ d }: { d: string }) {
 
 // ---------------- Bühne ----------------
 
-function DemoStage({ step, reduced, slow }: { step: Step; reduced: boolean; slow: boolean }) {
+function DemoStage({ step, reduced, slow, solo = false }: { step: Step; reduced: boolean; slow: boolean; solo?: boolean }) {
   const uid = useId().replace(/:/g, "");
   const cfg = slow ? SPRING_SLOW : SPRING;
   const P = useSpringPose(step.p, reduced, cfg);
   const O = useSpringPose(step.o, reduced, cfg);
   const F = { p: P, o: O };
   // Kleiner Bias, damit der Spieler bei Gleichstand vorn liegt.
-  const layers = layerOrder([{ key: "p" as const, z: step.p.z + 0.01 }, { key: "o" as const, z: step.o.z }]);
+  // Solo-Drill: nur der blaue Kämpfer.
+  const layers = layerOrder([{ key: "p" as const, z: step.p.z + 0.01 }, { key: "o" as const, z: step.o.z }]).filter((l) => !solo || l.who === "p");
   const focusSide: Side = step.focusSide ?? "p";
   const focus = step.focus ?? [];
   const focusKey = `${step.caption}|${focusSide}|${focus.join(",")}`;
@@ -190,7 +191,7 @@ function DemoStage({ step, reduced, slow }: { step: Step; reduced: boolean; slow
     <svg viewBox="20 20 360 200" className="dm-svg" role="img" aria-label={step.caption}>
       <DemoMat uid={uid} />
       <Shadow f={P} />
-      <Shadow f={O} />
+      {!solo && <Shadow f={O} />}
       {layers.map((l, i) => (
         <g key={i} fill="none" strokeLinecap="round" strokeLinejoin="round">
           {l.parts.map((part) => <PartPath key={part} f={F[l.who]} part={part} color={COLORS[l.who]} />)}

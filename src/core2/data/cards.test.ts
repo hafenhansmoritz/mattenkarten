@@ -209,7 +209,7 @@ describe("Kern 2 – Karten", () => {
       expect(/[A-Za-z]/.test(c.term), `${c.id} term`).toBe(true);
     }
     const terms = CARDS2.map((c) => c.term).join(" | ");
-    for (const g of TERMS2) {
+    for (const g of TERMS2.filter((t) => !t.group)) {
       expect(terms.toLowerCase(), `Glossar ${g.nogi} kommt vor`).toContain(g.nogi.toLowerCase());
       for (const v of g.avoid) expect(terms.toLowerCase().includes(v.toLowerCase()), `Variante „${v}“ statt „${g.nogi}“`).toBe(false);
     }

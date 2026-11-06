@@ -490,9 +490,9 @@ Grundlage: Recherchenotizen „Neulinge und Lernen pro Runde“ (`onboarding.md`
 - Ein Doppel-Label (Alltagssprache groß, Fachbegriff klein) ist eine begründete Ableitung, aber in keinem untersuchten Spiel als evaluierte Praxis belegt. · [ungeprüft]
 
 **So setzt Mattenkarten das um** [Design]
-- **Icons nie allein:** Jedes Icon steht mit sichtbarem Wort daneben, auch auf dem Handy, z. B. Lunge plus „Puste“ für Gas, Hand plus „Kontrolle“ für Kontrolle. Abstrakte Ressourcen fehlen in Kampf 1 ganz.
-- **Doppel-Label:** Titel in Alltagssprache („Quer auf ihm liegen“), Fachbegriff klein darunter („Side Control“). Nach mehreren erfolgreichen Begegnungen dreht sich die Gewichtung um: Fachbegriff groß, Erklärung klein (passt zum Ausblenden nach Expertise).
-- **Rollen als Verben:** Setup, Reaktion und Angriff erscheinen als Wirkung („Täuschen“, „Kontern“, „Zugreifen“), dazu ein dauerhaft sichtbares Mini-Dreieck am Rand.
+- **Icons nie allein:** Jedes Icon steht mit sichtbarem Wort daneben, auch auf dem Handy, z. B. Luftzug plus „Atem“ für Gas, Hand plus „Kontrolle“ für Kontrolle (Begriffe nach 8.14). Abstrakte Ressourcen fehlen in Kampf 1 ganz.
+- **Doppel-Label:** Titel in Alltagssprache („Quer auf ihm liegen“), Fachbegriff klein darunter („Seitenkontrolle (Side Control)“, 8.14). Nach mehreren erfolgreichen Begegnungen dreht sich die Gewichtung um: Fachbegriff groß, Erklärung klein (passt zum Ausblenden nach Expertise).
+- **Rollen als Verben:** Die Kartenarten heißen überall „Aufbauen“, „Angreifen“, „Rahmen“ (8.14); „Konter“ ist nur die verdeckt vorbereitete Konter-Mechanik.
 - **Kartentext:** eine „Was passiert?“-Zeile in Wenn-dann-Form, höchstens zwei Zeilen auf dem Handy; interne Tags wie `shot` erscheinen nicht auf der Karte. Der Richtwert „8–11 Wörter“ aus 7.3 gilt nur als Ziel, nicht als belegte Regel.
 - **Fachbegriffe später:** Englische BJJ-Begriffe werden erst eingeblendet, wenn die Handlung verstanden ist; korrekte Schreibweise nach 1.2 (Southpaw, Orthodox/Regular).
 
@@ -689,6 +689,31 @@ Umgesetzt in `src/gym/` (Schritte 53, 58, 59, 60): 12 Positionsspiele, Partner-M
 - Startlage, Ziel für beide Rollen, 2–4 Regeln, Intensität 30–50 %, Dauer (2 Runden je Rolle, dann tauschen).
 - Kein Spiel für den Front Headlock (Nackenrisiko für Anfänger).
 - Alle Spielformen sind eigene Auswahl aus den Quellen → `check: true`, Trainer prüfen (Abschnitt 9).
+
+### 8.14 Begriffs-Standard (UX-Review 2026-11-06) [Design]
+
+Ein Begriff, ein Wort – in Programm, Rätseln, Lektionen, Gym, Beinhebel-Woche, Coach-Katalog, Klassik-Spiel und Landingpage. Der Test `src/terminology.test.ts` durchsucht die nutzersichtbaren Daten- und Textdateien nach verbotenen Synonymen (Kommentare, Quellentitel, URLs und englische Fachfelder `term:`/`name: … de:` sind erlaubt). Das Glossar steht in `TERMS2` (`src/core2/data/cards.ts`, Gruppe `position`/`konzept`) und als antippbare Begriffe in `src/program/glossary.ts`.
+
+**Grundregel:** deutsches Alltagswort zuerst, englischer No-Gi-Begriff in Klammern beim ersten Auftauchen pro Bildschirm, z. B. „Seitenkontrolle (Side Control)“. Lehnwörter, die auch im deutschen Training so heißen, bleiben: Mount, Guard, Turtle, Clinch, Upa, Shrimp, Sprawl.
+
+| Standard | Englisch (in Klammern) | Nicht verwenden |
+|---|---|---|
+| Seitenkontrolle („in der Seitenkontrolle“) | Side Control | Side Control ohne deutsches Wort, Seitkontrolle |
+| Halbe Guard („in der halben Guard“) | Half Guard | Half Guard ohne deutsches Wort, Halbguard |
+| Kopfklammer | Front Headlock | – |
+| Rücken | Back Control | – |
+| Zone „Kopf/Nacken“ (Kurzform auf Chips: „Nacken“) | – | Zone „Kopf“ allein |
+| Atem (Ausdauer-Ressource im Spiel) | Gas | Puste, „Kraft“ als Ressource |
+| Kartenarten: Aufbauen · Angreifen · Rahmen | Setup · Attack · Frame | Vorbereiten, Kontern als Kartenart |
+| Konter = verdeckt vorbereiteter Rahmen (Mechanik 4) | Counter | „Konter“ für normale Rahmen-Karten |
+| Ellbogen-Knie-Verbindung (Grundbegriff) | Elbow-Knee Connection | Ellbogen-Knie-Rahmen, Ellbogen-Knie-Escape |
+| Wegrutschen, Knie dazwischen (Technik) | Elbow Escape | Elbow Escape ohne deutsches Wort |
+| Selbst-Check ohne Quelle: „(noch unsicher – frag später deinen Trainer)“ | – | „(Trainer fragen)“ – Neulinge haben noch keinen Trainer |
+| Sicherheitsfrage falsch beantwortet: „Achtung – Sicherheitsregel:“ | – | „Fast – so ist es“ |
+
+**No-Gi:** keine Kragen-, Ärmel- oder Reversgriffe in Karten, Rätseln und Demos. Die drei Gi-Karten der alten Kampagne sind umgeschrieben (IDs bleiben für gespeicherte Sammlungen): `cross_collar` → Arm Triangle (JitsuIQ), `collar_defense` → Hände an den Hals, `scissor_sweep` mit Nacken + Handgelenk; Hip Bump, O-Goshi und O-Soto-Gari greifen Arm/Nacken statt Ärmel/Revers. Der Jab ist aus dem Startdeck der alten Kampagne entfernt.
+
+**Quellen-Markierung:** „[Marketing]“ bleibt in den Daten (für Prüfer, KB 1.1), wird in der App aber nicht angezeigt – nur der Quellenname.
 
 ## 9. Offene Prüfpunkte
 

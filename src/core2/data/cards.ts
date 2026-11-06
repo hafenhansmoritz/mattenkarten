@@ -1438,7 +1438,18 @@ function withMma(c: Card2): Card2 {
 
 // ---------------- Glossar (B19) ----------------
 // Einheitliche Begriffe: Alltagswort (Titel/Erklärung) ↔ No-Gi-Fachbegriff (Feld term). Varianten sind verboten (cards.test.ts).
-export const TERMS2: { de: string; nogi: string; avoid: string[] }[] = [
+// Begriffs-Standard (docs/knowledge-base.md, UX-Review 2026-11-06): deutsches Alltagswort zuerst, No-Gi-Begriff in Klammern.
+// group "position"/"konzept": Lagen und Grundbegriffe, die nicht als Karten-Fachbegriff (term) vorkommen müssen.
+export const TERMS2: { de: string; nogi: string; avoid: string[]; group?: "position" | "konzept" }[] = [
+  { de: "Seitenkontrolle", nogi: "Side Control", avoid: ["Seitkontrolle", "Side-Control"], group: "position" },
+  { de: "Halbe Guard", nogi: "Half Guard", avoid: ["Halbguard", "Half-Guard"], group: "position" },
+  { de: "Kopfklammer", nogi: "Front Headlock", avoid: [], group: "position" },
+  { de: "Rücken", nogi: "Back Control", avoid: [], group: "position" },
+  { de: "Kopf/Nacken (Zone)", nogi: "Head & Neck", avoid: [], group: "konzept" },
+  { de: "Atem (Ausdauer im Spiel)", nogi: "Gas Tank", avoid: ["Puste", "Kraft"], group: "konzept" },
+  { de: "Aufbauen · Angreifen · Rahmen (Kartenarten)", nogi: "Setup · Attack · Frame", avoid: ["Vorbereiten", "Kontern"], group: "konzept" },
+  { de: "Konter (verdeckt vorbereiteter Rahmen)", nogi: "Counter", avoid: [], group: "konzept" },
+  { de: "Wegrutschen, Knie dazwischen", nogi: "Elbow Escape", avoid: ["Ellbogen-Knie-Escape"] },
   { de: "Auslage (Orthodox: links vorn, Southpaw: rechts vorn)", nogi: "Stance", avoid: [] },
   { de: "Tief gehen", nogi: "Level Change", avoid: ["Level-Change"] },
   { de: "Schritt rein", nogi: "Penetration Step", avoid: ["Pen Step"] },
