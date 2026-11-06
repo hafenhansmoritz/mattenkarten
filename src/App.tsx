@@ -71,6 +71,8 @@ export function App() {
   }, []);
   // Wochenthema per Link (#gym=…) öffnet „Fürs Gym“ mit Übernehmen-Dialog
   useEffect(() => { if (/(?:^#|&)gym=/.test(location.hash)) setScreen("gym"); }, []);
+  // Geteilter Spielplan (#plan=…, Mechanik 7) öffnet die Körperkarte im Spielplan-Modus mit dem Spielplan-Bauer
+  useEffect(() => { if (/(?:^#|&)plan=/.test(location.hash)) setScreen("k2"); }, []);
   useEffect(prefetchSoon, []);
   // iOS: Audio beim ersten Tippen entsperren
   useEffect(() => {

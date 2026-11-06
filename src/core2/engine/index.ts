@@ -5,6 +5,11 @@ import { clampZone, emptyBoard } from "./board";
 import { setCardRegistry } from "./registry";
 import { resolveRound } from "./resolve";
 import { initPlan } from "./plan";
+export {
+  planGraph, systemCheck, planValid, randomValidPlan, planCost, planCurve, suggestFix, applySideboard, recommendSwaps, planPaths,
+  SIDEBOARD_MAX, CURVE_HINT, CURVE_HEAVY, CURVE_MAX_HEAVY, STAGES, SYS_NEED,
+  type SystemResult, type SysRule, type SysGap, type StageId, type RuleId, type Swap, type FixSuggestion, type PlanPaths, type PlanState,
+} from "./planBuilder";
 
 export { roleOf, boardFor, other, posValue, ZONE_LABEL, POS_LABEL } from "./board";
 export { legalCards, threats, PASS } from "./legal";

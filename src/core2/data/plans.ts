@@ -30,18 +30,18 @@ export interface PlanDef {
 export const DEFAULT_PLANS: PlanDef[] = [
   {
     id: "std-ringer", name: "Ringer-Plan", stil: "ringer",
-    idea: "Im Stand schießen, oben passieren, in Side Control und Mount mit Kimura, Americana oder Armbar beenden.",
+    idea: "Schießen, umklammern oder Kopf runter – oben passieren, dann Kimura, Americana, Armbar oder Guillotine.",
     cards: [
-      "nd_double_leg", "nd_single_leg", "nd_clinch_entry", "cl_snap_down", "gt_knee_slice", "ht_pass", "ht_knee_slide",
-      "sct_to_mount", "sct_kimura", "sct_americana", "mt_americana", "tt_back_take", "mt_armbar", "gt_toreando", "gt_body_lock",
+      "nd_double_leg", "nd_single_leg", "nd_clinch_entry", "gt_knee_slice", "ht_pass", "ht_knee_slide", "sct_to_mount",
+      "sct_kimura", "sct_americana", "mt_americana", "mt_armbar", "gt_toreando", "cl_snap_down", "cl_body_lock", "hl_guillotine",
     ],
   },
   {
     id: "std-guard", name: "Guard-Plan", stil: "guard",
-    idea: "Guard ziehen, dann Sweep, Triangle, Armbar oder Guillotine – und oben weiter.",
+    idea: "Guard ziehen, dann Sweep, Triangle, Armbar oder Guillotine – und oben passieren bis zum Arm-Triangle.",
     cards: [
       "nd_clinch_entry", "cl_pull_guard", "cl_snap_down", "gb_butterfly_sweep", "gb_armbar", "gb_triangle", "gb_guillotine",
-      "hl_guillotine", "mt_armbar", "mt_americana", "sct_arm_triangle", "mt_to_back", "ht_pass", "gt_body_lock", "nd_single_leg",
+      "hl_guillotine", "mt_armbar", "ht_knee_slide", "sct_arm_triangle", "sct_to_mount", "ht_pass", "cl_body_lock", "nd_single_leg",
     ],
   },
   {
@@ -49,7 +49,7 @@ export const DEFAULT_PLANS: PlanDef[] = [
     idea: "Runterbringen, schwer passieren, in Side Control drücken – Arm-Triangle oder Americana.",
     cards: [
       "nd_double_leg", "nd_single_leg", "nd_clinch_entry", "cl_body_lock", "gt_body_lock", "gt_knee_slice", "ht_pass",
-      "ht_knee_slide", "sct_to_mount", "sct_arm_triangle", "sct_americana", "mt_americana", "cl_snap_down", "nd_arm_drag", "hl_guillotine",
+      "ht_knee_slide", "sct_to_mount", "sct_arm_triangle", "sct_americana", "mt_americana", "cl_snap_down", "gt_toreando", "hl_guillotine",
     ],
   },
   {
@@ -57,7 +57,7 @@ export const DEFAULT_PLANS: PlanDef[] = [
     idea: "Arm Drag oder Snap Down, hinter ihn, Rücken nehmen – dann der Würger von hinten.",
     cards: [
       "nd_clinch_entry", "nd_single_leg", "nd_arm_drag", "cl_snap_down", "tt_back_take", "tt_to_headlock", "hl_go_behind",
-      "hl_guillotine", "bt_rnc", "bt_armbar", "mt_to_back", "sct_to_mount", "gt_knee_slice", "ht_knee_slide", "sct_arm_triangle",
+      "hl_guillotine", "bt_rnc", "bt_armbar", "ht_pass", "ht_knee_slide", "sct_arm_triangle", "nd_double_leg", "gt_knee_slice",
     ],
   },
 ];
@@ -83,10 +83,11 @@ export const BOSS_PLANS: Record<StilId, PlanDef> = {
   },
   druecker: {
     id: "boss-druecker", name: "Druck-System", stil: "druecker",
-    idea: "Crossface und Underhook, Side Control, Mount – Kimura und Americana.",
+    // B62: vorher mit Mount → Rücken (ohne Aufgabe dort) und ohne Weg in den Clinch – im Spielplan-Modus nur 35,6 %.
+    idea: "Kopf runter oder umklammern, schwer passieren – Kimura, Americana, Armbar; vorne die Guillotine.",
     cards: [
-      "nd_double_leg", "nd_single_leg", "cl_body_lock", "gt_body_lock", "gt_knee_slice", "gt_toreando", "ht_pass",
-      "ht_knee_slide", "sct_to_mount", "sct_kimura", "sct_americana", "sct_arm_triangle", "mt_americana", "mt_armbar", "mt_to_back",
+      "nd_double_leg", "nd_single_leg", "nd_clinch_entry", "cl_body_lock", "cl_snap_down", "hl_guillotine", "gt_body_lock",
+      "gt_knee_slice", "ht_pass", "ht_knee_slide", "sct_to_mount", "sct_kimura", "sct_americana", "mt_americana", "mt_armbar",
     ],
   },
   ruecken: {
@@ -125,7 +126,110 @@ export function readPlanHintSeen(): boolean {
 export function markPlanHintSeen(): void {
   try { localStorage.setItem(PLAN_HINT_KEY, "1"); } catch { /* egal */ }
 }
-/** Name eines gespeicherten Plans (Standard-Plan oder „Eigener Plan“). */
+/** Name eines gespeicherten Plans (Standard-Plan, eigener Plan aus dem Spielplan-Bauer oder „Eigener Plan“). */
 export function planName(p: SavedPlan): string {
-  return ALL_PLANS.find((x) => x.id === p.id)?.name ?? "Eigener Plan";
+  return ALL_PLANS.find((x) => x.id === p.id)?.name ?? readMyPlans().find((x) => x.id === p.id)?.name ?? "Eigener Plan";
 }
+
+// ---------------- Mechanik 7: eigene Pläne (Spielplan-Bauer, Spec B57–B62) ----------------
+/** Bis zu 5 eigene Pläne: { plans: [{ id, name, stil, cards }] }. Der aktive Plan steht weiter in PLAN_KEY ({ id, cards }). */
+export const MY_PLANS_KEY = "mk.k2.plans.v1";
+export const MY_PLANS_MAX = 5;
+export const PLAN_NAME_MAX = 24;
+export interface MyPlan { id: string; name: string; stil: StilId; cards: string[] }
+
+export function readMyPlans(): MyPlan[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(MY_PLANS_KEY) ?? "null");
+    const arr: unknown[] = Array.isArray(v?.plans) ? v.plans : [];
+    return arr.filter((x): x is MyPlan => {
+      const p = x as MyPlan;
+      return !!p && typeof p.id === "string" && typeof p.name === "string" && (STIL_IDS as string[]).includes(p.stil)
+        && Array.isArray(p.cards) && p.cards.length === PLAN_SIZE && p.cards.every((c) => typeof c === "string");
+    }).slice(0, MY_PLANS_MAX);
+  } catch { return []; }
+}
+function writeMyPlans(plans: MyPlan[]): void {
+  try { localStorage.setItem(MY_PLANS_KEY, JSON.stringify({ plans })); } catch { /* privat oder voll */ }
+}
+/** Speichert (neu oder überschreibt gleiche id). Wirft, wenn schon MY_PLANS_MAX andere Pläne da sind. */
+export function saveMyPlan(p: MyPlan): MyPlan[] {
+  const cur = readMyPlans();
+  const clean: MyPlan = { ...p, name: p.name.trim().slice(0, PLAN_NAME_MAX) || "Eigener Plan", cards: [...p.cards] };
+  const i = cur.findIndex((x) => x.id === p.id);
+  if (i < 0 && cur.length >= MY_PLANS_MAX) throw new Error(`Höchstens ${MY_PLANS_MAX} eigene Pläne – lösch erst einen.`);
+  const next = i < 0 ? [...cur, clean] : cur.map((x, k) => (k === i ? clean : x));
+  writeMyPlans(next);
+  return next;
+}
+export function deleteMyPlan(id: string): MyPlan[] {
+  const next = readMyPlans().filter((x) => x.id !== id);
+  writeMyPlans(next);
+  return next;
+}
+export function newPlanId(): string {
+  return `eigen-${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
+}
+/** Stil eines Plans: Standard-Plan → sein Stil, eigener Plan → gespeicherter Stil. */
+export function stilOfPlanId(id: string): StilId | undefined {
+  return DEFAULT_PLANS.find((x) => x.id === id)?.stil ?? readMyPlans().find((x) => x.id === id)?.stil;
+}
+
+/** B57 Leihkarten: Mit kleiner Sammlung (weniger als LEIH_MIN Angriffs-Karten) leihst du dir die Karten deines Spielstils
+ *  (Standard-Plan + Boss-Plan dieses Stils) – so bleibt kein Anfänger hängen. Die Standard-Pläne gehen ohnehin immer. */
+export const LEIH_MIN = 20;
+export function stilCards(stil: StilId): string[] {
+  return [...new Set([...DEFAULT_PLAN[stil].cards, ...BOSS_PLANS[stil].cards])];
+}
+export function availablePlanCards(collected: string[], planCards: string[], stil: StilId): { owned: string[]; leih: string[]; small: boolean } {
+  const pc = new Set(planCards);
+  const owned = [...new Set(collected)].filter((id) => pc.has(id));
+  const small = owned.length < LEIH_MIN;
+  const leih = small ? stilCards(stil).filter((id) => pc.has(id) && !owned.includes(id)) : [];
+  return { owned, leih, small };
+}
+
+// ---------------- Mechanik 7: Sideboard vor dem Boss (B60) ----------------
+export interface BossSideboard {
+  /** Seine Signatur-Karten (aus seinem Plan) – darauf stellst du dich ein. */
+  signature: string[];
+  /** Grundlagen dagegen – kannst du immer, die musst du nicht tauschen. */
+  basics: string[];
+  /** Empfohlen hinein (Reihenfolge = Wichtigkeit). */
+  wants: string[];
+  /** Bringt gegen ihn wenig – zuerst raus. */
+  avoid: string[];
+  /** Empfehlung in einem Satz (≤ 20 Wörter). */
+  tip: string;
+}
+export const BOSS_SIDEBOARD: Record<StilId, BossSideboard> = {
+  ringer: {
+    signature: ["cl_snap_down", "hl_guillotine", "hl_go_behind", "nd_double_leg"],
+    basics: ["nd_sprawl", "cl_underhook", "hlb_hands"],
+    // Sim (B60): Guard ziehen gegen ihn kostet 4–8 Punkte – oben bleiben und passieren hält das Niveau.
+    wants: ["nd_single_leg", "ht_pass", "ht_knee_slide", "gt_knee_slice"],
+    avoid: ["nd_double_leg", "cl_pull_guard", "nd_arm_drag"],
+    tip: "Gegen den Ringer: Sprawl kannst du immer. Bleib oben – Single Leg und Pässe, am Boden ist er schwächer.",
+  },
+  guard: {
+    signature: ["cl_pull_guard", "gb_triangle", "gb_armbar", "gb_butterfly_sweep"],
+    basics: ["gt_posture", "gt_elbows_in", "gt_both_arms"],
+    wants: ["gt_knee_slice", "gt_toreando", "gt_body_lock"],
+    avoid: ["cl_pull_guard", "gb_triangle", "gb_armbar", "gb_guillotine", "gb_butterfly_sweep"],
+    tip: "Gegen die Guard-Spielerin: Haltung kannst du immer. Nimm Pässe, damit du aus ihrer Guard rauskommst.",
+  },
+  druecker: {
+    signature: ["gt_knee_slice", "sct_kimura", "sct_americana", "mt_americana"],
+    basics: ["scb_frame", "mb_elbows_tight", "scb_shrimp"],
+    wants: ["cl_snap_down", "hl_guillotine", "gb_butterfly_sweep"],
+    avoid: ["cl_pull_guard", "nd_double_leg"],
+    tip: "Gegen den Drücker: Rahmen kannst du immer. Bleib vorne – Snap Down und Guillotine, aus der Guard der Sweep.",
+  },
+  ruecken: {
+    signature: ["nd_arm_drag", "tt_back_take", "bt_rnc", "bt_armbar"],
+    basics: ["tb_shell", "bb_chin_tuck", "bb_hand_fight"],
+    wants: ["cl_snap_down", "hl_guillotine", "gt_knee_slice"],
+    avoid: ["cl_pull_guard", "nd_arm_drag"],
+    tip: "Gegen die Rückenjägerin: Gesicht zu ihr kannst du immer. Greif vorne an – Snap Down und Guillotine.",
+  },
+};

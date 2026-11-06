@@ -7,7 +7,7 @@ import {
   slotCards, cardById, PASS, KRAFT_MAX, gripsOf, chainFrom, finishThreats,
   checkKonter, withKonter, splitPlay, KONTER_COST,
   checkStil, withStil, stilStats, stilReadyRound, STIL_COST, STIL_POWER,
-  publicView, isBasic, mulligan, aiMulligan, canMulligan, planPlayed, MULLIGAN_MAX,
+  publicView, isBasic, mulligan, aiMulligan, canMulligan, planPaths, MULLIGAN_MAX,
 } from "../engine";
 import { PLAN_RULE } from "../data/plans";
 import { STIL, matchStil, stilAi } from "../data/stile";
@@ -753,10 +753,21 @@ export function ArenaK2(props: ArenaK2Props) {
               );
             })()}
             {props.plan && (() => {
-              const pp = planPlayed(s, "p", props.plan.cards);
+              // B61: statt „X von 15 gespielt“ – welche Wege deines Systems du genutzt hast und wie oft deine geübten Angriffe trafen.
+              const pp = planPaths(s, "p", props.plan.cards, cardById);
+              const steps: [string, boolean][] = [["Stand", true], ["Boden", pp.stages.boden], ["Kontrolle", pp.stages.kontrolle], ["Aufgabe", pp.stages.aufgabe]];
+              const tip = !pp.stages.boden ? "Bring ihn zu Boden – dort wartet dein Plan."
+                : !pp.stages.kontrolle ? "Nächstes Mal: am Boden nach vorn – Pass, Sweep oder Rücken."
+                : !pp.stages.aufgabe ? "Du hattest Kontrolle – jetzt eine Aufgabe ansetzen."
+                : "Ganze Kette gespielt – so sieht ein System aus.";
               return (
-                <p className="k2-end-plan"><b>Dein Spielplan:</b> {pp.played} von {pp.total} Karten gespielt.{" "}
-                  {pp.played === 0 ? "Komm in die Lagen deines Plans – dort warten deine Angriffe." : "Wenige Wege, oft gespielt – so wächst dein A-Game."}</p>
+                <div className="k2-end-plan">
+                  <p><b>Wege genutzt:</b>{" "}
+                    <span className="k2-end-path" aria-label={`Erreicht: ${steps.filter((x) => x[1]).map((x) => x[0]).join(", ")}`}>
+                      {steps.map(([l, ok], i) => <span key={l} className={ok ? "is-on" : "is-off"}>{i > 0 ? " → " : ""}{ok ? "✓ " : ""}{l}</span>)}
+                    </span></p>
+                  <p><b>Geübte Angriffe getroffen:</b> {pp.hits}{pp.hitCards > 1 ? ` (${pp.hitCards} verschiedene)` : ""}. {tip}</p>
+                </div>
               );
             })()}
             {(() => { const v = props.verdict?.(s); return v ? <p className={`k2-end-verdict ${v.ok ? "ok" : "no"}`}>{v.text}</p> : null; })()}

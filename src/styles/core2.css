@@ -490,3 +490,65 @@
 .k2-plan-spread { font-size: 11.5px; color: var(--text-2, #a9b6d6); }
 .k2-plan-more { all: unset; box-sizing: border-box; display: block; width: 100%; min-height: 40px; padding: 8px 12px; font-size: 12.5px; color: #a9cbff; text-decoration: underline; cursor: pointer; border-top: 1px solid var(--line, #2a3654); }
 .k2-plan-cards { margin: 0; padding: 4px 12px 10px 28px; font-size: 12.5px; display: flex; flex-direction: column; gap: 2px; }
+.k2-end-plan p { margin: 4px 0 0; }
+.k2-end-path .is-on { color: var(--good, #7ee2a8); font-weight: 700; }
+.k2-end-path .is-off { color: var(--text-2, #a9b6d6); }
+/* Mechanik 7: Spielplan-Bauer, System-Karte, Kurve, Sideboard */
+.k2-sysmap { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 0; align-items: center; }
+.k2-sysmap-step { display: inline-flex; align-items: center; }
+.k2-sysmap-arrow { color: var(--text-2, #a9b6d6); margin: 0 4px; font-size: 13px; }
+.k2-sysmap-node { display: inline-flex; gap: 4px; align-items: center; padding: 5px 8px; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1px solid var(--line, #2a3654); background: var(--surface, #141c30); color: var(--text, #eef2ff); }
+.k2-sysmap-step.is-ok .k2-sysmap-node { border-color: #3fae74; background: rgba(63, 174, 116, 0.14); }
+.k2-sysmap-step.is-gap .k2-sysmap-node { border-color: var(--danger, #e5484d); background: rgba(229, 72, 77, 0.18); border-width: 2px; }
+.k2-sysmap-step.is-skip .k2-sysmap-node { border-style: dashed; color: var(--text-2, #a9b6d6); }
+.k2-sys-rules { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.k2-sys-rules li.is-bad { color: var(--text, #eef2ff); border-left: 3px solid var(--danger, #e5484d); padding-left: 6px; }
+.k2-sys-rules li.is-ok { border-left: 3px solid #3fae74; padding-left: 6px; }
+.k2-sys-rules li.is-warn { border-left: 3px solid var(--points, #ffd166); padding-left: 6px; }
+.k2-fix { margin: 8px 0; padding: 8px 10px; border-radius: 10px; background: rgba(255, 209, 102, 0.08); border: 1px solid rgba(255, 209, 102, 0.45); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.k2-count { font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line, #2a3654); vertical-align: middle; }
+.k2-count.is-full { border-color: #3fae74; }
+.k2-curve-bars { display: flex; gap: 14px; align-items: flex-end; height: 92px; padding: 4px 2px; }
+.k2-curve-col { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 34px; }
+.k2-curve-bar { display: block; width: 26px; min-height: 2px; border-radius: 4px 4px 0 0; background: #5b8def; }
+.k2-curve-col.is-heavy .k2-curve-bar { background: #d98a3a; }
+.k2-curve-n { font-size: 12px; font-weight: 700; }
+.k2-curve-k { font-size: 12px; color: var(--text-2, #a9b6d6); }
+.k2-curve-hint { margin: 6px 0; padding: 6px 10px; border-radius: 8px; border: 2px solid var(--danger, #e5484d); font-size: 13px; font-weight: 700; }
+.k2-chip { font: inherit; font-size: 13px; min-height: 44px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line-strong, #3a4a72); background: var(--surface, #141c30); color: var(--text, #eef2ff); cursor: pointer; }
+.k2-chip.is-on { border-color: var(--points, #ffd166); box-shadow: 0 0 0 1px var(--points, #ffd166); font-weight: 700; }
+.k2-chip.is-kw { font-style: italic; }
+.k2-chip.is-rec { border-color: #3fae74; }
+.k2-chip.is-new { border-color: #3fae74; font-weight: 700; }
+.k2-chip:disabled { opacity: 0.75; cursor: default; }
+.k2-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.k2-bauer-head { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
+.k2-bauer-name, .k2-bauer-search, .k2-plan-import label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; }
+.k2-bauer-name input, .k2-bauer-search input, .k2-plan-import input { font: inherit; font-weight: 400; min-height: 44px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line-strong, #3a4a72); background: var(--surface, #141c30); color: var(--text, #eef2ff); }
+.k2-bauer-stil { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.k2-bauer-stil legend { font-size: 13px; font-weight: 700; margin-bottom: 4px; padding: 0; }
+.k2-bauer-mine { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.k2-mine-chip { font: inherit; font-size: 13px; min-height: 44px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--points, #ffd166); background: rgba(255, 209, 102, 0.08); color: var(--text, #eef2ff); cursor: pointer; }
+.k2-bauer-tpl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+.k2-pool { list-style: none; margin: 6px 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 6px; }
+.k2-pool-card { all: unset; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line, #2a3654); background: var(--surface, #141c30); cursor: pointer; min-height: 44px; }
+.k2-pool-card.is-on { border-color: var(--points, #ffd166); box-shadow: 0 0 0 1px var(--points, #ffd166); }
+.k2-pool-card:focus-visible, .k2-plan-tool:focus-visible { outline: 2px solid var(--points, #ffd166); outline-offset: 1px; }
+.k2-pool-top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.k2-pool-cost { flex: none; min-width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; background: #2c4a8a; color: #fff; }
+.k2-pool-sub, .k2-pool-tags { font-size: 12px; color: var(--text-2, #a9b6d6); }
+.k2-bauer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 6px; }
+.k2-bauer-msg, .k2-bauer-note { margin: 8px 0; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line-strong, #3a4a72); font-size: 13px; word-break: break-word; }
+.k2-bauer-code code { word-break: break-all; font-size: 12px; }
+.k2-plan-tools { display: flex; border-top: 1px solid var(--line, #2a3654); }
+.k2-plan-tool { all: unset; box-sizing: border-box; flex: 1; text-align: center; min-height: 44px; padding: 10px 6px; font-size: 13px; color: #a9cbff; text-decoration: underline; cursor: pointer; }
+.k2-plan-import { display: flex; gap: 8px; align-items: flex-end; margin: 8px 0; }
+.k2-plan-import label { flex: 1; }
+.k2-sb-boss, .k2-sb-rec { margin: 10px 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, #2a3654); background: var(--surface, #141c30); font-size: 13.5px; }
+.k2-sb-boss p, .k2-sb-rec p { margin: 4px 0; }
+.k2-sb-label { font-size: 12px; font-weight: 700; color: var(--text-2, #a9b6d6); text-transform: uppercase; letter-spacing: 0.04em; }
+.k2-sb-chips { list-style: none; margin: 4px 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
+.k2-sb-chips li { font-size: 12.5px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--line-strong, #3a4a72); }
+.k2-sb-chips li.is-foe { border-color: var(--danger, #e5484d); }
+.k2-sb-chips li.is-free { border-color: #3fae74; }
+.k2-sb-swaps { margin: 4px 0 8px; padding-left: 18px; font-size: 13.5px; }

@@ -27,7 +27,7 @@ const ALL_TUTS = [...TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD];
 /** Prototyp „Körperkarte“: drei Lektionen nach Danaher-Reihenfolge, dann freies Spiel. */
 export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
   const [done, setDone] = useState<string[]>(readDone);
-  const [run, setRun] = useState<Run>(null);
+  const [run, setRun] = useState<Run>(() => (typeof location !== "undefined" && /(?:^#|&)plan=/.test(location.hash) ? { kind: "plan" } : null));
   const [seed, setSeed] = useState(() => Date.now() % 100000);
 
   if (run?.kind === "tut") {
@@ -94,7 +94,7 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
       <div className="more-list">
         <button className="more-item" onClick={() => setRun({ kind: "plan" })}>
           <strong className="display">Spielplan-Modus (neu)</strong>
-          <span className="muted small">{PLAN_RULE[0]} {PLAN_RULE[1]}</span>
+          <span className="muted small">{PLAN_RULE[0]} {PLAN_RULE[1]} Neu: eigene Pläne bauen und vor dem Boss anpassen.</span>
         </button>
       </div>
       <h3 className="display" style={{ marginTop: 18 }}>Bosse</h3>
