@@ -29,6 +29,11 @@ export const lessonById = (id: string) => ALL_LESSONS.find((t) => t.id === id);
 
 const PART_LABEL = ["Aufwärmen", "Lektion", "Rätsel", "Matten-Drill"] as const;
 
+/** Rätsel-Schritt eines Tages: Fragen, Bilder, Ein-Satz – angekündigte Zahl = gezeigte Zahl. */
+export function puzzleIds(day: ProgramDay): string[] {
+  return [...day.puzzle, ...(day.pics ?? []), ...explainFor(day.n)];
+}
+
 function lessonTitle(l: LessonRef): string {
   if (l.kind === "map") return "Positions-Landkarte";
   if (l.kind === "exam") return "Prüfung: 12 Fragen";
@@ -108,7 +113,7 @@ export function ProgramScreen({ onBack, onJourney, onLeglock, onGym }: { onBack:
                 <span className="muted small">
                   {i === 0 ? (day.warmup.length ? ` · ${day.warmup.length} Fragen zu früheren Tagen` : " · heute noch nicht")
                     : i === 1 ? ` · ${[...(day.concept === "schutz" ? ["Neu: Schutzhaltung"] : []), ...day.lessons.map(lessonTitle)].join(" + ")}`
-                    : i === 2 ? ` · ${day.puzzle.length + (day.pics?.length ?? 0)} Situationen${day.pics?.length ? ", davon " + day.pics.length + " Bilder" : ""}`
+                    : i === 2 ? ` · ${puzzleIds(day).length} Situationen${day.pics?.length ? ", davon " + day.pics.length + " Bilder" : ""}`
                     : ` · ${day.drill.title}`}
                 </span>
               </li>
@@ -310,7 +315,7 @@ function DayRun({ day, p, update, onExit }: {
                   <span className="pg-switch" aria-hidden="true" />
                 </button>
               )}
-              <Quiz ids={[...day.puzzle, ...(day.pics ?? []), ...explainFor(day.n)]} kicker="Rätsel" onDone={go} timed={day.n >= 4 && timed ? 8 : undefined} />
+              <Quiz ids={puzzleIds(day)} kicker="Rätsel" onDone={go} timed={day.n >= 4 && timed ? 8 : undefined} />
             </>
           )}
 
@@ -408,7 +413,7 @@ function DrillCard({ day, onChoose }: { day: ProgramDay; onChoose: (d: "done" | 
                 <button type="button" className={on ? "on" : ""} aria-pressed={on}
                   onClick={() => { sfx.select(); setTicked((t) => (on ? t.filter((x) => x !== i) : [...t, i])); }}>
                   <span className="pg-box">{on ? "✓" : ""}</span>
-                  <span>{c.text}{c.check && <span className="pg-check-flag small"> (Trainer fragen)</span>}</span>
+                  <span>{c.text}{c.check && <span className="pg-check-flag small"> (noch unsicher – frag später deinen Trainer)</span>}</span>
                 </button>
               </li>
             );
@@ -416,7 +421,7 @@ function DrillCard({ day, onChoose }: { day: ProgramDay; onChoose: (d: "done" | 
         </ul>
         <p className="small"><b>Typische Fehler:</b></p>
         <ul className="pg-mistakes small">
-          {mistakes.map((m, i) => <li key={i}>{m.text}{m.check && <span className="pg-check-flag"> (Trainer fragen)</span>}</li>)}
+          {mistakes.map((m, i) => <li key={i}>{m.text}{m.check && <span className="pg-check-flag"> (noch unsicher – frag später deinen Trainer)</span>}</li>)}
         </ul>
         <p className="pg-film small"><b>Tipp:</b> Film dich mit dem Handy und vergleiche mit den Punkten oben.</p>
         {allTicked && <p className="pg-hint small">Alles abgehakt – sauber gearbeitet!</p>}
@@ -518,7 +523,7 @@ function Final({ p, update, onBack }: { p: ProgramProgress; update: (fn: (p: Pro
                     <button type="button" className={on ? "on" : ""} aria-pressed={on}
                       onClick={() => { sfx.select(); update((x) => ({ ...x, checklist: on ? x.checklist.filter((i) => i !== c.id) : [...x.checklist, c.id] })); }}>
                       <span className="pg-box">{on ? "✓" : ""}</span>
-                      <span>{c.text}{c.check && <span className="pg-check-flag small"> (Trainer fragen)</span>}</span>
+                      <span>{c.text}{c.check && <span className="pg-check-flag small"> (noch unsicher – frag später deinen Trainer)</span>}</span>
                     </button>
                   </li>
                 );

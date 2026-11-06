@@ -607,6 +607,15 @@ export function explainFor(day: number): string[] {
   return EXPLAIN_QUESTIONS.filter((q) => q.day === day).map((q) => q.id);
 }
 
+/** Sicherheitsregeln (UX-Review 2026-11-06): falsche Antwort → „Achtung – Sicherheitsregel“ statt „Fast“.
+ *  Alle Abklopf-Fragen plus Fallen, Würfe mit Partner, Hebel langsam, verbotene Techniken, Beinhebel. */
+export const SAFETY_IDS: ReadonlySet<string> = new Set([
+  "q-stand-breakfall", "q-stand-partner", "q-sub-slow", "q-sub-illegal", "q-sub-leglock",
+]);
+export function isSafetyQuestion(q: Question): boolean {
+  return q.topic === "abklopfen" || SAFETY_IDS.has(q.id);
+}
+
 /** Alle Fragen (Text + Bild + Ein-Satz) – Nachschlagen, Wiederholung und Fehlerdeck. */
 export const ALL_QUESTIONS: Question[] = [...QUESTIONS, ...IMAGE_QUESTIONS, ...EXPLAIN_QUESTIONS];
 export const Q_BY_ID: Record<string, Question> = Object.fromEntries(ALL_QUESTIONS.map((q) => [q.id, q]));

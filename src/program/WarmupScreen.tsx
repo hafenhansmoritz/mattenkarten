@@ -30,7 +30,7 @@ export function WarmupScreen({ onBack }: { onBack: () => void }) {
               <div>
                 <b>{m.name}</b>
                 <p className="small">{m.cue}</p>
-                <p className="small wu-safe"><b>Sicher:</b> {m.safety}{m.check && <span className="pg-check-flag"> (Trainer fragen)</span>}</p>
+                <p className="small wu-safe"><b>Sicher:</b> {m.safety}{m.check && <span className="pg-check-flag"> (noch unsicher – frag später deinen Trainer)</span>}</p>
               </div>
             </motion.li>
           ))}

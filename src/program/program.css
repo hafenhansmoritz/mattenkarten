@@ -132,6 +132,8 @@
 .pg-opt-mark { font-weight: 900; font-size: 18px; }
 .pg-why { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: var(--radius); border-left: 4px solid var(--gas); background: var(--bg-2); }
 .pg-why.no { border-left-color: var(--points); }
+.pg-why.safety { border-left-color: var(--gi-o, #e5484d); }
+.pg-why.safety strong { color: var(--gi-o, #e5484d); }
 .pg-why strong { font-size: 20px; }
 .pg-why p { margin: 0; }
 .pg-next { margin-top: 4px; }

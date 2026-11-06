@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { mulberry32, shuffle } from "../engine/rng";
 import { FightersK2 } from "../core2/ui/FightersK2";
 import { sfx } from "../sound";
-import { Q_BY_ID, TOPIC_LABEL, type Question } from "./questions";
+import { Q_BY_ID, TOPIC_LABEL, isSafetyQuestion, type Question } from "./questions";
 import { emitQuizAnswer, newQuizSession } from "../journey/events";
 import { FreeRecall } from "./FreeRecall";
 
@@ -42,6 +42,8 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
   const [exOk, setExOk] = useState<boolean | null>(null);
   // Eine Runde = ein Quiz-Durchgang. Erste Antworten gehen an Wiederholung und Fehlerdeck (src/journey).
   const [session] = useState(newQuizSession);
+  // Wiederholungsrunde: eigener Zähler „Wiederholung k/n“ statt stehendem „5/5“.
+  const [retryDone, setRetryDone] = useState(0);
   const total = initial.length;
   const item = queue[0];
   const isExplain = item?.q.kind === "erklaeren";
@@ -69,6 +71,8 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
   const answered = isAnswered;
   const ok = isExplain ? exOk === true : !late && picked === q.answer;
   const doneCount = first.length;
+  const retryTotal = retryDone + queue.filter((x) => x.retry).length;
+  const safety = isSafetyQuestion(q);
 
   function pick(i: number) {
     if (answered) return;
@@ -81,6 +85,7 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
   function next() {
     const rest = queue.slice(1);
     const nq = ok ? rest : [...rest, { q, retry: true, key: item.key + 1000 }];
+    if (item.retry) setRetryDone((n) => n + 1);
     setPicked(null);
     setLate(false);
     setExOk(null);
@@ -92,7 +97,9 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
     <div className="pg-quiz">
       <div className="pg-quiz-head">
         <span className="label">{kicker}</span>
-        <span className="label num">{Math.min(doneCount + (answered || item.retry ? 0 : 1), total)}/{total}</span>
+        <span className="label num">{item.retry
+          ? `Wiederholung ${Math.min(retryDone + 1, retryTotal)}/${retryTotal}`
+          : `${Math.min(doneCount + (answered ? 0 : 1), total)}/${total}`}</span>
       </div>
       <div className="pg-quiz-bar" aria-hidden="true"><i style={{ width: `${(doneCount / Math.max(1, total)) * 100}%` }} /></div>
       <AnimatePresence mode="wait">
@@ -142,8 +149,8 @@ export function Quiz({ ids, questions, kicker, onDone, timed }: {
           </motion.div>}
           <AnimatePresence>
             {answered && !isExplain && (
-              <motion.div className={`pg-why ${ok ? "ok" : "no"}`} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
-                <strong className="display">{ok ? "Richtig!" : late ? "Zu spät – so ist es:" : "Fast – so ist es:"}</strong>
+              <motion.div className={`pg-why ${ok ? "ok" : safety ? "no safety" : "no"}`} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
+                <strong className="display">{ok ? "Richtig!" : safety ? "Achtung – Sicherheitsregel:" : late ? "Zu spät – so ist es:" : "Fast – so ist es:"}</strong>
                 <p>{q.why}</p>
                 {!ok && <p className="muted small">Die Frage kommt gleich noch einmal.</p>}
                 <button type="button" className="btn primary big pg-next" onClick={next}>Weiter</button>

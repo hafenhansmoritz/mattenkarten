@@ -123,7 +123,7 @@ function Sources() {
     <p className="small muted sh-src">
       Quellen:{" "}
       {C.sources.map((s, i) => (
-        <span key={s.url}>{i > 0 ? " · " : ""}<a href={s.url} target="_blank" rel="noopener noreferrer">{s.label}</a>{s.marketing ? " [Marketing]" : ""}</span>
+        <span key={s.url}>{i > 0 ? " · " : ""}<a href={s.url} target="_blank" rel="noopener noreferrer" data-src-mark={s.marketing ? "Marketing" : undefined}>{s.label}</a></span>
       ))}
     </p>
   );

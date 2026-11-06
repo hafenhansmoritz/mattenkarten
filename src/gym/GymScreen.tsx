@@ -281,7 +281,8 @@ function GameDetail({ g, open }: { g: PositionalGame; open: (v: View) => void })
             const ext = /^https?:/.test(s.url);
             return (
               <li key={k}>
-                <span className={`gy-mark m-${s.mark}`}>{s.mark === "belegt" ? "belegt" : `[${s.mark}]`}</span>{" "}
+                {/* [Marketing] bleibt in den Daten (Prüfer), wird aber nicht angezeigt – nur der Quellenname. */}
+                {s.mark !== "Marketing" && <><span className={`gy-mark m-${s.mark}`}>{s.mark === "belegt" ? "belegt" : `[${s.mark}]`}</span>{" "}</>}
                 {ext ? <a href={s.url} target="_blank" rel="noopener noreferrer">{s.title}</a> : <span>{s.title}</span>}
                 <span className="small muted"> – {s.note}</span>
               </li>
