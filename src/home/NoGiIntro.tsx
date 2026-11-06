@@ -2,6 +2,7 @@
 // (5.1 Abklopfen, 5.2 Intensität, 5.3 Weißgurt-Regeln, 5.5 Disclaimer, 8.11 Sparring später, 8.12 No-Gi, 8.13 Positionsspiele).
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { TermText } from "../program/TermText";
 import { dismiss, useShared } from "../progress/store";
 
 export const INTRO_ID = "intro-nogi";
@@ -33,7 +34,7 @@ export function NoGiIntro() {
             <h3 className="hm-intro-sub">Sicherheit</h3>
             <ul className="small">
               <li>Früh und deutlich abklopfen: Hand, Fuß oder laut „Stopp“. Beim Tap sofort loslassen.</li>
-              <li>Heel Hooks, Slams und Neck Cranks sind für Weißgurte verboten.</li>
+              <li><TermText text="Heel Hooks, Slams und Neck Cranks sind für Weißgurte verboten." /></li>
               <li>Die App ersetzt keinen Trainer. Techniken nur auf der Matte mit Aufsicht üben.</li>
             </ul>
           </motion.div>

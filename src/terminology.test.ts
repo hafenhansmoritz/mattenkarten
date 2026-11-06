@@ -78,6 +78,7 @@ const RULES: Rule[] = [
   { id: "seitkontrolle", re: /Seitkontrolle|Halbguard/, why: "Schreibweise: „Seitenkontrolle“, „halbe Guard“" },
   { id: "elbow-escape", re: /Elbow Escape/, outside: true, why: "„Wegrutschen, Knie dazwischen (Elbow Escape)“" },
   { id: "ellbogen-knie", re: /Ellbogen-Knie(?!-Verbindung)(?![a-zäöü])/, why: "Grundbegriff heißt „Ellbogen-Knie-Verbindung“" },
+  { id: "escape-mix", re: /(Knie|Ellbogen)-Escape/, why: "Technik heißt „Wegrutschen, Knie dazwischen (Elbow Escape)“" },
   { id: "elbow-knee", re: /Elbow-Knee/, outside: true, why: "Englisch nur in Klammern: „Knie nach innen (Elbow-Knee)“" },
   // KB 8.14: „Halbe Guard“ als Name, gebeugt klein („in der halben Guard“, „in seine halbe Guard“).
   { id: "halbe-guard-gross", re: /Halbe[nr] Guard|\b(der|die|den|seine|deine|eine|ihre|zur|seiner|deiner) Halbe Guard/, why: "gebeugt klein: „in der halben Guard“",
@@ -131,6 +132,9 @@ describe("Begriffs-Standard", () => {
     // keine Treffer mitten im Wort
     expect(splitTerms("Unterhaken").filter((p) => typeof p !== "string").map((p) => (p as { id: string }).id)).toEqual(["underhook"]);
     expect(splitTerms("Mountain").every((p) => typeof p === "string")).toBe(true);
+    // UX-Review 2: Weißgurt-Verbote antippbar
+    expect(splitTerms("Heel Hooks, Slams und Neck Cranks sind für Weißgurte verboten.").filter((p) => typeof p !== "string").map((p) => (p as { id: string }).id))
+      .toEqual(["heelhook", "slam", "neckcrank"]);
   });
 });
 

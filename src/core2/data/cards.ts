@@ -884,7 +884,7 @@ const mountBottom: Card2[] = [
     plainDo: "Hüfte hoch, schräg zur gefangenen Seite – du rollst nach oben.",
     kind: "angriff", zone: "huefte", slots: [MOUNT_B], requires: { arme: 0 }, kraft: 1,
     to: { pos: "guard", role: "top", escape: "reversal" }, dilemmaOpens: "beine",
-    why: "Gefangene Seite, volle Brücke, dann rollen (Upa); stützt er sich breit ab, öffnet sich der Knie-Escape.",
+    why: "Gefangene Seite, volle Brücke, dann rollen (Upa); stützt er sich breit ab, ist Wegrutschen mit Knie dazwischen frei.",
     keys: ["45° zur gefangenen Seite", "Hüfte voll strecken, dann rollen"],
     mistakes: ["Panik-Brücke ohne Fangen", "Zu früh, bevor er eine Hand am Boden hat"],
     source: SRC.mountEsc, check: true,

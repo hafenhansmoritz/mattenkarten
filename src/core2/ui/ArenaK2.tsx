@@ -621,16 +621,6 @@ export function ArenaK2(props: ArenaK2Props) {
             </motion.div>
           )}
         </AnimatePresence>
-        {/* Coach-Blase (Tutorial-Start): über der Szene – verdeckt weder Hand noch Aufdecken-Knopf (UX-Review). */}
-        <AnimatePresence>
-          {startBubble && (
-            <motion.div className="k2-bubble is-stage" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}>
-              <CoachAvatar size={34} />
-              <p><TermText text={startBubble.text} /></p>
-              <button type="button" className="btn small" onClick={() => setBubbleDone((b) => [...b, startBubble.i])}>OK</button>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </section>
 
       {/* Brett + Aufdeck-Ebene */}
@@ -646,6 +636,16 @@ export function ArenaK2(props: ArenaK2Props) {
         </AnimatePresence>
       </section>
 
+      {/* Coach-Blase (Tutorial-Start): unter dem Brett im Fluss – verdeckt weder die Kämpfer noch die Hand (UX-Review 2). */}
+      <AnimatePresence>
+        {startBubble && (
+          <motion.div className="k2-bubble is-inline" role="status" initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0, height: 0 }}>
+            <CoachAvatar size={30} />
+            <p><TermText text={startBubble.text} /></p>
+            <button type="button" className="btn small" onClick={() => setBubbleDone((b) => [...b, startBubble.i])}>OK</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <SubTracks subs={s.subs} finish={finishOn.map((f) => ({ side: f.side, id: f.sub }))} />
       <GripStrip grips={liveGrips} onOpen={() => setKwPop("griff")} />
       <KonterStrip mine={myKonter} his={hisKonter} pending={phase === "pick" && konterSel ? cardById(konterSel) ?? null : null} onOpen={() => setKwPop("konter")} />

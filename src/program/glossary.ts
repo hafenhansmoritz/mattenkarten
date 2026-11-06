@@ -93,6 +93,11 @@ export const GLOSSARY: GlossaryTerm[] = [
     explain: "Deine Beine schließen Hals und einen Arm ein. Verteidigung: aufrecht bleiben, Haltung halten." },
   { id: "heelhook", de: "Fersendreher", en: "Heel Hook", match: ["Heel Hook", "Heel Hooks"],
     explain: "Beinhebel, der das Knie verdreht. Für Weißgurte verboten. Bei jedem Beinhebel: früh abklopfen, nie rausdrehen." },
+  // UX-Review 2: Verbote für Weißgurte antippbar erklären (Quellen: IBJJF-Regelwerk, wie src/data/cards.ts „slam“/„neck_crank“).
+  { id: "slam", de: "Hochheben und Fallenlassen", en: "Slam", match: ["Slams", "Slam"],
+    explain: "Den Partner hochheben und auf die Matte schmettern – etwa um aus seiner Guard zu kommen. Im IBJJF auf allen Stufen verboten: Gefahr für Nacken und Rücken." },
+  { id: "neckcrank", de: "Nackenhebel", en: "Neck Crank", match: ["Neck Cranks", "Neck Crank", "Nackenhebel"],
+    explain: "Druck auf Nacken und Wirbelsäule statt auf die Halsseiten. Für Weißgurte verboten – lieber früh abklopfen, nie rausdrehen." },
 ];
 
 export const GLOSSARY_BY_ID: Record<string, GlossaryTerm> = Object.fromEntries(GLOSSARY.map((g) => [g.id, g]));

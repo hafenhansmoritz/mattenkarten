@@ -25,13 +25,26 @@ export function TermText({ text }: { text: string }) {
   const [own, setOwn] = useState<string | null>(null);
   const open = ctx ?? setOwn;
   const parts = splitTerms(text);
+  // Satzzeichen direkt nach dem Begriff bleiben an ihm hängen (kein Umbruch „Seitenkontrolle⏎: …“, UX-Review 2).
+  const out: ReactNode[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    if (typeof p === "string") { out.push(p); continue; }
+    const btn = (
+      <button key={i} type="button" className="term-link" aria-haspopup="dialog"
+        aria-label={`${p.text} – Begriff erklären`}
+        onClick={(e) => { e.stopPropagation(); open(p.id); }}>{p.text}</button>
+    );
+    const next = parts[i + 1];
+    const m = typeof next === "string" ? /^[:;,.!?)“”»]+/.exec(next) : null;
+    if (m) {
+      out.push(<span key={`g${i}`} className="term-glue">{btn}{m[0]}</span>);
+      parts[i + 1] = (next as string).slice(m[0].length);
+    } else out.push(btn);
+  }
   return (
     <>
-      {parts.map((p, i) => typeof p === "string" ? p : (
-        <button key={i} type="button" className="term-link" aria-haspopup="dialog"
-          aria-label={`${p.text} – Begriff erklären`}
-          onClick={(e) => { e.stopPropagation(); open(p.id); }}>{p.text}</button>
-      ))}
+      {out}
       {!ctx && <TermPopover id={own} onClose={() => setOwn(null)} />}
     </>
   );

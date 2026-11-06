@@ -233,6 +233,8 @@ export function FightersScene({
               <FighterLayer f={F[l.who]} parts={l.parts} kit={KIT[l.who]} />
             </motion.g>
           ))}
+          {/* Unterer Kämpfer bleibt sichtbar (UX-Review 2): gestrichelte Kontur über dem Oberen (Mount, Rücken, Seite, Guard). */}
+          {top && <XRay f={F[top === "p" ? "o" : "p"]} kit={KIT[top === "p" ? "o" : "p"]} />}
           {markers.map((m) => (
             <GripMarker key={`${m.side}${m.hand}${m.grip}-${gripZone?.zone ?? ""}-${sub?.step ?? 0}`}
               f={F[m.side]} hand={m.hand} reduced={reduced} grad={`mk-grip-${uid}`} strong={m.grip === "sub" && (sub?.step ?? 0) >= 2} />
@@ -423,6 +425,20 @@ function FighterLayer({ f, parts, kit }: { f: AnimatedFighter; parts: Part[]; ki
           </g>
         );
       })}
+    </g>
+  );
+}
+
+/** Röntgen-Kontur des unteren Kämpfers: Mittellinie des Rumpfs plus Kopfring in Teamfarbe,
+ *  über dem Oberen gezeichnet – so bleibt Blau auch unter Rot erkennbar. */
+function XRay({ f, kit }: { f: AnimatedFighter; kit: Kit }) {
+  // Nur der Rumpf: Arme und Beine des Unteren liegen meist frei; der Rumpf verschwindet unter dem Oberen.
+  const lines = [f.waist, f.torso];
+  return (
+    <g fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none" }} aria-hidden className="mk-xray">
+      {lines.map((d, i) => <motion.path key={`u${i}`} d={d} stroke="#0b1020" strokeOpacity={0.6} strokeWidth={8} />)}
+      {lines.map((d, i) => <motion.path key={`l${i}`} d={d} stroke={kit.shirt} strokeWidth={4.5} strokeDasharray="8 5" />)}
+      <motion.circle cx={f.head.x} cy={f.head.y} r={STROKE.head + 2} stroke={kit.shirt} strokeWidth={2.5} />
     </g>
   );
 }

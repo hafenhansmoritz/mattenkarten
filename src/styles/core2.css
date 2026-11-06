@@ -570,8 +570,20 @@
 .k2-stage { position: relative; }
 .k2-bubble.is-stage { position: absolute; top: 6px; left: 6px; right: 6px; bottom: auto; z-index: 8; padding: 8px 10px; }
 .k2-bubble.is-stage p { font-size: 13.5px; }
+/* UX-Review 2: Start-Blase im Fluss unter dem Brett (nicht über den Kämpfern). */
+.k2-bubble.is-inline { position: static; margin: 0; max-width: none; z-index: auto; padding: 7px 10px; box-shadow: var(--shadow-1); overflow: hidden; }
+.k2-bubble.is-inline p { font-size: 13.5px; line-height: 1.35; }
 .k2-head { position: sticky; top: 0; z-index: 20; background: var(--bg, #0b0f1a); padding: 4px 0; }
 /* Kartentitel ohne automatische Silbentrennung („Wegrut-schen“); Schlüsselwort-Tags dürfen umbrechen („Dilemma → Beine“). */
 .k2-hcard-t { hyphens: manual; -webkit-hyphens: manual; overflow-wrap: break-word; }
 .k2-hcard .kw-tag { white-space: normal; }
 @media (max-width: 420px) { .k2-hand-cols:not([style]) .k2-hcard-t { font-size: 11px; letter-spacing: -0.015em; } }
+
+/* UX-Review 2: lange Wörter in der 4-Spalten-Hand („Rausrutschen“, „umklammern,“) nicht an die Kante; Schloss nicht über „AUFBAUEN“. */
+@media (max-width: 420px) {
+  .k2-hand-cols:not([style]) .k2-hcard { padding-left: 5px; padding-right: 4px; }
+  .k2-hand-cols:not([style]) .k2-hcard-t.is-long { font-size: 10px; letter-spacing: -0.02em; }
+  .k2-hand-cols:not([style]) .k2-hcard-t.is-xlong { font-size: 9.5px; letter-spacing: -0.03em; }
+}
+.k2-hcard.is-locked > .k2-lock { top: auto; bottom: 4px; right: 4px; }
+.k2-hcard.is-locked .k2-hcard-reqs { padding-right: 20px; }

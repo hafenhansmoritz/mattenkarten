@@ -12,6 +12,10 @@ import { chainAfterNames } from "../engine/chains";
 import { canKonter, konterTargets } from "../engine/konter";
 import { KonterIcon } from "./meta";
 
+
+/** Längstes Wort im Kartentitel (ohne Satzzeichen) – lange Wörter bekommen in der 4-Spalten-Hand eine kleinere Schrift. */
+export const longWord = (t: string) => Math.max(0, ...t.split(/[\s/–-]+/).map((w) => w.replace(/[^A-Za-zÄÖÜäöüß]/g, "").length));
+
 export interface Hand2Props {
   /** Alle Karten des Slots (cardsFor(pos, role)). */
   cards: Card2[];
@@ -119,7 +123,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
           <Foil />
           <span className="k2-hcard-kind"><KindIcon kind={c.kind} size={9} />{KIND_LABEL[c.kind]}</span>{" "}
           <RarityGem rarity={rar} size={10} className="k2-hcard-gem" />
-          <span className="k2-hcard-t">{c.plain}</span>{" "}
+          <span className={`k2-hcard-t${longWord(c.plain) >= 13 ? " is-xlong" : longWord(c.plain) >= 10 ? " is-long" : ""}`}>{c.plain}</span>{" "}
           <KeywordTags hits={kws.filter((k) => HAND_EXTRA.includes(k.id))} />{" "}
           {chainFrom && ok && <span className="k2-chain-badge">Kette bereit </span>}
           {isFresh && <span className="k2-fresh-badge">neu gezogen </span>}

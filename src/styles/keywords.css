@@ -70,3 +70,6 @@
 }
 .term-link:focus-visible { outline: 2px solid var(--points, #ffd166); outline-offset: 2px; border-radius: 3px; }
 .term-explain .term-en { font-weight: 400; color: var(--text-2); }
+
+/* Begriff + folgendes Satzzeichen nicht trennen (UX-Review 2: „Seitenkontrolle⏎:“). */
+.term-glue { white-space: nowrap; }
