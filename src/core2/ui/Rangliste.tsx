@@ -16,6 +16,7 @@ import {
 import { loadLadder, writeLadder } from "../ladder/store";
 import { LadderBelt } from "../ladder/LadderBelt";
 import type { State2, StilId } from "../types";
+import { allowedLadder, currentUnlocks, planDraftHint, ranglisteChoices, unlockInput } from "../../progress/unlock";
 import "../../styles/core2.css";
 import "../../styles/rangliste.css";
 
@@ -40,18 +41,32 @@ export function foeName(f: LadderFoe): string {
 }
 
 export function Rangliste({ onBack }: { onBack: () => void }) {
-  const [s, setS] = useState<LadderState>(() => loadLadder(readStil() ?? "ringer"));
+  const un = currentUnlocks();
+  if (!un.rangliste) {
+    return (
+      <div className="screen more lad" lang="de">
+        <button type="button" className="btn small ghost hm-back" onClick={onBack}>← Zurück</button>
+        <h2 className="display" style={{ fontSize: 30, margin: "2px 0 0" }}>Rangliste</h2>
+        <p className="muted">Die Rangliste schaltet sich nach Tag 7 im 7-Tage-Start frei.</p>
+      </div>
+    );
+  }
+  return <RanglisteOpen onBack={onBack} plan={ranglisteChoices(un).plan} />;
+}
+
+function RanglisteOpen({ onBack, plan }: { onBack: () => void; plan: boolean }) {
+  const [s, setS] = useState<LadderState>(() => allowedLadder(loadLadder(readStil() ?? "ringer"), plan));
   const [fight, setFight] = useState(false);
   const save = (n: LadderState) => { setS(n); writeLadder(n); };
   useEffect(() => { writeLadder(s); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- Saisonwechsel gleich festhalten
   useEffect(() => { if (!fight) window.scrollTo(0, 0); }, [fight]);
 
   if (fight) return <LadderFight s={s} onDone={(n) => { if (n) save(n); setFight(false); }} />;
-  return <LadderHub s={s} onBack={onBack} onFight={() => setFight(true)} onChange={save} />;
+  return <LadderHub s={s} planOk={plan} onBack={onBack} onFight={() => setFight(true)} onChange={save} />;
 }
 
 /* ---------------- Übersicht ---------------- */
-function LadderHub({ s, onBack, onFight, onChange }: { s: LadderState; onBack: () => void; onFight: () => void; onChange: (s: LadderState) => void }) {
+function LadderHub({ s, planOk, onBack, onFight, onChange }: { s: LadderState; planOk: boolean; onBack: () => void; onFight: () => void; onChange: (s: LadderState) => void }) {
   const f = s.next;
   const gate = inGate(s);
   const plan = myPlan(s.stil);
@@ -59,7 +74,7 @@ function LadderHub({ s, onBack, onFight, onChange }: { s: LadderState; onBack: (
   const hist = [...s.history].reverse().slice(0, 10);
   return (
     <div className="screen more lad" lang="de">
-      <button type="button" className="btn small ghost" onClick={onBack}>← Zurück</button>
+      <button type="button" className="btn small ghost hm-back" onClick={onBack}>← Zurück</button>
       <span className="label">{seasonName(s.season)}</span>
       <h2 className="display" style={{ fontSize: 30, margin: "2px 0 0" }}>Rangliste <span className="k2-new-tag">neu</span></h2>
       <p className="lad-honest" role="note"><b>Ehrlich gesagt:</b> {HONESTY}</p>
@@ -89,10 +104,12 @@ function LadderHub({ s, onBack, onFight, onChange }: { s: LadderState; onBack: (
           <button type="button" aria-pressed={s.mode === "stil"} className={s.mode === "stil" ? "on" : ""} onClick={() => onChange(setChoice(s, { mode: "stil" }))}>
             <strong>Freies Spiel</strong><span>alle Karten + Spielstil</span>
           </button>
-          <button type="button" aria-pressed={s.mode === "plan"} className={s.mode === "plan" ? "on" : ""} onClick={() => onChange(setChoice(s, { mode: "plan" }))}>
-            <strong>Spielplan</strong><span>15 Angriffe, ziehen</span>
+          <button type="button" aria-pressed={s.mode === "plan"} className={s.mode === "plan" ? "on" : ""} disabled={!planOk}
+            onClick={() => onChange(setChoice(s, { mode: "plan" }))}>
+            <strong>Spielplan</strong><span>{planOk ? "15 Angriffe, ziehen" : "noch gesperrt"}</span>
           </button>
         </div>
+        {!planOk && <p className="small muted">Spielplan: {planDraftHint(unlockInput())}</p>}
         {s.mode === "stil" ? (
           <div className="lad-stile" role="group" aria-label="Spielstil wählen">
             {STILE.map((x) => (

@@ -16,8 +16,8 @@ import { PLAN_RULE } from "../core2/data/plans";
 import { DraftModus, DRAFT_RULE } from "../core2/ui/DraftModus";
 import { LADDER_RULE } from "../core2/ui/Rangliste";
 import { useShared } from "../progress/store";
-import { planDraftHint, unlockInput, unlocks } from "../progress/unlock";
-import { loadProgress } from "../program/store";
+import { currentUnlocks, lessonOpen, planDraftHint, unlockInput, unlocks } from "../progress/unlock";
+import { useProgram } from "../program/store";
 import { useRewards } from "../core2/rewards/store";
 import { useCollection } from "../core2/collection/store";
 
@@ -37,7 +37,8 @@ export function K2RunView({ run: start, onDone }: { run: K2Run; onDone: () => vo
     // Geschafft-Marke setzt ArenaK2 selbst (gemeinsamer Fortschritt mit dem 7-Tage-Start).
     return <ArenaK2 key={t.id + seed} mode="tutorial" tutorial={t} aiLevel={t.aiLevel} onExit={onDone} />;
   }
-  if (run.kind === "bosses") return <Bosse onBack={onDone} />;
+  if (run.kind === "bosses") return currentUnlocks().bosses ? <Bosse onBack={onDone} />
+    : <div className="screen"><p>Bosse schalten sich nach Lektion 3 oder Tag 7 frei.</p><button className="btn hm-back" onClick={onDone}>← Zurück</button></div>;
   if (run.kind === "plan") return <SpielplanModus onBack={onDone} />;
   if (run.kind === "draft") return <DraftModus onBack={onDone} />;
   if (run.kind === "stilwahl") {
@@ -55,9 +56,10 @@ export function SpielenHome({ onRun, onRangliste, onSammlung, onPakete }: {
   onRun: (r: K2Run) => void; onRangliste: () => void; onSammlung: () => void; onPakete: () => void;
 }) {
   const shared = useShared();
+  const [prog] = useProgram();
   const rw = useRewards();
   const col = useCollection();
-  const ui = unlockInput(loadProgress(), shared);
+  const ui = unlockInput(prog, shared);
   const un = unlocks(ui);
   const done = shared.lessons;
   const progDone = LESSONS_PROGRAM.filter((t) => done.includes(t.id));
@@ -75,7 +77,8 @@ export function SpielenHome({ onRun, onRangliste, onSammlung, onPakete }: {
       <h3 className="display">Lektionen</h3>
       <div className="more-list">
         {TUTORIALS_K2.map((t, i) => {
-          const locked = i > 0 && !done.includes(TUTORIALS_K2[i - 1].id);
+          // Lektion 3 im 7-Tage-Start geschafft → nicht gesperrt, nur weil Lektion 2 fehlt (UX-Review 2, Punkt 10).
+          const locked = !lessonOpen(i, ui);
           return (
             <motion.button key={t.id} className="more-item" disabled={locked} style={locked ? { opacity: .45 } : undefined}
               onClick={() => onRun({ kind: "tut", id: t.id })}
@@ -85,10 +88,17 @@ export function SpielenHome({ onRun, onRangliste, onSammlung, onPakete }: {
             </motion.button>
           );
         })}
-        <button className="more-item" onClick={() => onRun({ kind: "tut", id: TUTORIAL_GUARD_ODER_TD.id })}>
-          <strong className="display">{done.includes(TUTORIAL_GUARD_ODER_TD.id) ? "✓ " : "Extra: "}{TUTORIAL_GUARD_ODER_TD.title}</strong>
-          <span className="muted small">{TUTORIAL_GUARD_ODER_TD.idea}</span>
-        </button>
+        {un.extraLesson ? (
+          <button className="more-item" onClick={() => onRun({ kind: "tut", id: TUTORIAL_GUARD_ODER_TD.id })}>
+            <strong className="display">{done.includes(TUTORIAL_GUARD_ODER_TD.id) ? "✓ " : "Extra: "}{TUTORIAL_GUARD_ODER_TD.title}</strong>
+            <span className="muted small">{TUTORIAL_GUARD_ODER_TD.idea}</span>
+          </button>
+        ) : (
+          <div className="more-item hm-teaser" aria-disabled="true">
+            <strong className="display">Extra: {TUTORIAL_GUARD_ODER_TD.title}</strong>
+            <span className="muted small">Schaltet sich frei nach Lektion 2 oder Tag 4 im 7-Tage-Start.</span>
+          </div>
+        )}
       </div>
       {progDone.length > 0 && (
         <>
@@ -105,7 +115,7 @@ export function SpielenHome({ onRun, onRangliste, onSammlung, onPakete }: {
       )}
 
       <h3 className="display">Freies Spiel</h3>
-      {!allDone && <p className="muted small">Tipp: Erst die drei Lektionen – dann verstehst du das Brett sofort.</p>}
+      {!allDone && !un.lesson3 && <p className="muted small">Tipp: Erst die drei Lektionen – dann verstehst du das Brett sofort.</p>}
       <button className="btn primary big" onClick={() => free(1)}>Locker spielen</button>
       {un.levels ? (
         <div className="hm-row2">
@@ -118,14 +128,23 @@ export function SpielenHome({ onRun, onRangliste, onSammlung, onPakete }: {
 
       <h3 className="display">Gegner</h3>
       <div className="more-list">
-        <button className="more-item" onClick={() => onRun({ kind: "bosses" })}>
-          <strong className="display">Bosse · {readBeaten().filter((id) => BOSSES.some((b) => b.id === id)).length}/{BOSSES.length} besiegt</strong>
-          <span className="muted small">Vier Gegner mit eigenem Stil: Ringer, Guard, Druck, Rücken. Lern, wie du dagegen spielst.</span>
-        </button>
-        <button className="more-item" onClick={onRangliste}>
-          <strong className="display">Rangliste</strong>
-          <span className="muted small">Spielränge Weiß bis Schwarz gegen die KI. {LADDER_RULE[0]} Spielrang, kein echter Gürtel.</span>
-        </button>
+        {un.bosses ? (
+          <button className="more-item" onClick={() => onRun({ kind: "bosses" })}>
+            <strong className="display">Bosse · {readBeaten().filter((id) => BOSSES.some((b) => b.id === id)).length}/{BOSSES.length} besiegt</strong>
+            <span className="muted small">Vier Gegner mit eigenem Stil: Ringer, Guard, Druck, Rücken. Lern, wie du dagegen spielst.</span>
+          </button>
+        ) : (
+          <div className="more-item hm-teaser" aria-disabled="true">
+            <strong className="display">Bosse</strong>
+            <span className="muted small">Vier Gegner mit eigenem Stil. Schalten sich frei nach Lektion 3 oder Tag 7 im 7-Tage-Start.</span>
+          </div>
+        )}
+        {un.rangliste && (
+          <button className="more-item" onClick={onRangliste}>
+            <strong className="display">Rangliste</strong>
+            <span className="muted small">Spielränge Weiß bis Schwarz gegen die KI. {LADDER_RULE[0]} Spielrang, kein echter Gürtel.</span>
+          </button>
+        )}
         {un.planDraft ? (
           <>
             <button className="more-item" onClick={() => onRun({ kind: "plan" })}>

@@ -37,3 +37,4 @@
 .lad-home { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 10px 0; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); color: inherit; cursor: pointer; text-align: left; font: inherit; }
 .lad-home > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .lad-home .lad-belt { flex: none; width: 110px; }
+.lad-seg button:disabled { opacity: .5; cursor: not-allowed; }
