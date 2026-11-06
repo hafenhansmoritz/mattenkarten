@@ -71,7 +71,7 @@ export function Puzzles({ onBack, top }: { onBack?: () => void; top?: ReactNode 
         {view.v === "play"
           ? view.mode === "daily" ? <>Drei für heute <span className="num">{view.idx + 1}/{view.list.length}</span></>
             : <>Üben <span className="num">{view.idx + 1}/{view.list.length}</span></>
-          : "Üben"}
+          : "Klassik-Rätsel"}
       </h2>
     </header>
   );

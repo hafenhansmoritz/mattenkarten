@@ -1,5 +1,5 @@
 // „Klassik“ (UX-Review 06.11.2026, Zurückziehen): das alte Kartenspiel – Kampagne, Deck, Deck teilen, Bibliothek.
-// Nicht gelöscht, nur aus der Hauptnavigation genommen. Erreichbar über das Zahnrad.
+// Nicht gelöscht, nur aus der Hauptnavigation genommen. Erreichbar über das Zahnrad. Dazu die alten Rätsel.
 import { Suspense, lazy, useState, type ComponentType } from "react";
 import type { Archetype } from "../engine/types";
 import { BELTS } from "../data/campaign";
@@ -12,9 +12,11 @@ const named = <M, K extends keyof M>(load: () => Promise<M>, key: K) =>
 const DeckBuilder = named(() => import("../screens/Deck"), "DeckBuilder");
 const Library = named(() => import("../screens/Deck"), "Library");
 const ShareDeck = named(() => import("../screens/ShareDeck"), "ShareDeck");
+// Die alten Rätsel (Vorbereiten/Angreifen/Kontern) gehören zum Klassik-Spiel (UX-Review 2, Punkt 3).
+const Puzzles = named(() => import("../screens/Puzzles"), "Puzzles");
 
-type Part = "kampagne" | "deck" | "bibliothek" | "teilen";
-const PART_LABEL: Record<Part, string> = { kampagne: "Kampagne", deck: "Deck", bibliothek: "Bibliothek", teilen: "Teilen" };
+type Part = "kampagne" | "raetsel" | "deck" | "bibliothek" | "teilen";
+const PART_LABEL: Record<Part, string> = { kampagne: "Kampagne", raetsel: "Rätsel", deck: "Deck", bibliothek: "Bibliothek", teilen: "Teilen" };
 
 export function KlassikScreen({ onBack, onFight, start = "kampagne" }: { onBack: () => void; onFight: (a: Archetype) => void; start?: Part }) {
   const g = useGame();
@@ -34,6 +36,7 @@ export function KlassikScreen({ onBack, onFight, start = "kampagne" }: { onBack:
       </div>
       <Suspense fallback={<div className="screen-loading" />}>
         {part === "kampagne" && <Campaign onFight={onFight} />}
+        {part === "raetsel" && <Puzzles />}
         {part === "deck" && <DeckBuilder />}
         {part === "bibliothek" && <Library />}
         {part === "teilen" && <ShareDeck onBack={() => { if (location.hash.startsWith("#deck=")) history.replaceState(null, "", location.pathname); setPart("deck"); }} />}
