@@ -13,6 +13,10 @@ export { KRAFT_MAX } from "./resolve";
 export { GRIP_MAX, GRIP_EFFECT, gripsOf, gripBonus, gripFits, breakable } from "./grips";
 export { needIn, finishThreats, type FinishThreat } from "./legal";
 export { CHAIN_EFFECT, chainFrom, chainPrev, chainAfterNames } from "./chains";
+export {
+  KONTER_COST, KONTER_ROUNDS, KONTER_PREFIX, withKonter, splitPlay, konterOf, konterOptions,
+  checkKonter, canKonter, konterTargets, konterCards, publicView, konterBelief,
+} from "./konter";
 
 export const KRAFT_START = 3;
 
@@ -25,6 +29,8 @@ export interface NewMatchOpts {
   grips?: boolean;
   /** false: Ketten aus (erste drei Lektionen, Mechanik 3). */
   chains?: boolean;
+  /** false: Konter aus (erste drei Lektionen, Mechanik 4). */
+  konter?: boolean;
   /** Optional: eigenes Kartenregister (setzt das globale Register; Tests/Tutorials). */
   cards?: Card2[];
 }
@@ -45,6 +51,7 @@ export function newMatch(opts: NewMatchOpts): State2 {
     grips: [],
     ...(opts.grips === false ? { noGrips: true } : {}),
     ...(opts.chains === false ? { noChains: true } : {}),
+    ...(opts.konter === false ? { noKonter: true } : {}),
     history: [],
     result: null,
     goal: opts.goal,

@@ -7,6 +7,7 @@ import { roleOf } from "./board";
 import { newMatch, playRound } from "./index";
 import { PASS } from "./legal";
 import { cardById } from "./registry";
+import { splitPlay } from "./konter";
 
 export interface SimPlayer { level: 1 | 2 | 3; style?: AiStyle }
 
@@ -39,7 +40,9 @@ export function simMatch(p: SimPlayer, o: SimPlayer, seed: number): SimMatch {
     for (const side of ["p", "o"] as Side[]) {
       const pl = side === "p" ? p : o;
       ids[side] = aiChoose(s, side, pl.level, rng, pl.style);
-      if (ids[side] !== PASS) picks.push({ side, pos: s.pos, role: roleOf(s, side), card: ids[side] });
+      // Mechanik 4: ein zusätzlich gelegter Konter zählt nicht als Entscheidung – gezählt wird die offen gespielte Karte.
+      const played = splitPlay(ids[side]).card;
+      if (played !== PASS) picks.push({ side, pos: s.pos, role: roleOf(s, side), card: played });
     }
     s = playRound(s, ids.p, ids.o).state;
     note();

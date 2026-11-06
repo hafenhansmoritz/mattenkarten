@@ -5,8 +5,9 @@
 // damit ein Schlüsselwort nie etwas behauptet, was die Engine nicht tut. keywords.test.ts prüft das gegen die Regeln.
 import type { Card2, Pos2, Zone } from "../types";
 import { SRC } from "../../data/sources";
+import { canKonter, KONTER_COST, KONTER_PER_MATCH } from "../engine/konter";
 
-export type KeywordId = "keil" | "rahmen" | "griff" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "kette" | "atem";
+export type KeywordId = "keil" | "rahmen" | "griff" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "kette" | "konter" | "atem";
 
 export interface KeywordDef {
   id: KeywordId;
@@ -26,6 +27,9 @@ export interface KeywordDef {
 const GB_GAS = { title: "Gracie Barra – Gassing Out? 3 Tips", url: "https://graciebarra.com/gb-news/gassing-out" };
 const GFF = { title: "BJJ More – Danaher Pin Escapes: Go Further Faster (Review)", url: "https://bjjmore.com/john-danaher-pin-escapes-go-further-faster/" };
 const GRIP_GAME = { title: "Grapplearts – The Engagement Phase Game (Gripfighting)", url: "https://www.grapplearts.com/the-engagement-phase-game/" };
+/** Mechanik 4 (B38–B43), per WebFetch geprüft 2026-11-06: „Staying one step ahead means that you know what your opponent
+ *  is about to do.“ – „keeping your elbows and arms tight will prevent your opponent from submitting you.“ */
+const ONE_STEP_AHEAD = { title: "Evolve MMA – Never Get Submitted Again: 5 Ways To Improve Your Defense", url: "https://evolve-mma.com/blog/never-get-submitted-heres-5-ways-improve-defense-bjj/" };
 const RNC_STEPS = { title: "Grapplearts – Preventing & Escaping the RNC", url: "https://www.grapplearts.com/preventing-escaping-the-rnc/" };
 
 /** Reihenfolge = Reihenfolge auf der Karte und im Glossar. */
@@ -98,6 +102,15 @@ export const KEYWORDS: KeywordDef[] = [
     source: SRC.combos,
   },
   {
+    // Mechanik 4 (B38–B43): verdeckt vorbereiteter Rahmen (Secret/Instant). Abgeleitet: Rahmen, gegen den der Gegner im
+    // gegenüberliegenden Slot in derselben Zone angreifen kann (canKonter).
+    id: "konter", name: "Konter",
+    rule: `Zusätzlich zu deiner Karte legst du diesen Rahmen verdeckt – ${KONTER_PER_MATCH === 1 ? "einmal" : `${KONTER_PER_MATCH}-mal`} pro Kampf, für ${KONTER_COST} Atem. Spielt er diese oder nächste Runde in seiner Zone, springt er statt deiner Karte ein. Er stoppt Angriffe, gewinnt aber keine Zone – und verliert gegen eine Finte.`,
+    hint: "Konter: Rahmen verdeckt vorbereiten – springt ein, wenn er dort angreift.",
+    bjj: "Gute Verteidigung heißt, einen Schritt voraus zu sein: Der Rahmen steht, bevor er angreift.",
+    source: ONE_STEP_AHEAD,
+  },
+  {
     id: "atem", name: "Atem",
     rule: "Die Zahl ist der Preis in Atem, du zahlst beim Aufdecken. Jede Runde bekommst du 1 zurück, höchstens 5.",
     hint: "Atem: große Aktionen kosten Atem – teil ihn dir ein.",
@@ -137,6 +150,7 @@ export function keywordsOf(c: Card2): KeywordHit[] {
   if (c.submission) out.push({ id: "aufgabe", label: "Aufgabe" });
   if (c.dilemmaOpens) out.push({ id: "dilemma", label: `Dilemma → ${ZONE_NAME[c.dilemmaOpens]}` });
   if (c.chain && c.kind === "angriff") out.push({ id: "kette", label: "Kette" });
+  if (canKonter(c)) out.push({ id: "konter", label: "Konter" });
   if (c.kraft) out.push({ id: "atem", label: `Atem ${c.kraft}` });
   return out;
 }

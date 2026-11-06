@@ -47,4 +47,6 @@ export interface TutorialK2Def {
   grips?: boolean;
   /** false: Ketten (Mechanik 3) aus – die ersten drei Lektionen erklären sie höchstens als Text. */
   chains?: boolean;
+  /** false: verdeckte Konter (Mechanik 4) aus – die ersten drei Lektionen und die Zusatz-Lektion führen sie nicht ein. */
+  konter?: boolean;
 }

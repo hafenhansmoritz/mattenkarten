@@ -8,6 +8,7 @@ import {
 import { other, topFor } from "../src/core2/engine/board";
 import { chainFrom } from "../src/core2/engine/chains";
 import { finishThreats } from "../src/core2/engine/legal";
+import { splitPlay } from "../src/core2/engine/konter";
 import { isGrundlage, roundShare, simMatch, type SimPlayer } from "../src/core2/engine/sim";
 import { BOSSES } from "../src/core2/data/bosses";
 import { mulberry32 } from "../src/engine/rng";
@@ -74,9 +75,12 @@ interface Agg {
   chainReady: number; chainPlayed: number; chainHit: Map<string, number>; chainMatches: number; chainTaps: number;
   /** Mechanik 3: Entscheidungen, bei denen „Abschluss möglich“ für die Gegenseite angezeigt war, und wie oft der Verteidiger dann in der Zone rahmte. */
   finishShown: number; finishFramed: number;
+  /** Mechanik 4: Konter gelegt (je Karte), ausgelöst (je Karte), verfallen (Zeit/Position), Entscheidungen von Stufe 2/3, Matches mit Konter, Taps nach Auslösen. */
+  konterSet: Map<string, number>; konterHit: Map<string, number>; konterGone: Map<string, number>; decL23: number; konterMatches: number;
+  konterByLevel: Map<number, number>; decByLevel: Map<number, number>;
 }
 const inc = <K>(m: Map<K, number>, k: K, n = 1) => m.set(k, (m.get(k) ?? 0) + n);
-const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map(), playedN: 0, grundAll: 0, bottomDec: 0, grundBottom: 0, gripOn: new Map(), gripOff: new Map(), gripMatches: 0, chainReady: 0, chainPlayed: 0, chainHit: new Map(), chainMatches: 0, chainTaps: 0, finishShown: 0, finishFramed: 0 });
+const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map(), playedN: 0, grundAll: 0, bottomDec: 0, grundBottom: 0, gripOn: new Map(), gripOff: new Map(), gripMatches: 0, chainReady: 0, chainPlayed: 0, chainHit: new Map(), chainMatches: 0, chainTaps: 0, finishShown: 0, finishFramed: 0, konterSet: new Map(), konterHit: new Map(), konterGone: new Map(), decL23: 0, konterMatches: 0, konterByLevel: new Map(), decByLevel: new Map() });
 const total = newAgg();
 
 function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
@@ -90,12 +94,18 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
   let vorteil = false;
   let gripped = false;
   let chained = false;
+  let kontered = false;
   while (!s.result) {
     if (guard++ > 50) { anomalies.push(`Match seed ${seed} endet nicht (>50 Runden).`); break; }
     const ids: Record<Side, string> = { p: "", o: "" };
+    const plays: Record<Side, string> = { p: "", o: "" };
     for (const side of ["p", "o"] as Side[]) {
       const lv = side === "p" ? lp : lo;
-      ids[side] = aiChoose(s, side, lv, rng);
+      const full = aiChoose(s, side, lv, rng);
+      plays[side] = full;
+      const sp = splitPlay(full);
+      ids[side] = sp.card;
+      rec((a) => { inc(a.decByLevel, lv); if (sp.konter) { inc(a.konterByLevel, lv); inc(a.konterSet, sp.konter); } });
       const ready = legalCards(s, side).filter((l) => l.ok && chainFrom(s, side, cardById(l.id)!)).map((l) => l.id);
       if (ready.length) rec((a) => { a.chainReady++; if (ready.includes(ids[side])) a.chainPlayed++; });
       const fin = finishThreats(s, other(side));
@@ -116,19 +126,23 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
         rec((a) => { a.playedN++; if (g) a.grundAll++; if (role === "bottom") { a.bottomDec++; if (g) a.grundBottom++; } });
       }
     }
-    const { state, round } = playRound(s, ids.p, ids.o);
+    const { state, round } = playRound(s, plays.p, plays.o);
     rec((a) => inc(a.rules, round.rule));
     if (round.headline.split(/\s+/).length > 10) anomalies.push(`Headline > 10 Wörter: "${round.headline}"`);
     if (round.why.split(/\s+/).length > 20) anomalies.push(`Why > 20 Wörter (${ids.p}/${ids.o}): "${round.why}"`);
     if (round.winner === "none") rec((a) => a.zeroAction++);
+    const played: Record<Side, string> = { p: round.pCard, o: round.oCard };
     for (const e of round.events) {
+      if (e.t === "konter") { kontered = true; if (e.on === "trigger") rec((a) => inc(a.konterHit, e.card!)); if (e.on === "gone") rec((a) => inc(a.konterGone, e.why!)); }
       if (e.t === "chain") { chained = true; rec((a) => inc(a.chainHit, e.card)); if (round.events.some((x) => x.t === "tap" && x.winner === e.side)) rec((a) => a.chainTaps++); }
       if (e.t === "grip") { gripped = true; if (e.on) rec((a) => inc(a.gripOn, e.name)); else rec((a) => inc(a.gripOff, e.why ?? "?")); }
-      if (e.t === "tap") { const id = e.winner === "p" ? ids.p : ids.o; rec((a) => inc(a.decisive, id)); }
+      if (e.t === "tap") { const id = played[e.winner]; rec((a) => inc(a.decisive, id)); }
       if (e.t === "move") {
         // Wer hat den Wechsel ausgelöst? Die Seite, deren Karte genau dieses Ziel hat.
         for (const side of ["p", "o"] as Side[]) {
-          const c = cardById(ids[side]);
+          const c = cardById(played[side]);
+          const stop = c?.onStop && c.kind === "rahmen" ? { ...c, to: c.onStop } : c;
+          if (stop?.to && stop.to.pos === e.pos && topFor(side, stop.to.role) === e.top) { lastScoring = { side, id: stop.id }; continue; }
           if (c?.to && c.to.pos === e.pos && topFor(side, c.to.role) === e.top) lastScoring = { side, id: c.id };
         }
       }
@@ -149,6 +163,7 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
     if (vorteil) agg.vorteil++;
     if (gripped) agg.gripMatches++;
     if (chained) agg.chainMatches++;
+    if (kontered) agg.konterMatches++;
     if (!r) return;
     if (r.type === "tap") { agg.tap++; inc(agg.taps, r.sub); }
     else if (r.type === "goal") agg.goal++;
@@ -216,6 +231,13 @@ for (const [pos, role] of ESC_SLOTS) {
   console.log(`\nKetten (Mechanik 3): in ${pct(total.chainMatches, M)} der Matches, ${(ch / M).toFixed(2)} Treffer je Match, Taps in Ketten-Runden ${pct(total.chainTaps, Math.max(1, [...total.taps.values()].reduce((a, b) => a + b, 0)))} aller Taps`);
   console.log(`  bereit: ${total.chainReady} Entscheidungen, gespielt ${pct(total.chainPlayed, Math.max(1, total.chainReady))}`);
   console.log(`  Treffer: ${top(total.chainHit, 12).map(([k, v]) => `${k} ${pct(v, Math.max(1, ch))}`).join(", ")}`);
+    const ks = [...total.konterSet.values()].reduce((a, b) => a + b, 0);
+  const kh = [...total.konterHit.values()].reduce((a, b) => a + b, 0);
+  const lvTxt = ([2, 3] as const).map((lv) => `L${lv} ${pct(total.konterByLevel.get(lv) ?? 0, total.decByLevel.get(lv) ?? 0)}`).join(", ");
+  console.log(`\nKonter (Mechanik 4): in ${pct(total.konterMatches, M)} der Matches, ${(ks / M).toFixed(2)} gelegt je Match (Anteil der Entscheidungen: ${lvTxt})`);
+  console.log(`  ausgelöst ${pct(kh, ks)} der gelegten · verfallen: Zeit ${pct(total.konterGone.get("zeit") ?? 0, ks)}, Position ${pct(total.konterGone.get("position") ?? 0, ks)}`);
+  console.log(`  gelegt:    ${top(total.konterSet, 8).map(([k, v]) => `${k} ${v}`).join(", ")}`);
+  console.log(`  ausgelöst: ${top(total.konterHit, 8).map(([k, v]) => `${k} ${v}`).join(", ")}`);
   console.log(`Abschluss möglich (B36): bei ${total.finishShown} Entscheidungen angezeigt, Verteidiger rahmt die Zone in ${pct(total.finishFramed, Math.max(1, total.finishShown))}`);
 }
 const tapTot = [...total.taps.values()].reduce((a, b) => a + b, 0);

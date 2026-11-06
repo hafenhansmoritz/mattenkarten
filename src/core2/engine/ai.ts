@@ -8,6 +8,7 @@ import { cardById } from "./registry";
 import { breakable, gripsOf } from "./grips";
 import { resolveRound } from "./resolve";
 import { chainFrom } from "./chains";
+import { foeFrameIn, KONTER_COST, konterBelief, konterOptions, publicView, withKonter } from "./konter";
 
 /** B28 Boss-Spielstil: Gewichte, die auf Stufe 2/3 aufgeschlagen werden (siehe data/bosses.ts). */
 export interface AiStyle {
@@ -21,6 +22,8 @@ export interface AiStyle {
   grips?: Partial<Record<string, number>>;
   /** Mechanik 3: Bonus für eine bereite Signatur-Kette (Karten-ID der Ketten-Karte, z. B. "gb_triangle"). */
   chains?: Partial<Record<string, number>>;
+  /** Mechanik 4: Bonus fürs verdeckte Legen dieses Rahmens als Konter (Karten-ID, z. B. "nd_sprawl"). */
+  konter?: Partial<Record<string, number>>;
 }
 
 /** Stilwert einer Lage aus Sicht von side: Positionsvorliebe + eigene Aufgaben-Schritte. */
@@ -81,6 +84,20 @@ const GRIP_BREAK_FRAME = 4;
 const GRIP_FRAME_HIT = 1;
 /** Mechanik 3 (B37): bereite Kette spielen (Stufe 2 und Gegnermodell von Stufe 3). */
 const CHAIN_READY = 3;
+/** Mechanik 4 (B42): verdeckten Konter umspielen – Abzug für einen Angriff in der vermuteten Konter-Zone (Stufe 2),
+ *  gedämpft für Dilemma- und Ketten-Angriffe (die profitieren gerade vom Abwehren). */
+const KONTER_AVOID = 4;
+const KONTER_AVOID_DAMP = 0.4;
+const KONTER_FEINT = 2.5;
+/** Stufe 2: zusätzlich Konter legen, wenn der Wert die Schwelle übersteigt (Wert je bedrohter Angriffsart, Atem-Preis). */
+const KONTER_STOP_POS = 2.5;
+const KONTER_STOP_SUB = 2;
+const KONTER_THRESHOLD = 2.5;
+const KONTER_ATEM = 0.6;
+/** Stufe 3: Wert des eigenen liegenden Konters in der Bewertung (voll, wenn er dort angreifen kann). */
+const KONTER_EVAL = 6;
+/** Stufe 3: so viel muss der Konter den Erwartungswert mindestens heben. */
+const KONTER_MARGIN = 1;
 /** Stufe 3: Wert eines liegenden Griffs in der Bewertung. */
 const GRIP_EVAL = 1.5;
 
@@ -116,6 +133,9 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     }
     // Läuft der Gegner bei mir in dieselbe Zone mit Rahmen? Stufe 2: pauschales Risiko.
     v -= 0.8;
+    // B42: sein verdeckter Konter liegt vermutlich hier – woanders angreifen, oder mit Dilemma/Kette.
+    const bel = konterBelief(s, side)[c.zone] ?? 0;
+    if (bel) v -= KONTER_AVOID * bel * (c.dilemmaOpens || chainFrom(s, side, c) ? KONTER_AVOID_DAMP : 1);
     // B16 Konter-Wechsel: hat er dort einen Rahmen mit Positionswechsel (Sprawl → Front Headlock), kostet ein gestoppter Shot die Position.
     if (progress && c.to && foeOk.some((x) => x.kind === "rahmen" && x.zone === c.zone && x.onStop && !unmetRequires(s, other(side), { ...x, requires: x.onStopRequires }).length)) v -= COUNTER_RISK;
     // Gerangel droht: er kann in derselben Zone angreifen und keiner liegt vorne.
@@ -134,6 +154,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     if (progress && denied.length && role !== "neutral") v += WEDGE_BONUS;
     // Zone vor dem Gerangel gewinnen: beide können hier angreifen, Gleichstand.
     if (thrZones.has(c.zone) && b[c.zone] === 0 && cardsOfSlot(s, side).some((x) => x.kind === "angriff" && x.zone === c.zone)) v += 2;
+    // B42 Finte gegen seinen Konter: liegt er vermutlich hier, lockt Aufbauen ihn raus (+2, Konter verbraucht).
+    v += KONTER_FEINT * (konterBelief(s, side)[c.zone] ?? 0);
     // Finte: läuft meine Aufgabe in dieser Zone, erwartet er dort einen Rahmen.
     const run = mySubs.find((x) => x.zone === c.zone && x.step >= 1);
     if (run) v += 1.5 + run.step;
@@ -203,8 +225,46 @@ function styleCard(s: State2, side: Side, c: Card2, st: AiStyle): number {
   return v;
 }
 
-/** style (optional, B28): Boss-Spielstil oder Konter-Heuristik. Stufe 1 ignoriert ihn. */
-export function aiChoose(s: State2, side: Side, level: 1 | 2 | 3, rng: () => number, style?: AiStyle): string {
+/** B42 Stufe 2: Wert, Rahmen c zusätzlich verdeckt als Konter zu legen. Lohnt sich, wenn er in dieser Zone angreifen
+ *  kann (Position oder Aufgabe); kostet Atem und den Rahmen selbst (liegt er, kann ich ihn nicht offen spielen). */
+function scoreKonter(s: State2, side: Side, c: Card2, rng: () => number, style?: AiStyle): number {
+  const thr = threats(s, side);
+  const t = thr.find((x) => x.zone === c.zone);
+  if (!t) return -Infinity;
+  const ids = t.cardIds.map((id) => cardById(id)).filter(Boolean) as Card2[];
+  let v = 0;
+  if (ids.some((a) => a.to)) v += KONTER_STOP_POS + Math.max(0, ...ids.map((a) => a.to?.points ?? 0)) * 0.4;
+  const sub = s.subs.find((x) => x.owner !== side && x.zone === c.zone);
+  if (ids.some((a) => a.submission)) v += KONTER_STOP_SUB + (sub ? sub.step * 1.5 : 0);
+  if (c.onStop && ids.some((a) => a.to) && !unmetRequires(s, side, { ...c, requires: c.onStopRequires }).length) v += 1.5;
+  // Mehrere Drohzonen: ein Konter deckt nur eine.
+  v -= (thr.length - 1) * 0.6;
+  v -= KONTER_COST * KONTER_ATEM;
+  v += style?.konter?.[c.id] ?? 0;
+  return v + rng() * 0.6;
+}
+
+/** B42 Bosse (und Konter-Profile) legen nur ihre Signatur-Konter (AiStyle.konter mit Gewicht > 0); ohne Stil alle. */
+function styleKonter(s: State2, side: Side, playing: Card2 | null, style?: AiStyle): Card2[] {
+  const all = konterOptions(s, side, playing);
+  return style ? all.filter((c) => (style.konter?.[c.id] ?? 0) > 0) : all;
+}
+
+/** Bester zusätzlicher Konter zu `playing` (Stufe 2), oder null. */
+function pickKonter(s: State2, side: Side, playing: Card2 | null, rng: () => number, style?: AiStyle): Card2 | null {
+  let best: Card2 | null = null, bestV = KONTER_THRESHOLD;
+  for (const c of styleKonter(s, side, playing, style)) {
+    if (playing && playing.zone === c.zone && playing.kind === "rahmen") continue; // dort rahme ich schon offen
+    const v = scoreKonter(s, side, c, rng, style);
+    if (v > bestV) { bestV = v; best = c; }
+  }
+  return best;
+}
+
+/** style (optional, B28): Boss-Spielstil oder Konter-Heuristik. Stufe 1 ignoriert ihn (und legt keine Konter).
+ *  Alle Stufen rechnen nur mit der öffentlichen Sicht (publicView): sein verdeckter Konter bleibt verdeckt. */
+export function aiChoose(s0: State2, side: Side, level: 1 | 2 | 3, rng: () => number, style?: AiStyle): string {
+  const s = publicView(s0, side);
   const ok = okCards(s, side);
   if (ok.length === 0) return PASS;
   if (level === 1) {
@@ -219,7 +279,8 @@ export function aiChoose(s: State2, side: Side, level: 1 | 2 | 3, rng: () => num
     const v = scoreCard(s, side, c, level, rng) + (style ? styleCard(s, side, c, style) : 0);
     if (v > bestV) { bestV = v; best = c; }
   }
-  return best.id;
+  const k = pickKonter(s, side, best, rng, style);
+  return k ? withKonter(best.id, k.id) : best.id;
 }
 
 /** Bewertung eines Zustands aus Sicht von side. */
@@ -249,6 +310,14 @@ export function evaluate(s: State2, side: Side): number {
   v -= okCards(s, foe).filter((c) => c.kind === "angriff").length * 0.8;
   // B26 Offene Tür (Stufe 3): ein Positionsangriff, gegen den er in dieser Zone gerade keinen Rahmen hat (gesperrt), droht wirklich.
   v += OPEN_DOOR_EVAL * (openDoor(s, side) - openDoor(s, foe));
+  // Mechanik 4: mein liegender Konter ist vorbereitete Verteidigung – voll wert, wenn er dort angreifen kann.
+  // Wert ≈ Chance, dass er dort angreift (Anteil seiner spielbaren Karten, die dort angreifen) × Wert eines gestoppten Angriffs.
+  const k = s.konter?.[side];
+  if (k?.zone) {
+    const fo = okCards(s, foe);
+    const share = fo.length ? fo.filter((c) => c.kind === "angriff" && c.zone === k.zone).length / fo.length : 0;
+    v += KONTER_EVAL * share * (0.5 + 0.25 * k.left);
+  }
   return v;
 }
 
@@ -295,24 +364,45 @@ function lookahead(s: State2, side: Side, ok: Card2[], rng: () => number, style?
   const model = foeModel(s, side, rng);
   // B28: Stil wirkt nur auf offene Lagen – ein sicherer Sieg/Tap bleibt unberührt.
   const val = (n: State2) => evaluate(n, side) + (style && !n.result ? styleValue(n, side, style) : 0);
-  const evs = ok.map((c) => {
-    let ev = style ? styleCardBonus(s, side, c, style) : 0;
-    if (model.length === 0) ev += val(resolveRound(s, side === "p" ? c.id : PASS, side === "p" ? PASS : c.id).state);
-    for (const { card, w } of model) {
-      const [pc, oc] = side === "p" ? [c.id, card.id] : [card.id, c.id];
-      ev += w * val(resolveRound(s, pc, oc).state);
+  const play = (mine: string, his: string) => resolveRound(s, side === "p" ? mine : his, side === "p" ? his : mine).state;
+  // B42: sein verdeckter Konter – mit Wahrscheinlichkeit bel[z] liegt in Zone z ein Rahmen, der meinen Angriff dort stoppt.
+  const bel = konterBelief(s, side);
+  /** Erwartungswert eines Zugs gegen das Gegnermodell (c = die offen gespielte Karte). */
+  const evOf = (id: string, c: Card2): number => {
+    let base = 0;
+    if (model.length === 0) base = val(play(id, PASS));
+    for (const { card, w } of model) base += w * val(play(id, card.id));
+    const p = c.kind !== "rahmen" ? bel[c.zone] ?? 0 : 0;
+    const fr = p ? foeFrameIn(s, side, c.zone) : undefined;
+    if (fr) {
+      let alt: number | null = null;
+      try { alt = val(play(id, fr.id)); } catch { alt = null; }
+      if (alt !== null) base = (1 - p) * base + p * alt;
     }
-    return ev;
-  });
-  // Balance: kein perfekter Konter. Unter den Karten nahe am Besten wird gemischt (Softmax),
-  // sonst spiegeln sich zwei KIs endlos (Rahmen gegen Angriff, Runde für Runde). Sichere Gewinne bleiben sicher.
+    return base;
+  };
+  const ids = ok.map((c) => c.id);
+  const evs = ok.map((c) => (style ? styleCardBonus(s, side, c, style) : 0) + evOf(c.id, c));
   const max = Math.max(...evs);
-  if (max >= 900) return ok[evs.indexOf(max)].id;
-  const ws = evs.map((x) => (x >= max - MIX_WINDOW ? Math.exp((x - max) / MIX_TEMP) : 0));
-  const sum = ws.reduce((a, b) => a + b, 0);
-  let r = rng() * sum;
-  for (let i = 0; i < ok.length; i++) { r -= ws[i]; if (r <= 0 && ws[i] > 0) return ok[i].id; }
-  return ok[evs.indexOf(max)].id;
+  let pick = ids[evs.indexOf(max)];
+  if (max < 900) {
+    // Balance: kein perfekter Konter. Unter den Karten nahe am Besten wird gemischt (Softmax),
+    // sonst spiegeln sich zwei KIs endlos (Rahmen gegen Angriff, Runde für Runde). Sichere Gewinne bleiben sicher.
+    const ws = evs.map((x) => (x >= max - MIX_WINDOW ? Math.exp((x - max) / MIX_TEMP) : 0));
+    const sum = ws.reduce((a, b) => a + b, 0);
+    let r = rng() * sum;
+    for (let i = 0; i < ok.length; i++) { r -= ws[i]; if (r <= 0 && ws[i] > 0) { pick = ids[i]; break; } }
+  } else return pick;
+  // Mechanik 4 (B42): zur gewählten Karte zusätzlich einen Konter legen – nur, wenn er den Erwartungswert deutlich hebt.
+  const c = ok[ids.indexOf(pick)];
+  const plain = evs[ids.indexOf(pick)];
+  let bestK: string | null = null, bestV = plain + KONTER_MARGIN;
+  for (const k of styleKonter(s, side, c, style)) {
+    const id = withKonter(c.id, k.id);
+    const ev = (style ? styleCardBonus(s, side, c, style) + (style.konter?.[k.id] ?? 0) : 0) + evOf(id, c);
+    if (ev > bestV) { bestV = ev; bestK = id; }
+  }
+  return bestK ?? pick;
 }
 
 export { checkCard };

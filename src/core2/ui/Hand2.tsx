@@ -9,6 +9,8 @@ import { RARITY_LABEL, rarityOf } from "./rarity";
 import { HAND_EXTRA, keywordsOf, type KeywordId } from "../data/keywords";
 import { KeywordChips, KeywordPopover, KeywordTags } from "./Keywords";
 import { chainAfterNames } from "../engine/chains";
+import { canKonter, konterTargets } from "../engine/konter";
+import { KonterIcon } from "./meta";
 
 export interface Hand2Props {
   /** Alle Karten des Slots (cardsFor(pos, role)). */
@@ -33,13 +35,15 @@ export interface Hand2Props {
   gripZones?: Zone[];
   /** Mechanik 3: Ketten-Karten, deren Kette gerade bereit ist → Name der eigenen Vorrunden-Karte. */
   chainReady?: Record<string, string>;
+  /** Mechanik 4: Konter vorbereiten. sel = zum Legen markierter Rahmen; mine = dein schon liegender Konter (Karten-ID). */
+  konter?: { sel: string | null; mine?: string | null; cost: number; check: (id: string) => { ok: boolean; reason?: string }; onToggle: (id: string | null) => void };
   /** Max. sichtbare Karten (Standard 8), Rest hinter "+N". */
   max?: number;
   className?: string;
 }
 
 /** Hand für Kern 2: Karten nach Zone gruppiert (vier Spalten), Farbe = Art. */
-export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, hiddenZones = [], gripZones = [], chainReady = {}, max = 8, className }: Hand2Props) {
+export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, hiddenZones = [], gripZones = [], chainReady = {}, konter, max = 8, className }: Hand2Props) {
   const reduced = !!useReducedMotion();
   const [showAll, setShowAll] = useState(false);
   const lmap = useMemo(() => new Map(legal.map((l) => [l.id, l])), [legal]);
@@ -54,6 +58,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
   const hidden = sorted.length - visible.length;
   const visibleSet = new Set(visible.map((c) => c.id));
   const sel = selected ? cards.find((c) => c.id === selected) ?? null : null;
+  const kSel = konter?.sel ? cards.find((c) => c.id === konter.sel) ?? null : null;
   // Schlüsselwörter: Antippen im Detail oder langes Drücken auf der Karte öffnet das Glossar.
   const [kwOpen, setKwOpen] = useState<{ ids: KeywordId[]; labels: Partial<Record<KeywordId, string>> } | null>(null);
   const openKw = (c: Card2, only?: KeywordId) => {
@@ -82,6 +87,8 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                 const blockedByTut = !!requireCard && c.id !== requireCard;
                 const disabled = !ok || blockedByTut;
                 const isSel = selected === c.id;
+                const isKonter = konter?.sel === c.id;
+                const isLying = konter?.mine === c.id;
                 const tooExpensive = c.kraft != null && kraft != null && c.kraft > kraft;
                 const chainFrom = chainReady[c.id];
                 const reqs = reqList(c, gripZones, !!chainFrom);
@@ -90,11 +97,11 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                 return (
                   <Pulse key={c.id} active={requireCard === c.id && !isSel} radius="8px" className="k2-hcard-pulse">
                     <motion.button type="button"
-                      className={`k2-hcard kind-${c.kind} rar-${rar}${isSel ? " is-sel" : ""}${disabled ? " is-off" : ""}${isLocked ? " is-locked" : ""}${chainFrom && ok ? " is-chain" : ""}`}
-                      disabled={disabled}
+                      className={`k2-hcard kind-${c.kind} rar-${rar}${isSel ? " is-sel" : ""}${disabled && !isKonter ? " is-off" : ""}${isLocked ? " is-locked" : ""}${chainFrom && ok ? " is-chain" : ""}${isKonter || isLying ? " is-konter" : ""}`}
+                      disabled={disabled && !isKonter}
                       data-card={c.id}
                       aria-pressed={isSel}
-                      aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${kws.filter((k) => HAND_EXTRA.includes(k.id)).map((k) => ` ${k.label}`).join("")}${chainFrom && ok ? ", Kette bereit" : ""}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}`).join("")}${c.kraft ? `, ${c.kraft} Atem nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${reqs.some((r) => r.grip) ? ". Dein Griff senkt die Bedingung um 1" : ""}${chainFrom && ok ? `. Kette nach ${chainFrom} senkt die Bedingung um 1` : ""}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
+                      aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${kws.filter((k) => HAND_EXTRA.includes(k.id)).map((k) => ` ${k.label}`).join("")}${chainFrom && ok ? ", Kette bereit" : ""}${isKonter ? ", Konter" : isLying ? ", liegt verdeckt" : ""}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}`).join("")}${c.kraft ? `, ${c.kraft} Atem nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${reqs.some((r) => r.grip) ? ". Dein Griff senkt die Bedingung um 1" : ""}${chainFrom && ok ? `. Kette nach ${chainFrom} senkt die Bedingung um 1` : ""}${isKonter ? ". Als Konter vorbereitet, verdeckt" : ""}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
                       title={!ok ? l?.reason : blockedByTut ? "Erst die markierte Karte" : c.plainDo}
                       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.9 }}
                       animate={{ opacity: 1, y: isSel && !reduced ? -4 : 0, scale: 1 }}
@@ -109,6 +116,7 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                       <span className="k2-hcard-t">{c.plain}</span>{" "}
                       <KeywordTags hits={kws.filter((k) => HAND_EXTRA.includes(k.id))} />{" "}
                       {chainFrom && ok && <span className="k2-chain-badge">Kette bereit </span>}
+                      {(isKonter || isLying) && <span className="k2-konter-badge"><KonterIcon size={9} />{isKonter ? "Konter" : "liegt verdeckt"} </span>}
                       {(reqs.length > 0 || c.kraft) && (
                         <span className="k2-hcard-reqs">
                           {reqs.map((r) => {
@@ -147,6 +155,14 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
               </p>
             )}
             <KeywordChips card={sel} onOpen={(id) => openKw(sel, id)} />
+            {konter && canKonter(sel) && <KonterOffer card={sel} konter={konter} />}
+          </motion.div>
+        ) : kSel ? (
+          <motion.div key={`k-${kSel.id}`} className="k2-hand-info kind-rahmen is-konter-info" role="status"
+            initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
+            <b><KonterIcon size={12} /> Konter vorbereitet: {kSel.plain}</b>
+            <p>Er liegt verdeckt an {ZONE_LABEL[kSel.zone]}. Wähle jetzt die Karte, die du offen spielst.</p>
+            <button type="button" className="k2-konter-btn ghost" onClick={() => konter?.onToggle(null)}>Konter zurücknehmen</button>
           </motion.div>
         ) : (
           <motion.div key="none" className="k2-hand-info is-empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -155,6 +171,26 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
         )}
       </AnimatePresence>
       <KeywordPopover ids={kwOpen?.ids ?? null} labels={kwOpen?.labels} onClose={() => setKwOpen(null)} />
+    </div>
+  );
+}
+
+/** Mechanik 4: Angebot im Karten-Detail – diesen Rahmen zusätzlich verdeckt als Konter legen. */
+function KonterOffer({ card, konter }: { card: Card2; konter: NonNullable<Hand2Props["konter"]> }) {
+  const chk = konter.check(card.id);
+  const on = konter.sel === card.id;
+  const targets = konterTargets(card).map((a) => a.term);
+  if (!chk.ok && !on && /aus$/.test(chk.reason ?? "")) return null;
+  return (
+    <div className="k2-konter-offer">
+      <p className="k2-konter-why"><b>Konter:</b> lauert auf {targets.slice(0, 3).join(", ")}{targets.length > 3 ? " …" : ""}. Verdeckt, zusätzlich zu deiner Karte.</p>
+      {on ? (
+        <button type="button" className="k2-konter-btn ghost" onClick={() => konter.onToggle(null)}>Konter zurücknehmen</button>
+      ) : (
+        <button type="button" className="k2-konter-btn" disabled={!chk.ok} onClick={() => konter.onToggle(card.id)}>
+          <KonterIcon size={12} /> {chk.ok ? `Als Konter vorbereiten · ${konter.cost} Atem` : chk.reason}
+        </button>
+      )}
     </div>
   );
 }

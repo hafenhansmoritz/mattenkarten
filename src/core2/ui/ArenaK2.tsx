@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import type { Card2, Event2, Grip2, Round2, Side, State2, SubTrack, Zone } from "../types";
+import type { Card2, Event2, Grip2, Konter2, Round2, Side, State2, SubTrack, Zone } from "../types";
 import { ZONES } from "../types";
 import {
   newMatch, roleOf, boardFor, legalCards, playRound, aiChoose, threats as threatsOf,
   slotCards, cardById, PASS, KRAFT_MAX, gripsOf, chainFrom, finishThreats,
+  checkKonter, withKonter, splitPlay, KONTER_COST,
 } from "../engine";
 import { FightersK2 } from "./FightersK2";
 import type { TapState } from "../../components/fighters/choreo";
@@ -14,7 +15,7 @@ import { Hand2 } from "./Hand2";
 import type { TutorialK2Def, TutorialK2Step } from "./tutorialTypes";
 import { filterHandByZones, hiddenZones } from "./disclosure";
 import { PREDICTIONS, PREDICTION_LABEL, outcomeOf, predictionFeedback, shouldPredict, type Prediction } from "./predict";
-import { ATEM_LABEL, GripIcon, KIND_LABEL, KraftIcon, LockIcon, POS_LABEL, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
+import { ATEM_LABEL, GripIcon, KIND_LABEL, KonterIcon, KraftIcon, LockIcon, POS_LABEL, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
 import { Stamp, FloatText, useHitStop, Confetti, ImpactBurst, type StampTone } from "../../components/fx";
 import { CoachAvatar } from "../../components/learn";
 import { sfx } from "../../sound";
@@ -83,8 +84,12 @@ export function stampFor(r: Round2): Omit<StampInfo, "key"> | null {
     if ((r.posBefore === "stand" || r.posBefore === "clinch") && mv.top) return { text: "TAKEDOWN!", tone, sub: POS_LABEL[mv.pos] };
     return { text: mv.top === mover ? "POSITION!" : "UMGEDREHT!", tone, sub: POS_LABEL[mv.pos] };
   }
+  // Mechanik 4: „KONTER!“ heißt jetzt nur der vorbereitete, verdeckte Rahmen; ein offen gespielter Rahmen wehrt ab.
+  const kt = ev.find((e): e is Extract<Event2, { t: "konter" }> => e.t === "konter" && e.on === "trigger");
+  if (kt && r.rule === "rahmen>angriff") return { text: "KONTER!", tone: kt.side === "p" ? "good" : "bad", sub: "vorbereitet" };
+  if (kt && r.rule === "aufbauen>rahmen") return { text: "FINTE!", tone: kt.side === "p" ? "bad" : "good", sub: "Konter verbraucht" };
   if (r.rule === "rahmen>angriff" && (r.winner === "p" || r.winner === "o")) {
-    return r.winner === "p" ? { text: "KONTER!", tone: "good" } : { text: "GEKONTERT", tone: "bad" };
+    return r.winner === "p" ? { text: "ABGEWEHRT!", tone: "good" } : { text: "ABGEWEHRT", tone: "bad" };
   }
   const dl = ev.find((e) => e.t === "dilemma") as Extract<Event2, { t: "dilemma" }> | undefined;
   if (dl) return { text: "DILEMMA!", tone: dl.side === "p" ? "good" : "bad", sub: `${ZONE_LABEL[dl.zone]} offen` };
@@ -128,6 +133,7 @@ function startState(props: ArenaK2Props, seed: number): State2 {
     goal: t?.goal,
     grips: t?.grips,
     chains: t?.chains,
+    konter: t?.konter,
   });
 }
 
@@ -154,6 +160,10 @@ export function ArenaK2(props: ArenaK2Props) {
   const [burst, setBurst] = useState<number | null>(null);
   /** Mechanik 3: kurzer „KETTE!“-Effekt nach einem Ketten-Treffer (beide Kartennamen). */
   const [chainFx, setChainFx] = useState<{ side: Side; from: string; card: string; key: number } | null>(null);
+  /** Mechanik 4: „KONTER!“-Effekt beim Auslösen (Kartenname; feint = er/du hast ihn mit einer Finte rausgelockt). */
+  const [konterFx, setKonterFx] = useState<{ side: Side; card: string; feint: boolean; key: number } | null>(null);
+  /** Mechanik 4: zum verdeckten Legen markierter Rahmen (zusätzlich zur gewählten Karte). */
+  const [konterSel, setKonterSel] = useState<string | null>(null);
   const [more, setMore] = useState(false);
   const [bubbleDone, setBubbleDone] = useState<number[]>([]);
   const [tapOk, setTapOk] = useState<boolean | null>(null);
@@ -188,6 +198,14 @@ export function ArenaK2(props: ArenaK2Props) {
   const myBoard = useMemo(() => boardFor(s, "p"), [s]);
   const thr = useMemo(() => threatsOf(s, "p"), [s]);
   const hisLocked = s.o.locked.map((id) => cardById(id)).filter(Boolean) as Card2[];
+  // Mechanik 4: Konter (eigener sichtbar, seiner nur „liegt“), Prüfung fürs Hand-Angebot und für die gewählte Kombination.
+  const myKonter = s.konter?.p, hisKonter = s.konter?.o;
+  const konterProp = useMemo(() => (s.noKonter ? undefined : {
+    sel: konterSel, mine: myKonter?.card ?? null, cost: KONTER_COST,
+    check: (id: string) => { const c = cardById(id); return c ? checkKonter(s, "p", c, null) : { ok: false }; },
+    onToggle: (id: string | null) => { setKonterSel(id); if (id) { setSel((x) => (x === id ? null : x)); sfx.click(); } },
+  }), [s, konterSel, myKonter?.card]);
+  const konterCombo = konterSel ? checkKonter(s, "p", cardById(konterSel)!, sel ? cardById(sel) ?? null : null) : null;
   // Mechanik 3: bereite Ketten (deine spielbaren Ketten-Karten → Vorrunden-Karte) und „Abschluss möglich“ für beide Seiten.
   const chainReady = useMemo(() => {
     const out: Record<string, string> = {};
@@ -223,22 +241,26 @@ export function ArenaK2(props: ArenaK2Props) {
     if (phase !== "pick" || kwToast || kwRound.current === s.round + matchNo * 100) return;
     // Mechanik 2: liegt der erste Griff auf dem Brett (auch seiner), einmal „Griff“ erklären – auch in späteren Lektionen.
     const gripNew = liveGrips.length > 0 && !kwSeen.includes("griff");
-    if (tut && !gripNew) return;
-    const id = gripNew ? "griff" : firstUnseen(handShown, kwSeen);
+    // Mechanik 4: hat er zum ersten Mal einen Konter vorbereitet, einmal „Konter“ erklären.
+    const konterNew = !!s.konter?.o && !kwSeen.includes("konter");
+    if (tut && !gripNew && !konterNew) return;
+    const id = gripNew ? "griff" : konterNew ? "konter" : firstUnseen(handShown, kwSeen);
     if (!id) return;
     kwRound.current = s.round + matchNo * 100;
     markKeywordSeen(id);
     setKwSeen((k) => [...k, id]);
     setKwToast(id);
-  }, [tut, phase, handShown, kwSeen, kwToast, s.round, matchNo, liveGrips]);
+  }, [tut, phase, handShown, kwSeen, kwToast, s.round, matchNo, liveGrips, s.konter?.o]);
   useEffect(() => { if (phase !== "pick") setKwToast(null); }, [phase]);
   const closeKwToast = useCallback(() => setKwToast(null), []);
 
   // ---------- Aufdecken ----------
   const reveal = () => {
     if (phase !== "pick") return;
-    const pId = sel ?? (anyLegal ? null : PASS);
-    if (!pId) return;
+    const pCard = sel ?? (anyLegal ? null : PASS);
+    if (!pCard) return;
+    // Mechanik 4: zusätzlich verdeckter Konter (nur, wenn die Kombination legal ist – sonst ohne).
+    const pId = konterSel && konterCombo?.ok ? withKonter(pCard, konterSel) : pCard;
     // Erst die KI-Karte, dann das Ergebnis auf dem (unveränderten) Zustand berechnen.
     const oId = aiChoose(s, "o", aiLevel, rng, boss?.style);
     const { state: next, round: r } = playRound(s, pId, oId);
@@ -268,8 +290,9 @@ export function ArenaK2(props: ArenaK2Props) {
     runReveal(pId, oId, next, r);
   };
 
-  function runReveal(pId: string, oId: string, next: State2, r: Round2) {
-    setCards({ p: cardById(pId) ?? null, o: cardById(oId) ?? null });
+  function runReveal(_pId: string, _oId: string, next: State2, r: Round2) {
+    // Gezeigt wird, was wirklich wirkte (bei ausgelöstem Konter der Konter-Rahmen).
+    setCards({ p: cardById(r.pCard) ?? null, o: cardById(r.oCard) ?? null });
     setRound(r);
     setMore(false);
     setPhase("flip");
@@ -298,6 +321,10 @@ export function ArenaK2(props: ArenaK2Props) {
       if (got.length) setNewCards((n) => [...n, ...got.filter((id) => !n.includes(id))]);
       if (tapped || moved) sfx.mat(); else if (r.rule === "rahmen>angriff") sfx.counter(); else sfx.select();
       if (st) setStamp({ ...st, key: Date.now() });
+      const kt = r.events.find((e): e is Extract<Event2, { t: "konter" }> => e.t === "konter" && e.on === "trigger");
+      const kc = kt?.card ? cardById(kt.card) : undefined;
+      // Auch bei reduzierter Bewegung lange genug stehen lassen (nur ohne Animation) – later() würde auf 120 ms kürzen.
+      if (kt && kc) { setKonterFx({ side: kt.side, card: kc.plain, feint: r.rule === "aufbauen>rahmen", key: Date.now() }); timers.current.push(setTimeout(() => setKonterFx(null), 1700)); }
       const ch = r.events.find((e): e is Extract<Event2, { t: "chain" }> => e.t === "chain");
       if (ch) {
         const a = cardById(ch.from), b = cardById(ch.card);
@@ -324,7 +351,7 @@ export function ArenaK2(props: ArenaK2Props) {
   // Weiter nach Tippen irgendwo
   const advance = useCallback(() => {
     if (phase !== "result") return;
-    setRound(null); setCards({ p: null, o: null }); setSel(null); setMore(false);
+    setRound(null); setCards({ p: null, o: null }); setSel(null); setKonterSel(null); setMore(false);
     if (s.result) { finish(); return; }
     setPhase("pick");
   }, [phase, s]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -359,7 +386,7 @@ export function ArenaK2(props: ArenaK2Props) {
     const n = matchNo + 1;
     setMatchNo(n);
     const ns = props.initialState ?? startState({ ...props, initialState: undefined }, (tut?.seed ?? props.seed ?? Date.now() % 100000) + n * 7919);
-    setS(ns); setShown(ns); setPhase("pick"); setSel(null); setRound(null); setTapOk(null); setTapAnim(null); setBubbleDone([]);
+    setS(ns); setShown(ns); setPhase("pick"); setSel(null); setKonterSel(null); setRound(null); setTapOk(null); setTapAnim(null); setBubbleDone([]);
     setPending(null); setGuess(null); setPredStats({ n: 0, ok: 0 });
     setNewCards([]); resultSent.current = false;
     setCards({ p: null, o: null });
@@ -435,21 +462,37 @@ export function ArenaK2(props: ArenaK2Props) {
             </motion.div>
           )}
         </AnimatePresence>
+        <AnimatePresence>
+          {konterFx && (
+            <motion.div key={konterFx.key} className={`k2-konterfx ${konterFx.side}${konterFx.feint ? " is-feint" : ""}`} role="status"
+              aria-label={konterFx.feint
+                ? `Finte: ${konterFx.side === "p" ? "dein" : "sein"} Konter ${konterFx.card} ist verbraucht`
+                : `Konter: ${konterFx.side === "p" ? "dein" : "sein"} vorbereiteter Rahmen ${konterFx.card} springt ein`}
+              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.25, rotateX: 70 }}
+              animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, rotateX: 0 }}
+              exit={{ opacity: 0 }} transition={reduced ? { duration: 0.1 } : { type: "spring", stiffness: 380, damping: 20 }}>
+              <b><KonterIcon size={18} /> {konterFx.feint ? "FINTE!" : "KONTER!"}</b>
+              <span>{konterFx.feint ? `${konterFx.side === "p" ? "Dein" : "Sein"} Konter verbraucht: ${konterFx.card}` : `${konterFx.side === "p" ? "Dein" : "Sein"} vorbereiteter Rahmen: ${konterFx.card}`}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* Brett + Aufdeck-Ebene */}
       <section className="k2-board-wrap">
         <Board board={s.board} focus={focus} lastDeltas={deltas} threats={shownThreats} hidden={hidZones} grips={liveGrips}
-          finish={finishOn.map((f) => ({ side: f.side, zone: f.zone }))} />
+          finish={finishOn.map((f) => ({ side: f.side, zone: f.zone }))} konterZone={myKonter?.zone ?? null} />
         <AnimatePresence>
           {showCards && (
-            <RevealLayer key={`rv-${round?.round}`} p={cards.p} o={cards.o} same={sameZone} impact={phase === "impact"} reduced={reduced} />
+            <RevealLayer key={`rv-${round?.round}`} p={cards.p} o={cards.o} same={sameZone} impact={phase === "impact"} reduced={reduced}
+              set={round?.konterSet ?? []} trig={(round?.events ?? []).filter((e) => e.t === "konter" && e.on === "trigger").map((e) => (e as Extract<Event2, { t: "konter" }>).side)} />
           )}
         </AnimatePresence>
       </section>
 
       <SubTracks subs={s.subs} finish={finishOn.map((f) => ({ side: f.side, id: f.sub }))} />
       <GripStrip grips={liveGrips} onOpen={() => setKwPop("griff")} />
+      <KonterStrip mine={myKonter} his={hisKonter} pending={phase === "pick" && konterSel ? cardById(konterSel) ?? null : null} onOpen={() => setKwPop("konter")} />
 
       {/* Ergebnis: eine schlanke Zeile */}
       <AnimatePresence>
@@ -484,15 +527,15 @@ export function ArenaK2(props: ArenaK2Props) {
             <div className="k2-coach-line"><CoachAvatar size={22} /><span>{pickStep.text}</span></div>
           ) : (
             <div className={`k2-threatline${thr.length ? " has" : ""}${hisFinish ? " is-finish" : ""}`}>
-              <span>{hisFinish ? `Er kann beenden – Rahmen an ${ZONE_DAT[hisFinish.zone]}!` : threatLine}</span>
+              <span>{hisFinish ? `Er kann beenden – Rahmen an ${ZONE_DAT[hisFinish.zone]}!` : threatLine}{hisKonter ? " Er hat etwas vorbereitet." : ""}</span>
               {hisLocked.length > 0 && <span className="k2-hislock"><LockIcon size={10} /> {hisLocked.map((c) => c.plain).join(", ")}</span>}
             </div>
           )}
           <Hand2 cards={handShown} legal={legal} hiddenZones={hidZones} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.click(); }}
             myBoard={myBoard} locked={s.p.locked} kraft={s.p.kraft} requireCard={requireCard} highlightZone={hlZone}
-            gripZones={liveGrips.filter((g) => g.owner === "p").map((g) => g.zone)} chainReady={chainReady} />
-          <button type="button" className="btn primary big k2-go" disabled={anyLegal ? !sel || (!!requireCard && sel !== requireCard) : false} onClick={reveal}>
-            {!anyLegal ? "Passen" : sel ? "Aufdecken!" : "Wähle eine Karte"}
+            gripZones={liveGrips.filter((g) => g.owner === "p").map((g) => g.zone)} chainReady={chainReady} konter={konterProp} />
+          <button type="button" className="btn primary big k2-go" disabled={anyLegal ? !sel || (!!requireCard && sel !== requireCard) || (!!konterCombo && !konterCombo.ok) : false} onClick={reveal}>
+            {!anyLegal ? "Passen" : konterCombo && !konterCombo.ok && sel ? (konterCombo.reason ?? "Konter passt nicht") : sel ? (konterSel ? "Aufdecken + Konter" : "Aufdecken!") : konterSel ? "Wähle deine offene Karte" : "Wähle eine Karte"}
           </button>
         </section>
       )}
@@ -590,7 +633,7 @@ function PredictPanel({ pending, guess, onGuess, onReveal }: {
   onReveal: () => void;
 }) {
   const truth = outcomeOf(pending.r);
-  const mine = cardById(pending.pId);
+  const mine = cardById(splitPlay(pending.pId).card);
   const fb = guess ? predictionFeedback(guess, pending.r) : null;
   return (
     <motion.section className="k2-pick k2-predict" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} aria-live="polite">
@@ -615,6 +658,35 @@ function PredictPanel({ pending, guess, onGuess, onReveal }: {
       )}
       {guess && <button type="button" className="btn primary big k2-go" onClick={onReveal} autoFocus>Aufdecken!</button>}
     </motion.section>
+  );
+}
+
+/** Mechanik 4: vorbereitete Konter. Deiner mit Karte und Zone, seiner nur als Kartenrücken („Er hat etwas vorbereitet“). */
+function KonterStrip({ mine, his, pending, onOpen }: { mine?: Konter2; his?: Konter2; pending: Card2 | null; onOpen: () => void }) {
+  if (!mine && !his && !pending) return null;
+  const rest = (k: Konter2) => (k.left <= 1 ? "nur noch diese Runde" : `noch ${k.left} Runden`);
+  const mc = mine?.card ? cardById(mine.card) : undefined;
+  return (
+    <div className="k2-konters" role="group" aria-label="Vorbereitete Konter">
+      {pending && (
+        <button type="button" className="k2-konter-chip p is-pending" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+          <span className="k2-konter-back" aria-hidden><KonterIcon size={11} /></span>
+          <span><b>Du legst verdeckt:</b> {pending.plain} · {ZONE_LABEL[pending.zone]}<span className="sr-only">. Tippen für Erklärung.</span></span>
+        </button>
+      )}
+      {mine && mc && (
+        <button type="button" className="k2-konter-chip p" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+          <span className="k2-konter-back" aria-hidden><KonterIcon size={11} /></span>
+          <span><b>Dein Konter:</b> {mc.plain} · {ZONE_LABEL[mc.zone]} · {rest(mine)}<span className="sr-only">. Liegt verdeckt. Tippen für Erklärung.</span></span>
+        </button>
+      )}
+      {his && (
+        <button type="button" className="k2-konter-chip o" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+          <span className="k2-konter-back" aria-hidden>?</span>
+          <span><b>Er hat etwas vorbereitet</b> · {rest(his)}<span className="sr-only">. Ein verdeckter Konter – wo würde er rahmen? Tippen für Erklärung.</span></span>
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -658,7 +730,7 @@ const BOARD_ROW = 30;
 const rowY = (z: Zone) => BOARD_HEAD + ZONES.indexOf(z) * BOARD_ROW + BOARD_ROW / 2;
 
 /** Beide Karten drehen sich um; gleiche Zone → sie knallen über dieser Leiste zusammen. */
-function RevealLayer({ p, o, same, impact, reduced }: { p: Card2 | null; o: Card2 | null; same: boolean; impact: boolean; reduced: boolean }) {
+function RevealLayer({ p, o, same, impact, reduced, set = [], trig = [] }: { p: Card2 | null; o: Card2 | null; same: boolean; impact: boolean; reduced: boolean; set?: Side[]; trig?: Side[] }) {
   return (
     <motion.div className="k2-reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.25 } }}>
       {(["p", "o"] as Side[]).map((side) => {
@@ -686,9 +758,10 @@ function RevealLayer({ p, o, same, impact, reduced }: { p: Card2 | null; o: Card
               <div className="k2-rcard-back" aria-hidden />
               <div className={`k2-rcard kind-${c?.kind ?? "none"} side-${side}`}>
                 {c ? (<>
-                  <span className="k2-rcard-kind"><ZoneIcon zone={c.zone} size={11} /> {KIND_LABEL[c.kind]}</span>
+                  <span className="k2-rcard-kind"><ZoneIcon zone={c.zone} size={11} /> {trig.includes(side) ? "Konter" : KIND_LABEL[c.kind]}</span>
                   <span className="k2-rcard-t">{c.plain}</span>
                 </>) : <span className="k2-rcard-t">passt</span>}
+                {set.includes(side) && !trig.includes(side) && <span className="k2-rcard-konter"><KonterIcon size={9} /> + verdeckt</span>}
               </div>
             </motion.div>
           </motion.div>

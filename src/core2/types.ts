@@ -84,6 +84,10 @@ export interface Grip2 { id: string; name: string; owner: Side; zone: Zone; card
 
 export interface SubTrack { id: string; name: string; owner: Side; step: 0 | 1 | 2 | 3; zone: Zone }
 
+/** Mechanik 4 „Vorbereiteter Konter“ (B38): verdeckt gelegter Rahmen. In der Sicht des Gegners (publicView) fehlen
+ *  card und zone – er sieht nur, dass etwas liegt und wie lange noch. */
+export interface Konter2 { card?: string; zone?: Zone; left: number }
+
 /** kraft = Atem (sichtbar immer „Atem“: BJJ ist Hebel statt Kraft). */
 export interface Fighter2 { pts: number; kraft: number; locked: string[] }
 
@@ -102,6 +106,10 @@ export interface State2 {
   noGrips?: boolean;
   /** Ketten aus (erste drei Lektionen): keine Ketten-Erleichterung (Mechanik 3). */
   noChains?: boolean;
+  /** Mechanik 4: verdeckt gelegte Konter (höchstens einer je Seite). */
+  konter?: Partial<Record<Side, Konter2>>;
+  /** Konter aus (erste drei Lektionen, Zusatz-Lektion). */
+  noKonter?: boolean;
   history: Round2[];
   result: null | { type: "tap"; winner: Side; sub: string } | { type: "points"; winner: Side | null } | { type: "goal"; winner: Side };
   /** Tutorial-Ziel: Spieler gewinnt, sobald (pos, role) erreicht. */
@@ -119,11 +127,16 @@ export type Event2 =
   /** Griff gelegt (on) oder gelöst (off); why: wodurch er fiel. */
   | { t: "grip"; owner: Side; id: string; name: string; zone: Zone; on: boolean; why?: "rahmen" | "loesen" | "verdraengt" | "position" | "alt" }
   /** Mechanik 3: eine Ketten-Karte hat getroffen (from = eigene Karte der Vorrunde, card = diese Runde). */
-  | { t: "chain"; side: Side; from: string; card: string };
+  | { t: "chain"; side: Side; from: string; card: string }
+  /** Mechanik 4: Konter gelegt (ohne Karte – verdeckt), ausgelöst oder verfallen (dann aufgedeckt). */
+  | { t: "konter"; side: Side; on: "set" | "trigger" | "gone"; card?: string; zone?: Zone; why?: "zeit" | "position"; instead?: string };
 
 export interface Round2 {
   round: number;
+  /** Gespielte Karte (bei ausgelöstem Konter die Konter-Karte). */
   pCard: string; oCard: string;
+  /** Mechanik 4: wer diese Runde zusätzlich verdeckt einen Konter gelegt hat (öffentlich, ohne Karte). */
+  konterSet?: Side[];
   rule: "verschiedene-zonen" | "angriff>aufbauen" | "aufbauen>rahmen" | "rahmen>angriff" | "angriff=angriff" | "aufbauen=aufbauen" | "rahmen=rahmen" | "rahmen-ins-leere";
   winner: Side | "both" | "none";
   events: Event2[];

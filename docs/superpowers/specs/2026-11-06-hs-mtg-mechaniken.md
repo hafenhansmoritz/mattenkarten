@@ -9,7 +9,7 @@ Leitregel: Eine Mechanik kommt nur ins Spiel, wenn sie ein echtes Grappling-Prin
 | 1 | Keywords (HS: Taunt, Rush; MTG: Flying, First Strike) | **Schlüsselwörter** auf Karten mit Glossar | Fachbegriffe als feste Konzepte: Keil, Rahmen, Kette, Druck, Isolieren |
 | 2 | Permanents / Minions auf dem Board | **Griffe bleiben liegen** (Underhook, Seatbelt, Crossface …) | Kontrolle ist ein Zustand, kein Moment; Griffe muss man aktiv lösen |
 | 3 | Combo (HS) / Synergie, Lethal-Anzeige | **Kette**: Bonus, wenn die Karte auf einen passenden Aufbau folgt; Anzeige „Abschluss möglich“ (umgesetzt: Kern-2-Spec B35–B37) | Ketten (Kimura → Armbar), Aufbau vor Abschluss |
-| 4 | Secrets (HS) / Instants & Stack (MTG) | **Vorbereiteter Konter** verdeckt legen, löst bei passendem Angriff aus | Antizipation: Rahmen steht, bevor er angreift |
+| 4 | Secrets (HS) / Instants & Stack (MTG) | **Vorbereiteter Konter** verdeckt legen, löst bei passendem Angriff aus (umgesetzt: Kern-2-Spec B38–B43 – zusätzlich zur Karte, 3 Atem, einmal pro Kampf, Gegner sieht nur „Er hat etwas vorbereitet“) | Antizipation: Rahmen steht, bevor er angreift |
 | 5 | Hero Power + Klassen | **Spielstil-Fähigkeit** (Ringer, Guard, Druck, Rücken) einmal pro Runde für Atem | Eigenes A-Game, Identität |
 | 6 | Deck, Nachziehen, Handlimit, Mulligan | **Spielplan-Modus**: Deck aus 15, Hand 4, ziehen, Mulligan | Gameplan statt alles können; Fokus auf wenige Wege |
 | 7 | Deckbau, Mana-Kurve, Sideboard (MTG) | **Spielplan-Bauer** mit Kurve, Pflicht-Grundlagen, Anpassen vor dem Boss | System bauen; Anpassung an den Gegner |

@@ -6,6 +6,7 @@ import { checkCard, heldInSub, PASS, unmetRequires } from "./legal";
 import { cardById } from "./registry";
 import { breakable, GRIP_MAX, gripFits } from "./grips";
 import { chainFrom } from "./chains";
+import { checkKonter, KONTER_COST, KONTER_NO_GAIN, KONTER_ROUNDS, konterFits, splitPlay } from "./konter";
 
 export const KRAFT_MAX = 5;
 
@@ -38,6 +39,7 @@ export function cloneState(s: State2): State2 {
     history: [...s.history],
     result: s.result ? { ...s.result } : null,
     goal: s.goal ? s.goal.map((g) => ({ ...g })) : undefined,
+    ...(s.konter ? { konter: Object.fromEntries(Object.entries(s.konter).map(([k, v]) => [k, { ...v }])) } : {}),
   };
 }
 
@@ -279,10 +281,15 @@ const RULE_WHY: Record<Rule, string> = {
 };
 
 /** Haupt-Auflösung. Karten müssen legal sein (oder PASS, wenn keine Karte spielbar ist). */
-export function resolveRound(s0: State2, pId: string, oId: string): { state: State2; round: Round2 } {
+export function resolveRound(s0: State2, pPlay: string, oPlay: string): { state: State2; round: Round2 } {
   if (s0.result) throw new Error("Match ist beendet");
+  const pSplit = splitPlay(pPlay), oSplit = splitPlay(oPlay);
+  const pId = pSplit.card, oId = oSplit.card;
+  const konterIds: Record<Side, string | null> = { p: pSplit.konter, o: oSplit.konter };
   const ids: Record<Side, string> = { p: pId, o: oId };
   const cards: Record<Side, Card2 | null> = { p: null, o: null };
+  /** Mechanik 4: diese Runde verdeckt gelegter Konter (statt einer Karte). */
+  const setting: Record<Side, Card2 | null> = { p: null, o: null };
   for (const side of ["p", "o"] as Side[]) {
     const id = ids[side];
     if (id === PASS) continue;
@@ -293,12 +300,60 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
     if (!chk.ok) throw new Error(`${id} nicht spielbar: ${chk.reason}`);
     cards[side] = c;
   }
+  for (const side of ["p", "o"] as Side[]) {
+    const kid = konterIds[side];
+    if (!kid) continue;
+    const kc = cardById(kid);
+    if (!kc) throw new Error(`Unbekannte Karte: ${kid}`);
+    const chk = checkKonter(s0, side, kc, cards[side]);
+    if (!chk.ok) throw new Error(`Konter ${kid} nicht legbar: ${chk.reason}`);
+    setting[side] = kc;
+  }
 
   const s = cloneState(s0);
   const ctx: Ctx = { s, start: s0, events: [], notes: [], acted: new Set(), pendingMoves: [] };
 
-  // Atem bezahlen (internes Feld: kraft).
-  for (const side of ["p", "o"] as Side[]) { const c = cards[side]; if (c?.kraft) changeKraft(ctx, side, -c.kraft); }
+  // B38 Legen: der zusätzlich gelegte Rahmen kostet KONTER_COST Atem und liegt ab sofort (diese und nächste Runde).
+  for (const side of ["p", "o"] as Side[]) {
+    const kc = setting[side];
+    if (!kc) continue;
+    changeKraft(ctx, side, -(KONTER_COST + (kc.kraft ?? 0)));
+    s.konter = { ...s.konter, [side]: { card: kc.id, zone: kc.zone, left: KONTER_ROUNDS } };
+    ctx.events.push({ t: "konter", side, on: "set" });
+  }
+  // B40 Auslösen: spielt er in der Zone deines Konters einen Angriff oder eine Finte, springt der Konter ein – statt deiner gewählten Karte
+  // (die bleibt in der Hand, ungesperrt und unbezahlt). Geprüft gegen die gewählten Karten beider Seiten, danach ersetzt.
+  const triggered: Record<Side, Card2 | null> = { p: null, o: null };
+  for (const side of ["p", "o"] as Side[]) {
+    const k = s.konter?.[side];
+    const foeCard = cards[other(side)];
+    // Auch eine Finte (Aufbauen) dort weckt den Konter – und schlägt ihn wie jeden Rahmen (Dreieck bleibt).
+    if (!k?.card || !k.zone || !foeCard || foeCard.kind === "rahmen" || foeCard.zone !== k.zone) continue;
+    triggered[side] = cardById(k.card) ?? null;
+  }
+  for (const side of ["p", "o"] as Side[]) {
+    const kc = triggered[side];
+    if (!kc) continue;
+    const instead = cards[side];
+    cards[side] = kc;
+    delete s.konter![side];
+    ctx.events.push({ t: "konter", side, on: "trigger", card: kc.id, zone: kc.zone, ...(instead ? { instead: instead.id } : {}) });
+  }
+  // Schlagzeile fürs Legen (nur wenn er nicht gleich auslöste).
+  for (const side of ["p", "o"] as Side[]) {
+    const kc = setting[side];
+    if (!kc || triggered[side]) continue;
+    ctx.notes.push({
+      prio: 18, side,
+      headline: you(side) ? `Du legst zusätzlich verdeckt: ${q(kc)}.` : "Er legt zusätzlich verdeckt einen Konter.",
+      why: you(side) ? `Greift er an ${ZONE_LABEL[kc.zone]} an, springt dein Rahmen ein – auch nächste Runde noch.`
+        : "Er hat einen Rahmen vorbereitet. Lies ihn: Wo würde er an deiner Stelle rahmen?",
+      zone: you(side) ? kc.zone : null,
+    });
+  }
+
+  // Atem bezahlen (internes Feld: kraft). Ein ausgelöster Konter ist schon bezahlt.
+  for (const side of ["p", "o"] as Side[]) { const c = cards[side]; if (c?.kraft && !triggered[side]) changeKraft(ctx, side, -c.kraft); }
 
   const P = cards.p, O = cards.o;
   let rule: Rule;
@@ -359,7 +414,7 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
       rule = "rahmen>angriff";
       const r = byKind("rahmen"), a = other(r);
       const rc = cards[r]!, ac = cards[a]!;
-      if (!(ac.dilemmaOpens && BALANCE.dilemmaNoFrameGain)) gainWith(ctx, r, rc);
+      if (!(ac.dilemmaOpens && BALANCE.dilemmaNoFrameGain) && !(KONTER_NO_GAIN && triggered[r])) gainWith(ctx, r, rc);
       frameSubs(ctx, r, rc, ac);
       // B16 Konter-Wechsel: stoppt ein Rahmen mit onStop einen Positionsangriff (Sprawl gegen den Shot), wechselt die Position.
       if (rc.onStop && ac.to && !unmetRequires(ctx.start, r, { ...rc, requires: rc.onStopRequires }).length) {
@@ -424,6 +479,33 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
     rule = leer ? "rahmen-ins-leere" : "verschiedene-zonen";
   }
 
+  // B40: Schlagzeile für den ausgelösten Konter (über dem normalen „Rahmen stoppt“).
+  for (const side of ["p", "o"] as Side[]) {
+    const kc = triggered[side];
+    if (!kc) continue;
+    const ac = cards[other(side)];
+    if (ac?.kind === "aufbauen") {
+      ctx.notes.push({
+        prio: 72, side: other(side),
+        headline: you(side) ? `Finte! Dein Konter ${q(kc)} ist verbraucht.` : `Finte! Sein Konter ${q(kc)} ist verbraucht.`,
+        why: you(side) ? "Er täuschte genau dort an, wo dein Konter lag. Ein Rahmen verliert gegen die Finte."
+          : "Du hast seinen Konter gelesen: Die Finte lockt den Rahmen raus und bringt dir +2.",
+        zone: kc.zone,
+      });
+      continue;
+    }
+    // Über dem Positionswechsel (80): beim Sprawl-Konter zeigt der Stempel die neue Lage, die Schlagzeile den Konter.
+    ctx.notes.push({
+      prio: 85, side,
+      headline: you(side) ? `Konter! Dein ${q(kc)} stand schon bereit.` : `Konter! Sein ${q(kc)} stand schon bereit.`,
+      why: ac?.dilemmaOpens && ac.zone === kc.zone
+        ? `Dilemma: Wer ${ZONE_LABEL[kc.zone]} verteidigt, öffnet ${ZONE_LABEL[ac.dilemmaOpens]}.`
+        : you(side) ? "Dein Rahmen stand, bevor er angriff. Die gewählte Karte bleibt in deiner Hand."
+          : "Er hatte den Rahmen vorbereitet. Greif woanders an – oder mit Dilemma oder Kette.",
+      zone: kc.zone,
+    });
+  }
+
   // B32 Griff lösen: jede Karte mit breaks, die in ihrer Zone nicht geschlagen wurde (nach dem Legen neuer Griffe).
   for (const side of ["p", "o"] as Side[]) {
     const c = cards[side];
@@ -445,6 +527,29 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
   // Rundenende: Sperren, Atem, Rundenzähler, Ziel/Punkte.
   s.p.locked = P ? [P.id] : [];
   s.o.locked = O ? [O.id] : [];
+  // B41 Konter-Pflege: jede Runde −1 (auch die Runde des Legens); nach KONTER_ROUNDS verfällt er (Karte 1 Runde gesperrt).
+  // Passt sein Rahmen nach einem Positionswechsel nicht mehr in die Lage, fällt er sofort (ohne Sperre).
+  for (const side of ["p", "o"] as Side[]) {
+    const k = s.konter?.[side];
+    if (!k) continue;
+    k.left -= 1;
+    const fits = konterFits(s, side, k);
+    if (fits && k.left > 0) continue;
+    delete s.konter![side];
+    const why = fits ? "zeit" : "position";
+    if (why === "zeit" && k.card) s[side].locked.push(k.card);
+    ctx.events.push({ t: "konter", side, on: "gone", why, ...(k.card ? { card: k.card, zone: k.zone } : {}) });
+    const kc = k.card ? cardById(k.card) : undefined;
+    if (kc) ctx.notes.push({
+      prio: 12, side,
+      headline: why === "zeit" ? (you(side) ? `Dein Konter verfällt: ${q(kc)}.` : `Sein Konter verfällt: ${q(kc)}.`)
+        : (you(side) ? `Dein Konter passt nicht mehr: ${q(kc)}.` : `Sein Konter passt nicht mehr: ${q(kc)}.`),
+      why: why === "zeit" ? "Ein Konter liegt höchstens zwei Runden. Danach ist die Karte eine Runde gesperrt."
+        : "Nach dem Positionswechsel passt der vorbereitete Rahmen nicht mehr.",
+      zone: null,
+    });
+  }
+  if (s.konter && !s.konter.p && !s.konter.o) delete s.konter;
   if (!s.result && s.goal && s.goal.some((g) => g.pos === s.pos && g.role === roleOf(s, "p"))) {
     s.result = { type: "goal", winner: "p" };
   }
@@ -473,7 +578,9 @@ export function resolveRound(s0: State2, pId: string, oId: string): { state: Sta
   const top = ctx.notes.slice().sort((a, b) => b.prio - a.prio)[0];
   const round: Round2 = {
     round: s0.round,
-    pCard: pId, oCard: oId,
+    pCard: triggered.p ? triggered.p.id : pId,
+    oCard: triggered.o ? triggered.o.id : oId,
+    ...(setting.p || setting.o ? { konterSet: (["p", "o"] as Side[]).filter((x) => setting[x]) } : {}),
     rule, winner, events: ctx.events,
     headline: top?.headline ?? "Keiner kommt voran.",
     why: top?.why ?? RULE_WHY[rule],

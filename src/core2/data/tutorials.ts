@@ -9,9 +9,10 @@ import type { TutorialK2Def } from "../ui/tutorialTypes";
 export const TUTORIALS_K2: TutorialK2Def[] = [
   {
     id: "k2-raus-von-unten",
-    // Mechanik 2 und 3: Griffe und Ketten sind in den ersten drei Lektionen aus (eine Idee pro Lektion).
+    // Mechanik 2–4: Griffe, Ketten und Konter sind in den ersten drei Lektionen aus (eine Idee pro Lektion).
     grips: false,
     chains: false,
+    konter: false,
     title: "Raus von unten",
     idea: "Unten im Mount: erst Knie und Ellbogen zusammen, dann raus.",
     // Leicht gegen dich: Kopf und Beine im Minus. Hüfte 0, damit die Befreiung nach Runde 1 sicher spielbar ist.
@@ -55,9 +56,10 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
   },
   {
     id: "k2-keile-vorbeigehen",
-    // Mechanik 2 und 3: Griffe und Ketten sind in den ersten drei Lektionen aus (eine Idee pro Lektion).
+    // Mechanik 2–4: Griffe, Ketten und Konter sind in den ersten drei Lektionen aus (eine Idee pro Lektion).
     grips: false,
     chains: false,
+    konter: false,
     title: "Keile bauen, vorbeigehen",
     idea: "Oben in der Guard: erst Hüfte und Beine blockieren, dann vorbei.",
     // Hüfte schon +1 (erster Keil sitzt) – so ist sein Hüft-Sweep (Hip Bump) anfangs nicht spielbar.
@@ -96,9 +98,10 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
   },
   {
     id: "k2-erst-griff-dann-beenden",
-    // Mechanik 2 und 3: Griffe und Ketten sind in den ersten drei Lektionen aus (eine Idee pro Lektion).
+    // Mechanik 2–4: Griffe, Ketten und Konter sind in den ersten drei Lektionen aus (eine Idee pro Lektion).
     grips: false,
     chains: false,
+    konter: false,
     title: "Erst Griff, dann beenden",
     idea: "Eine Aufgabe ist ein Prozess: fangen, kontrollieren, beenden.",
     // Beine +2: seine Befreiungen (Elbow Escape, Upa) sind anfangs nicht spielbar – Fokus liegt auf den Armen.
@@ -157,6 +160,8 @@ export const TUTORIAL_GUARD_ODER_TD: TutorialK2Def = {
   ],
   aiLevel: 1,
   maxRounds: 8,
+  // Mechanik 4: eine Idee pro Lektion – hier keine verdeckten Konter.
+  konter: false,
   steps: [
     {
       round: 1, when: "start", highlightZone: "beine",

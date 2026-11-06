@@ -100,6 +100,15 @@ export function ZoneIcon({ zone, size = 16, className }: { zone: Zone; size?: nu
   );
 }
 
+/** Mechanik 4: vorbereiteter Konter (Schild – der Rahmen steht schon). */
+export function KonterIcon({ size = 14, className }: { size?: number; className?: string }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" /><path d="M9 12l2 2 4-4" />
+    </Svg>
+  );
+}
+
 export function LockIcon({ size = 12 }: { size?: number }) {
   return (
     <Svg size={size}>

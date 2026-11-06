@@ -69,11 +69,15 @@ export const BOSSES: BossDef[] = [
       grips: { collar_tie: 1.5, underhook: 1 },
       // Mechanik 3: Signatur-Kette Snap Down → Go-Behind.
       chains: { hl_go_behind: 2 },
+      // Mechanik 4: sein vorbereiteter Sprawl gegen deinen Shot.
+      konter: { nd_sprawl: 2 },
     },
     counter: {
       // Am Boden oben ist er schwächer: Lagen oben aufwerten, Front Headlock unten meiden.
       pos: { "headlock/bottom": -3, "guard/top": 1, "half/top": 1.5, "side/top": 1.5 },
       cards: { nd_sprawl: 1, cl_hips_back: 1, cl_underhook: 1, hlb_hands: 1.5, hlb_head_out: 1.5, tb_guillotine_def: 1 },
+      // Mechanik 4: Hände und Kopf vorbereiten gegen seinen Snap Down, selbst den Sprawl bereithalten.
+      konter: { nd_hand_fight: 1.5, nd_sprawl: 1 },
     },
     likes: "Er bleibt gern im Stand und im Clinch. Er schießt auf deine Beine und zieht deinen Kopf runter (Snap Down).",
     howTo: "Schießt er, sprawlst du: Beine nach hinten, Hüfte runter. Im Clinch erst den Underhook holen. Unten am Boden ist er schwächer.",
@@ -98,10 +102,14 @@ export const BOSSES: BossDef[] = [
       grips: { wrist: 1.5 },
       // Mechanik 3: Signatur-Kette Armbar ↔ Triangle.
       chains: { gb_triangle: 2, gb_armbar: 2 },
+      // Mechanik 4: Hüfte raus, Knie dazwischen – vorbereitet gegen deinen Pass.
+      konter: { gb_hip_frame: 2 },
     },
     counter: {
       pos: { "side/top": 2, "half/top": 1 },
       cards: { gt_posture: 2.5, gt_elbows_in: 2.5, gt_both_arms: 3, gt_base_post: 2.5, gt_knee_slice: 1, gt_toreando: 1, gt_body_lock: 1, gt_open_guard: 0.5 },
+      // Mechanik 4: Ellbogen eng und Hals schützen, bevor sie Armbar oder Triangle ansetzt.
+      konter: { gt_elbows_in: 1.5, gt_both_arms: 1.5 },
     },
     likes: "Sie zieht die Guard und kämpft gern von unten: Sweeps, Triangle, Armbar, Guillotine.",
     howTo: "Bleib aufrecht (Posture): Kopf hoch, Rücken gerade, Ellbogen eng – nie nur ein Arm drin. Erst Haltung, dann passieren.",
@@ -127,6 +135,8 @@ export const BOSSES: BossDef[] = [
       grips: { crossface: 2, underhook: 1 },
       // Mechanik 3: Signatur-Ketten Americana ↔ Kimura (Side) und Americana ↔ Armbar (Mount).
       chains: { sct_kimura: 2, sct_americana: 1.5, mt_armbar: 2, mt_americana: 1.5 },
+      // Mechanik 4: Hüfte zumachen und Knie zusammen – deine Flucht ist schon eingeplant.
+      konter: { sct_hip_block: 1.5, mt_knee_pinch: 1 },
     },
     counter: {
       pos: { "side/bottom": -2, "mount/bottom": -3 },
@@ -134,6 +144,8 @@ export const BOSSES: BossDef[] = [
         scb_frame: 1.5, scb_v_frame: 3.5, scb_protect_arms: 4, bot_elbow_knee: 1.5, scb_shrimp: 2, scb_head_arm_def: 2,
         mb_elbows_tight: 4, mb_knee_inside: 1.5, mb_elbow_escape: 2, hb_knee_shield: 2, hb_underhook: 1.5, nd_sprawl: 1.5, cl_hips_back: 1.5,
       },
+      // Mechanik 4: Rahmen bauen, bevor die Keile sitzen – Knie davor, Arme eng, vorbereitet.
+      konter: { scb_v_frame: 3, scb_protect_arms: 3, mb_elbows_tight: 3, hb_knee_shield: 2 },
     },
     likes: "Er kommt nach oben und drückt: Kopf wegdrehen (Crossface), Hüfte keilen. Dann Side Control, Mount, Americana und Kimura.",
     howTo: "Rahmen bauen, bevor die Keile sitzen. Ellbogen eng, Arme nicht weggeben. Dann wegrutschen (Shrimp) und die Guard zurückholen.",
@@ -157,15 +169,19 @@ export const BOSSES: BossDef[] = [
       grips: { seatbelt: 1, chin_strap: 0.5 },
       // Mechanik 3: Signatur-Kette RNC → Armbar vom Rücken.
       chains: { bt_armbar: 2 },
+      // Mechanik 4: Haken drin lassen – deine Flucht vom Rücken ist schon eingeplant.
+      konter: { bt_hook_retention: 1 },
     },
     counter: {
-      pos: { "turtle/bottom": -3, "back/bottom": -4 },
+      pos: { "turtle/bottom": -3, "back/bottom": -4, "clinch/neutral": -1.5 },
       cards: {
         mb_no_back: 3, bb_chin_tuck: 4, bb_elbows_tight: 3, bb_hand_fight: 2.5, bb_shrimp: 2, bb_escape_side: 2,
         tb_sit_out: 2, tb_stand_up: 2, tb_shell: 3.5, hlb_elbow_in: 3.5, scb_underhook: -2,
         // Mechanik 2: ihren Seatbelt lösen (Hände frei machen), in der Half Guard selbst den Underhook holen (verdrängt ihren) – sonst geht sie an den Rücken.
         tb_hands: 2.5, ht_underhook: 2,
       },
+      // Mechanik 4: Ellbogen an die Knie und Gesicht zu ihr, bevor sie rumgeht oder die Haken setzt.
+      konter: { tb_shell: 4, hlb_elbow_in: 3, mb_no_back: 3, bb_chin_tuck: 2 },
     },
     likes: "Sie will hinter dich: Arm ziehen, Turtle, Oberkörper umklammern (Seatbelt), Haken rein – dann der Würger von hinten.",
     howTo: "Zeig ihr nie den Rücken. Kinn runter, Hände an ihre Würgehand. Aus der Turtle sofort raussitzen (Sit Out) oder aufstehen.",

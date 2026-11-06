@@ -31,7 +31,8 @@ const ok = (s: State2, side: Side, id: string) => legalCards(s, side).find((l) =
 describe("Glossar", () => {
   it("zehn Schlüsselwörter, eindeutig, je mit Regel, Hinweis, BJJ-Satz und Quelle oder Trainer-Prüfung", () => {
     expect(KEYWORDS.length).toBeGreaterThanOrEqual(6);
-    expect(KEYWORDS.length).toBeLessThanOrEqual(10);
+    // Jede Mechanik darf höchstens ein Wort mitbringen (Mechanik 4: Konter → 11).
+    expect(KEYWORDS.length).toBeLessThanOrEqual(12);
     expect(new Set(KEYWORDS.map((k) => k.id)).size).toBe(KEYWORDS.length);
     expect(new Set(KEYWORDS.map((k) => k.name)).size).toBe(KEYWORDS.length);
     for (const k of KEYWORDS) {
@@ -82,6 +83,8 @@ describe("keywordsOf folgt den Daten", () => {
       expect(has(c, "aufgabe"), c.id).toBe(!!c.submission);
       expect(has(c, "atem"), c.id).toBe(!!c.kraft);
       expect(has(c, "kette"), c.id).toBe(!!c.chain);
+      // Konter: nur Rahmen – und nur, wenn er im gegenüberliegenden Slot in dieser Zone angreifen kann.
+      if (has(c, "konter")) expect(c.kind, c.id).toBe("rahmen");
     }
   });
   it("Takedown und Pass nur mit Positionswechsel nach oben; bekannte Beispiele", () => {

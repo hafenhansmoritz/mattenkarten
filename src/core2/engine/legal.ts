@@ -50,6 +50,7 @@ export function heldInSub(s: State2, side: Side): boolean {
 export const HOLD_STEP = 2;
 
 export function checkCard(s: State2, side: Side, c: Card2): Legal {
+  if (s.konter?.[side]?.card === c.id) return { id: c.id, ok: false, reason: "Liegt verdeckt als Konter" };
   if (c.to && heldInSub(s, side)) return { id: c.id, ok: false, reason: "Erst seine Aufgabe abwehren (Rahmen in ihrer Zone)" };
   if (s[side].locked.includes(c.id) && !continuesHold(s, side, c)) return { id: c.id, ok: false, reason: "Gesperrt (gerade gespielt)" };
   const unmet = unmetRequires(s, side, c);
