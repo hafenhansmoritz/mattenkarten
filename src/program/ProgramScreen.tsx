@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArenaK2 } from "../core2/ui/ArenaK2";
 import { TUTORIALS_K2 } from "../core2/data/tutorials";
@@ -20,8 +20,10 @@ import { TermText } from "./TermText";
 import { AREAS, buildExam, scoreExam } from "./exam";
 import { AREA_LABEL, explainFor } from "./questions";
 import {
-  completeDay, currentDay, drillsDone, knotState, sameDayHint, useProgram, type ProgramProgress,
+  RESUME_LABEL, completeDay, currentDay, drillsDone, knotState, resumeFor, sameDayHint, setResume, useProgram,
+  type ProgramProgress, type ResumeStep,
 } from "./store";
+import { useBackLayer } from "../home/backstack";
 import { ReviewCard, type JourneyStart } from "../journey/ReviewCard";
 import { emitLearning } from "../core2/rewards/events";
 import { LeglockCard } from "../leglock/LeglockScreen";
@@ -31,7 +33,9 @@ import "./program.css";
 const ALL_LESSONS: TutorialK2Def[] = [...TUTORIALS_K2, ...LESSONS_PROGRAM];
 export const lessonById = (id: string) => ALL_LESSONS.find((t) => t.id === id);
 
-const PART_LABEL = ["Aufwärmen", "Lektion", "Rätsel", "Matten-Drill"] as const;
+// Schritt 1 ist Abruf früherer Tage – „Erinnern“, damit es nicht mit dem Aufwärmen 5′ (Bewegung) verwechselt wird.
+const PART_LABEL = ["Erinnern", "Lektion", "Rätsel", "Matten-Drill"] as const;
+
 
 /** Rätsel-Schritt eines Tages: Fragen, Bilder, Ein-Satz – angekündigte Zahl = gezeigte Zahl. */
 export function puzzleIds(day: ProgramDay): string[] {
@@ -50,16 +54,23 @@ function lessonTitle(l: LessonRef): string {
 
 type View = { kind: "home" } | { kind: "day"; n: number } | { kind: "final" } | { kind: "warmup" };
 
-export function ProgramScreen({ onBack, onJourney, onLeglock, onGym }: { onBack: () => void; onJourney?: (v: JourneyStart) => void; onLeglock?: () => void; onGym?: () => void }) {
+export function ProgramScreen({ onBack, onJourney, onLeglock, onGym, onDayLeft }: {
+  onBack: () => void; onJourney?: (v: JourneyStart) => void; onLeglock?: () => void; onGym?: () => void;
+  /** Tag verlassen (App blendet dann Belohnungs-Hinweise aus – das Programm selbst kennt keine Belohnungen). */
+  onDayLeft?: () => void;
+}) {
   const [p, update] = useProgram();
   const [view, setView] = useState<View>({ kind: "home" });
   const [sel, setSel] = useState(() => Math.min(currentDay(p), 7));
+  // Android-Zurück: aus Tag, Abschluss oder Aufwärmen zurück zum Gürtel statt aus der App.
+  useBackLayer(view.kind !== "home", () => setView({ kind: "home" }));
 
   if (view.kind === "day") {
     const day = DAYS[view.n - 1];
     return (
       <DayRun key={day.n} day={day} p={p} update={update}
         onExit={(finished) => {
+          onDayLeft?.();
           if (finished && day.n === 7) { setView({ kind: "final" }); return; }
           if (finished) setSel(Math.min(day.n + 1, 7));
           setView({ kind: "home" });
@@ -129,7 +140,8 @@ export function ProgramScreen({ onBack, onJourney, onLeglock, onGym }: { onBack:
           {st === "locked" && <p className="muted small">Erst Tag {sel - 1} schaffen. Kein Zeitdruck – Pausen sind okay.</p>}
           {st !== "locked" && (
             <button className={`btn big ${st === "now" ? "primary" : ""}`} onClick={() => { sfx.select(); setView({ kind: "day", n: sel }); }}>
-              {st === "now" ? (sel === 1 ? "Tag 1 starten" : `Tag ${sel} starten`) : "Nochmal machen"}
+              {resumeFor(p, sel) ? `Weiter bei: ${RESUME_LABEL[resumeFor(p, sel)!.step]}`
+                : st === "now" ? (sel === 1 ? "Tag 1 starten" : `Tag ${sel} starten`) : "Nochmal machen"}
             </button>
           )}
           {st === "done" && p.drills[sel] === "later" && (
@@ -142,7 +154,7 @@ export function ProgramScreen({ onBack, onJourney, onLeglock, onGym }: { onBack:
 
       <button type="button" className="pg-warmup-go" onClick={() => { sfx.select(); setView({ kind: "warmup" }); }}>
         <span className="pg-warmup-ico num" aria-hidden="true">5′</span>
-        <span><b>Aufwärmen</b> <span className="small muted">· No-Gi, 5 Minuten mit Timer: Brücke, Shrimp, Sprawl, Stand-up, Fallen</span></span>
+        <span><b>Aufwärmen 5′</b> <span className="small muted">· No-Gi, 5 Minuten mit Timer: Brücke, Shrimp, Sprawl, Stand-up, Fallen</span></span>
         <span aria-hidden="true">›</span>
       </button>
       {allDone && (
@@ -223,15 +235,32 @@ function DayRun({ day, p, update, onExit }: {
   const steps: Step[] = isExam ? ["exam", "examResult", "boss", "drill", "done"] : [
     ...(day.warmup.length ? (["warmup"] as Step[]) : []), ...(day.concept ? (["concept"] as Step[]) : []), "lesson", "puzzle", "drill", "done",
   ];
-  const [si, setSi] = useState(0);
+  // Fortschritt im Tag (UX-Review 2, Punkt 8): gemerkter Schritt → nach Neuladen dort weiter.
+  const [si, setSi] = useState(() => {
+    const r = resumeFor(p, day.n);
+    const i = r ? steps.indexOf(r.step) : -1;
+    return i >= 0 ? i : 0;
+  });
   const step = steps[si];
   const go = () => setSi((i) => Math.min(i + 1, steps.length - 1));
-  const [lessonIdx, setLessonIdx] = useState(0);
+  const [lessonIdx, setLessonIdx] = useState(() => {
+    const r = resumeFor(p, day.n);
+    return r && r.step === "lesson" && r.lesson < day.lessons.length ? r.lesson : 0;
+  });
   const [inArena, setInArena] = useState(false);
+  useEffect(() => {
+    if (step === "done") return; // Abschluss löscht den Merker (completeDay)
+    const at: ResumeStep = step === "examResult" ? "boss" : step;
+    update((x) => (si === 0 && lessonIdx === 0
+      ? (x.resume ? setResume(x, x.resume.day === day.n ? null : x.resume) : x)
+      : setResume(x, { day: day.n, step: at, lesson: lessonIdx })));
+  }, [si, lessonIdx]); // eslint-disable-line react-hooks/exhaustive-deps
   const [lost, setLost] = useState(false);
   const [examRes, setExamRes] = useState<QuizResult[] | null>(null);
   const [examSeed, setExamSeed] = useState(() => Date.now() % 100000);
   const [boss, setBoss] = useState(false);
+  useBackLayer(inArena, () => setInArena(false));
+  useBackLayer(boss, () => setBoss(false));
   const [timed, setTimed] = useState(() => { try { return localStorage.getItem("mk-timed") === "1"; } catch { return false; } });
   const toggleTimed = () => setTimed((v) => {
     try { localStorage.setItem("mk-timed", v ? "0" : "1"); } catch { /* egal */ }
@@ -270,7 +299,7 @@ function DayRun({ day, p, update, onExit }: {
     else go();
   }
 
-  const visibleParts = isExam ? ["Prüfung", "Boss", "Drill"] : PART_LABEL.filter((l) => l !== "Aufwärmen" || day.warmup.length);
+  const visibleParts = isExam ? ["Prüfung", "Boss", "Drill"] : PART_LABEL.filter((l) => l !== "Erinnern" || day.warmup.length);
   const partIndex = isExam
     ? (step === "exam" || step === "examResult" ? 0 : step === "boss" ? 1 : 2)
     : ({ warmup: 0, concept: 1, lesson: 1, puzzle: 2, drill: 3 } as Record<string, number>)[step] - (day.warmup.length ? 0 : 1);
@@ -296,8 +325,8 @@ function DayRun({ day, p, update, onExit }: {
         <motion.div key={step + lessonIdx + (examSeed % 7)} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -14 }} transition={{ duration: 0.22 }}>
           {step === "warmup" && (
             <>
-              <p className="pg-lead">Aufwärmen: Erinnerst du dich? Abrufen hilft mehr als Nachlesen.</p>
-              <Quiz ids={day.warmup} kicker="Aufwärmen" onDone={go} />
+              <p className="pg-lead">Erinnern: Weißt du es noch? Abrufen hilft mehr als Nachlesen.</p>
+              <Quiz ids={day.warmup} kicker="Erinnern" onDone={go} />
             </>
           )}
 

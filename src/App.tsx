@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Archetype } from "./engine/types";
 import { useGame } from "./store";
@@ -13,6 +13,8 @@ import { StartTab } from "./home/StartTab";
 import { HeaderBelt } from "./home/HeaderBelt";
 import { TAB_LABEL, type Tab, type Target } from "./home/nav";
 import type { K2Run } from "./screens/KoerperkarteHub";
+import { useBackLayer } from "./home/backstack";
+import { dismissAllToasts } from "./core2/rewards/store";
 import "./home/home.css";
 
 // Code-Splitting (Bauplan 76): Startseite lädt sofort, alles andere als eigener Chunk.
@@ -47,7 +49,7 @@ const JourneyScreen = named(() => import("./journey/JourneyScreen"), "JourneyScr
 
 /** Tabs und Kampf nach dem ersten Bild im Leerlauf vorladen, damit der Wechsel sofort geht. */
 function prefetchSoon() {
-  const run = () => { void loadHub(); void loadUeben(); void import("./screens/Puzzles"); void import("./core2/ui/ArenaK2"); };
+  const run = () => { void loadHub(); void loadUeben(); void import("./core2/ui/ArenaK2"); };
   const ric = (window as any).requestIdleCallback as undefined | ((f: () => void, o?: object) => void);
   if (ric) ric(run, { timeout: 4000 }); else setTimeout(run, 2500);
 }
@@ -106,6 +108,15 @@ function AppScreens({ openPakete }: { openPakete: number }) {
     return () => window.removeEventListener("pointerdown", once);
   }, []);
   useEffect(() => { window.scrollTo(0, 0); }, [tab, screen]);
+  // Android-/Browser-Zurück (UX-Review 2, Punkt 8): Unterbildschirm → Tab → Start, erst dann raus aus der App.
+  const backTo = (s: Screen): Screen => (s === "klassik" || s === "impressum" || s === "datenschutz" ? "settings" : null);
+  useBackLayer(tab !== "start", () => setTab("start"));
+  useBackLayer(screen !== null, () => { if (screen === "k2") setK2run(null); setScreen(backTo(screen)); }, screen ?? "");
+  useBackLayer(!!fight, () => setFight(null));
+  // Belohnungs-Hinweise gehören zu dem Bildschirm, auf dem sie entstanden – beim Wechsel ausblenden
+  // (sie verdecken sonst z. B. die Rangliste-Karte; die Pakete bleiben ja liegen).
+  const firstNav = useRef(true);
+  useEffect(() => { if (firstNav.current) { firstNav.current = false; return; } dismissAllToasts(); }, [tab, screen]);
 
   function exitFight(won: boolean | null) {
     const a = fight!;
@@ -145,7 +156,7 @@ function AppScreens({ openPakete }: { openPakete: number }) {
   if (screen === "impressum" || screen === "datenschutz") return <Sub><LegalScreen page={screen} onBack={() => setScreen("settings")} /></Sub>;
   if (screen === "gym") return <Suspense fallback={<ScreenFallback />}><GymScreen start={gymStart} onBack={() => { setGymStart("home"); back(); }} /></Suspense>;
   if (screen === "warmup") return <div className="pg-wrap"><Suspense fallback={<ScreenFallback />}><WarmupScreen onBack={back} /></Suspense></div>;
-  if (screen === "program") return <div className="pg-wrap"><Suspense fallback={<ScreenFallback />}><ProgramScreen onBack={back} onJourney={(v: JourneyStart) => go({ journey: v })} onLeglock={() => setScreen("leglock")} onGym={() => go("gymweek")} /></Suspense></div>;
+  if (screen === "program") return <div className="pg-wrap"><Suspense fallback={<ScreenFallback />}><ProgramScreen onBack={back} onJourney={(v: JourneyStart) => go({ journey: v })} onLeglock={() => setScreen("leglock")} onGym={() => go("gymweek")} onDayLeft={dismissAllToasts} /></Suspense></div>;
   if (screen === "leglock") return <div className="pg-wrap"><Suspense fallback={<ScreenFallback />}><LeglockScreen onBack={back} /></Suspense></div>;
   if (screen === "journey") return <div className="pg-wrap"><Suspense fallback={<ScreenFallback />}><JourneyScreen start={journeyStart} onBack={back} /></Suspense></div>;
 
