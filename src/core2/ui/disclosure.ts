@@ -106,3 +106,60 @@ export function filterHandByLevel(
   const shown = byZone.filter((c) => f.kinds.includes(c.kind) || c.id === requireCard);
   return shown.some(ok) ? shown : byZone;
 }
+
+// ---------------- Erklärungen nach Stufe (UX-Review 2, Punkt 5) ----------------
+
+/** Begriffe, die erst ab einer Stufe in Erklärungen vorkommen dürfen (vorher: Satzteil umschreiben oder weglassen). */
+const CONCEPTS: { re: RegExp; from: UiLevel }[] = [
+  { re: /Dilemma/i, from: 6 },
+  { re: /\bKeil(e|en|s)?\b|gekeilt|\bWedges?\b/i, from: 6 },
+  { re: /\bPunkt(e|en)?\b|Punktgleich|Punktestand/i, from: 5 },
+  { re: /\bVorteil\b/i, from: 5 },
+];
+
+const hiddenAt = (level: UiLevel) => CONCEPTS.filter((c) => level < c.from).map((c) => c.re);
+
+/** true: Text nennt ein Konzept, das auf dieser Stufe noch verborgen ist. */
+export function mentionsHidden(text: string, level: UiLevel): boolean {
+  return hiddenAt(level).some((re) => re.test(text));
+}
+
+/**
+ * Erklärung für die Stufe: Klammer-Teile mit verborgenen Begriffen fallen weg („(Mount, 4 Punkte)“ → „(Mount)“),
+ * das Etikett „Dilemma:“ wird gestrichen, übrige Satzteile (getrennt durch „.“, „;“ oder „ – “) mit verborgenen
+ * Begriffen fallen weg. Bleibt nichts übrig: "".
+ */
+export function explainForLevel(text: string, level: UiLevel): string {
+  const hidden = hiddenAt(level);
+  if (!text || !hidden.some((re) => re.test(text))) return text;
+  const bad = (t: string) => hidden.some((re) => re.test(t));
+  let t = text.replace(/\s*\(([^()]*)\)/g, (_m, inner: string) => {
+    const keep = inner.split(/,\s*/).filter((p) => !bad(p));
+    return keep.length ? ` (${keep.join(", ")})` : "";
+  });
+  t = t.replace(/\bDilemma:\s*/g, "");
+  // In Satzteile zerlegen, Trenner behalten.
+  const parts = t.split(/(\.\s+|;\s+|\s+–\s+)/);
+  const out: string[] = [];
+  for (let i = 0; i < parts.length; i += 2) {
+    const seg = parts[i], sep = parts[i + 1] ?? "";
+    if (!seg.trim() || bad(seg)) continue;
+    out.push(seg, sep);
+  }
+  if (!out.length) return "";
+  out[out.length - 1] = "";                      // letzter Trenner weg
+  let res = out.join("").trim().replace(/[,;:–\s]+$/, "");
+  if (!/[.!?]$/.test(res)) res += ".";
+  return res[0].toUpperCase() + res.slice(1);
+}
+
+/** Satz über die sichtbaren Zonen einer Lektion („Heute zwei Zonen: Hüfte und Beine.“). */
+export function zonesIntro(zones: Zone[]): string {
+  const NAME: Record<Zone, string> = { kopf: "Kopf/Nacken", arme: "Arme", huefte: "Hüfte", beine: "Beine" };
+  const list = ZONES.filter((z) => zones.includes(z)).map((z) => NAME[z]);
+  const n = ["", "eine Zone", "zwei Zonen", "drei Zonen", "vier Zonen"][list.length] ?? `${list.length} Zonen`;
+  const names = list.length > 1 ? `${list.slice(0, -1).join(", ")} und ${list[list.length - 1]}` : list[0];
+  return list.length === ZONES.length
+    ? `Alle vier Zonen: ${names}. Wer Zonen gewinnt, kommt weiter.`
+    : `Heute ${n}: ${names}. Wer Zonen gewinnt, kommt weiter.`;
+}

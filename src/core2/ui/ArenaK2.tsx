@@ -17,7 +17,7 @@ import { Board, deltasOf } from "./Board";
 import { SubTracks } from "./SubTracks";
 import { Hand2 } from "./Hand2";
 import type { TutorialK2Def, TutorialK2Step } from "./tutorialTypes";
-import { filterHandByLevel, foeRules, uiFeatures } from "./disclosure";
+import { explainForLevel, filterHandByLevel, foeRules, mentionsHidden, uiFeatures } from "./disclosure";
 import type { UiLevel } from "./tutorialTypes";
 import { PREDICTIONS, PREDICTION_LABEL, lessonPredicts, outcomeOf, predictionFeedback, shouldPredict, type Prediction } from "./predict";
 import { ATEM_LABEL, GripIcon, KIND_LABEL, KonterIcon, KraftIcon, LockIcon, POS_LABEL, StilIcon, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
@@ -207,6 +207,11 @@ export function ArenaK2(props: ArenaK2Props) {
   // Freischalt-Stufe (nur Lektionen): ausgeblendete Zonen, Kartenarten, Atem, Phasenleiste, Vorhersage, Schlüsselwörter.
   const feat = useMemo(() => (tut ? uiFeatures(tut, props.uiLevel) : null), [tut, props.uiLevel]);
   const rules = useMemo(() => (tut && feat ? foeRules(tut, feat) : null), [tut, feat]);
+  // UX-Review 2, Punkt 5: Erklärungen ohne Konzepte, die diese Stufe noch nicht zeigt; Punktestand erst ab Stufe 5.
+  const lvl = feat?.level ?? 7;
+  const showScore = lvl >= 5;
+  const ex = (t: string) => explainForLevel(t, lvl);
+  const exHead = (t: string) => explainForLevel(t, lvl) || "Zeit um.";
   const [predictOn, setPredictOn] = useState(readPredictOn);
   const togglePredict = () => setPredictOn((v) => { try { localStorage.setItem(PREDICT_KEY, v ? "0" : "1"); } catch { /* egal */ } return !v; });
   // Neuer RNG je Match (auch bei gleichem Lektions-Seed): „Nochmal“ beginnt exakt wie der erste Versuch.
@@ -410,7 +415,8 @@ export function ArenaK2(props: ArenaK2Props) {
     setFx((f) => ({ ...f, windup: "p" }));
     later(260, () => setFx((f) => ({ ...f, windup: "o" })));
 
-    const st = stampFor(r);
+    const st0 = stampFor(r);
+    const st = st0 && mentionsHidden(st0.text, lvl) ? null : st0; // kein „DILEMMA!“ vor Stufe 6
     const moved = r.events.some((e) => e.t === "move");
     const tapped = r.events.some((e) => e.t === "tap");
     const flipMs = 900;
@@ -445,7 +451,7 @@ export function ArenaK2(props: ArenaK2Props) {
       const sh = r.events.find((e): e is Extract<Event2, { t: "stil" }> => e.t === "stil" && e.on === "hit" && (e.side === "p" || !ch));
       if (sh) { setStilFx({ side: sh.side, power: STIL_POWER[sh.stil].power, zone: sh.zone, key: Date.now() }); timers.current.push(setTimeout(() => setStilFx(null), 1400)); }
       const pts = r.events.filter((e): e is Extract<Event2, { t: "points" }> => e.t === "points");
-      if (pts.length) {
+      if (pts.length && showScore) {
         sfx.points();
         setFloats(pts.map((e, i) => ({ text: `+${e.n}`, color: e.side === "p" ? "var(--gi-p)" : "var(--gi-o)", key: Date.now() + i, x: e.side === "p" ? "32%" : "68%" })));
       }
@@ -527,7 +533,7 @@ export function ArenaK2(props: ArenaK2Props) {
   const resultTitle = !s.result ? "" :
     s.result.type === "tap" ? (won ? "Er klopft ab – du gewinnst" : "Du klopfst ab – er gewinnt") :
     s.result.type === "goal" ? "Ziel erreicht!" :
-    tut?.goal ? "Zeit um – Ziel noch offen" :
+    tut?.goal || !showScore ? (tut?.goal ? "Zeit um – Ziel noch offen" : "Zeit um") :
     s.result.winner === null ? "Unentschieden" : won ? "Sieg nach Punkten" : "Niederlage nach Punkten";
 
   // Kurze Ansage für Screenreader (eine dauerhafte Live-Region, damit sie zuverlässig vorliest).
@@ -538,7 +544,7 @@ export function ArenaK2(props: ArenaK2Props) {
   ], [feat, s.noGrips, s.noChains, s.noKonter]);
   const announce = phase === "end" && s.result ? resultTitle
     : phase === "tap" ? "Klopf ab!" : phase === "release" ? "Er klopft ab – loslassen!"
-    : phase === "result" && round ? `Runde ${round.round}: ${round.headline}` : "";
+    : phase === "result" && round ? `Runde ${round.round}: ${exHead(round.headline)}` : "";
 
   return (
     <div className={`k2-arena${frozen ? " fx-frozen" : ""}${phase === "result" ? " is-result" : ""}`}
@@ -548,7 +554,7 @@ export function ArenaK2(props: ArenaK2Props) {
       <header className="k2-head">
         <button type="button" className="k2-exit" aria-label="Zurück" onClick={(e) => { e.stopPropagation(); onExit(null); }}>‹</button>
         <div className="k2-hud p">
-          <b className="k2-pts">{s.p.pts}</b>
+          {showScore && <b className="k2-pts">{s.p.pts}</b>}
           {showAtem && <Pips n={s.p.kraft} label />}
         </div>
         <div className="k2-round">
@@ -557,7 +563,7 @@ export function ArenaK2(props: ArenaK2Props) {
         </div>
         <div className="k2-hud o">
           {showAtem && <Pips n={s.o.kraft} label />}
-          <b className="k2-pts">{s.o.pts}</b>
+          {showScore && <b className="k2-pts">{s.o.pts}</b>}
         </div>
       </header>
       {(!feat || feat.phaseBar) && <ChainStrip pos={shown.pos} subs={shown.subs} history={shown.history} reduced={reduced}
@@ -650,7 +656,7 @@ export function ArenaK2(props: ArenaK2Props) {
         {phase === "result" && round && (
           <motion.section className="k2-why" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
             <div className="k2-why-line">
-              <span className="k2-why-txt"><b>{round.headline}</b> {round.why}</span>
+              <span className="k2-why-txt"><b>{exHead(round.headline)}</b> {ex(round.why)}</span>
               <button type="button" className="k2-more" onClick={(e) => { e.stopPropagation(); setMore(!more); }} aria-expanded={more}>{more ? "Weniger" : "Mehr"}</button>
             </div>
             <AnimatePresence>
@@ -780,7 +786,7 @@ export function ArenaK2(props: ArenaK2Props) {
             <span className="label">{tut ? tut.title : `${props.plan ? `Spielplan · ${props.plan.name} · ` : ""}${boss ? `Boss · ${boss.name}` : `${props.plan ? "" : "Körperkarte · "}KI Stufe ${aiLevel}`}`}</span>
             <h2 className="display">{resultTitle}</h2>
             {/* Punktestand nur, wenn Punkte entscheiden (nicht bei Aufgabe oder erreichtem Lektionsziel). */}
-            {s.result.type !== "tap" && s.result.type !== "goal" && !tut?.goal && <div className="k2-end-score"><span className="p">{s.p.pts}</span><span className="sep">:</span><span className="o">{s.o.pts}</span></div>}
+            {showScore && s.result.type !== "tap" && s.result.type !== "goal" && !tut?.goal && <div className="k2-end-score"><span className="p">{s.p.pts}</span><span className="sep">:</span><span className="o">{s.o.pts}</span></div>}
             {tapOk !== null && (
               <p className={`k2-end-safety ${tapOk ? "ok" : "late"}`}>
                 {tapOk ? (s.result.winner === "p" ? "Sauber losgelassen. So trainiert man sicher." : "Rechtzeitig abgeklopft. Genau richtig.")
@@ -795,7 +801,8 @@ export function ArenaK2(props: ArenaK2Props) {
             {(() => {
               // Kurze Kämpfe: jede Runde der Reihe nach (keine Lücke wie „R1, R2, R4“). Lange: Schlüsselmomente, so benannt.
               const all = s.history.length <= 5;
-              const rows = all ? s.history.map((r) => ({ round: r.round, headline: r.headline, why: r.why })) : topWhys(s.history);
+              const rows = (all ? s.history.map((r) => ({ round: r.round, headline: r.headline, why: r.why })) : topWhys(s.history))
+                .map((w) => ({ ...w, headline: exHead(w.headline), why: ex(w.why) }));
               return (<>
                 <p className="k2-end-why-h">{all ? "Runde für Runde" : "Schlüsselmomente"}</p>
                 <ol className="k2-end-why">

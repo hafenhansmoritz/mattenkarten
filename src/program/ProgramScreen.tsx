@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArenaK2 } from "../core2/ui/ArenaK2";
 import { TUTORIALS_K2 } from "../core2/data/tutorials";
 import type { TutorialK2Def } from "../core2/ui/tutorialTypes";
+import { uiFeatures, zonesIntro } from "../core2/ui/disclosure";
 import { Confetti, Stamp } from "../components/fx";
 import { sfx } from "../sound";
 import { DAYS, NOT_ALONE, type LessonRef, type ProgramDay } from "./days";
@@ -383,7 +384,7 @@ function LessonIntro({ t, idx, count, lost, onStart, onSkip }: {
       <ul className="pg-howto small">
         <li>Du spielst <b style={{ color: "var(--gi-p)" }}>blau</b>. Ihr wählt gleichzeitig eine Karte.</li>
         <li>Der Coach zeigt dir die ersten Züge. Danach spielst du allein.</li>
-        <li>Vier Zonen: Kopf, Arme, Hüfte, Beine. Wer Zonen gewinnt, kommt weiter.</li>
+        <li>{zonesIntro(uiFeatures(t).zones)}</li>
       </ul>
       {lost && <p className="pg-hint small">Diesmal nicht geschafft – kein Problem. Nochmal, oder trotzdem weiter.</p>}
       <button className="btn primary big" onClick={onStart}>{lost ? "Nochmal versuchen" : "Lektion starten"}</button>
