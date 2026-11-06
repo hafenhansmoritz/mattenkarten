@@ -146,7 +146,7 @@ export const QUESTIONS: Question[] = [
   {
     id: "q-mount-first", day: 2, topic: "mount",
     q: "Er sitzt auf dir (Mount). Was baust du zuerst?",
-    options: ["Ellbogen an die Knie (Rahmen)", "Arme weit nach oben strecken", "Auf den Bauch drehen"],
+    options: ["Ellbogen an die Knie (Schutzhaltung)", "Arme weit nach oben strecken", "Auf den Bauch drehen"],
     answer: 0, scene: { pos: "mount", top: "o" }, src: "KB 4.5, Karte mb_knee_inside",
     why: "Ellbogen und Knie zusammen schützen dich. Das ist dein Rahmen vor jeder Befreiung.",
   },
@@ -543,7 +543,7 @@ export const IMAGE_QUESTIONS: Question[] = [
     q: "Deine Beine (gelb) halten eins seiner Beine fest. Wo bist du?",
     options: ["Unten in der halben Guard", "Oben im Mount", "Unten in der Seitenkontrolle"],
     answer: 0, src: "KB 3.2",
-    why: "Ein Bein von ihm ist gefangen: halbe Guard. Besser als Seitenkontrolle unten, schlechter als volle Guard.",
+    why: "Ein Bein von ihm ist gefangen: Halbe Guard. Besser als Seitenkontrolle unten, schlechter als volle Guard.",
   },
   {
     id: "qi-guard-posture", day: 4, topic: "guard", kind: "image",
