@@ -8,6 +8,8 @@ import { Glossar } from "../core2/ui/Glossar";
 import { StilWahl } from "../core2/ui/StilWahl";
 import { randomStil } from "../core2/data/stile";
 import type { StilId } from "../core2/types";
+import { SpielplanModus } from "../core2/ui/SpielplanModus";
+import { PLAN_RULE } from "../core2/data/plans";
 
 const KEY = "mk.k2.done";
 function readDone(): string[] {
@@ -18,7 +20,7 @@ function writeDone(ids: string[]) {
 }
 
 type Run = { kind: "tut"; id: string } | { kind: "stilwahl"; level: 1 | 2 | 3 } | { kind: "free"; level: 1 | 2 | 3; stil: StilId; foe: StilId }
-  | { kind: "bosses" } | { kind: "glossar" } | null;
+  | { kind: "bosses" } | { kind: "glossar" } | { kind: "plan" } | null;
 const LEVEL_NAME: Record<1 | 2 | 3, string> = { 1: "Locker", 2: "Normal", 3: "Hart" };
 const ALL_TUTS = [...TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD];
 
@@ -40,6 +42,7 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
   }
   if (run?.kind === "bosses") return <Bosse onBack={() => setRun(null)} />;
   if (run?.kind === "glossar") return <Glossar onBack={() => setRun(null)} />;
+  if (run?.kind === "plan") return <SpielplanModus onBack={() => setRun(null)} />;
   if (run?.kind === "stilwahl") {
     // Mechanik 5: vor dem freien Spiel das A-Game wählen; der Gegner bekommt einen zufälligen Stil.
     const lv = run.level;
@@ -87,6 +90,13 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
         <button className="btn" onClick={() => setRun({ kind: "stilwahl", level: 2 })}>Normal</button>
         <button className="btn primary" onClick={() => setRun({ kind: "stilwahl", level: 3 })}>Hart</button>
       </div>
+      <h3 className="display" style={{ marginTop: 18 }}>Spielplan-Modus</h3>
+      <div className="more-list">
+        <button className="more-item" onClick={() => setRun({ kind: "plan" })}>
+          <strong className="display">Spielplan-Modus (neu)</strong>
+          <span className="muted small">{PLAN_RULE[0]} {PLAN_RULE[1]}</span>
+        </button>
+      </div>
       <h3 className="display" style={{ marginTop: 18 }}>Bosse</h3>
       <div className="more-list">
         <button className="more-item" onClick={() => setRun({ kind: "bosses" })}>
@@ -98,7 +108,7 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
       <div className="more-list">
         <button className="more-item" onClick={() => setRun({ kind: "glossar" })}>
           <strong className="display">Schlüsselwörter</strong>
-          <span className="muted small">Keil, Rahmen, Takedown, Pass, Flucht, Aufgabe, Dilemma, Atem, Spielstil – jedes Wort heißt immer dieselbe Regel.</span>
+          <span className="muted small">Keil, Rahmen, Takedown, Pass, Flucht, Aufgabe, Dilemma, Atem, Spielstil, Spielplan – jedes Wort heißt immer dieselbe Regel.</span>
         </button>
       </div>
     </div>

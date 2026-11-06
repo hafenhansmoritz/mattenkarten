@@ -91,6 +91,17 @@ export interface Konter2 { card?: string; zone?: Zone; left: number }
 /** Mechanik 5 „Spielstil“ (B44): das A-Game eines Kämpfers – dieselben vier Archetypen wie die Bosse. */
 export type StilId = "ringer" | "guard" | "druecker" | "ruecken";
 
+/** Mechanik 6 „Spielplan“ (B51): Stapel und Hand einer Seite im Spielplan-Modus. Karten werden nicht verbraucht –
+ *  was du gezogen hast, kannst du (wenn es in die Lage passt). Grundlagen (Rahmen, Befreiungen) gehen immer. */
+export interface Plan2 {
+  /** Noch nicht gezogen, oberste zuerst (gemischt beim Start, seed-fest). */
+  deck: string[];
+  /** Gezogen = „kennst du schon“, in Zieh-Reihenfolge. */
+  hand: string[];
+  /** Mulligan schon gemacht (oder Runde 1 vorbei). */
+  mulligan: boolean;
+}
+
 /** kraft = Atem (sichtbar immer „Atem“: BJJ ist Hebel statt Kraft). */
 export interface Fighter2 { pts: number; kraft: number; locked: string[] }
 
@@ -115,6 +126,8 @@ export interface State2 {
   noKonter?: boolean;
   /** Mechanik 5: gewählter Spielstil je Seite (öffentlich). Fehlt er, hat die Seite keine Stil-Fähigkeit. */
   stil?: Partial<Record<Side, StilId>>;
+  /** Mechanik 6: Spielplan-Modus – je Seite Stapel und Hand. Fehlt er, hat die Seite die volle Hand (Standard). */
+  plan?: Partial<Record<Side, Plan2>>;
   history: Round2[];
   result: null | { type: "tap"; winner: Side; sub: string } | { type: "points"; winner: Side | null } | { type: "goal"; winner: Side };
   /** Tutorial-Ziel: Spieler gewinnt, sobald (pos, role) erreicht. */

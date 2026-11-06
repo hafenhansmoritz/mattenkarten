@@ -5,6 +5,7 @@ import { boardFor, fmtSigned, other, roleOf, ZONE_LABEL } from "./board";
 import { gripBonus } from "./grips";
 import { chainBonus } from "./chains";
 import { slotCards } from "./registry";
+import { planBlock, planSharp } from "./plan";
 
 /** Platzhalter, wenn eine Seite keine spielbare Karte hat (Slot leer oder alles gesperrt). */
 export const PASS = "pass";
@@ -21,7 +22,9 @@ export function needIn(s: State2, side: Side, c: Pick<Card2, "requires" | "zone"
   const need = c.requires?.[z];
   if (need === undefined) return undefined;
   if (z !== c.zone) return need;
-  return need - gripBonus(s, side, z) - (c.chain && c.kind ? chainBonus(s, side, c as Card2, z) : 0);
+  // Mechanik 6 (B52): ein gezogener Spielplan-Angriff ist geübt – in seiner Zone 1 weniger.
+  const sharp = s.plan ? planSharp(s, side, c as Partial<Card2>) : 0;
+  return need - gripBonus(s, side, z) - (c.chain && c.kind ? chainBonus(s, side, c as Card2, z) : 0) - sharp;
 }
 
 export function unmetRequires(s: State2, side: Side, c: Pick<Card2, "requires" | "zone"> & Partial<Pick<Card2, "chain" | "kind">>): string[] {
@@ -51,6 +54,9 @@ export const HOLD_STEP = 2;
 
 export function checkCard(s: State2, side: Side, c: Card2): Legal {
   if (s.konter?.[side]?.card === c.id) return { id: c.id, ok: false, reason: "Liegt verdeckt als Konter" };
+  // Mechanik 6 (B52): im Spielplan-Modus nur gezogene Karten deines Plans – Grundlagen immer.
+  const pb = planBlock(s, side, c);
+  if (pb) return { id: c.id, ok: false, reason: pb };
   if (c.to && heldInSub(s, side)) return { id: c.id, ok: false, reason: "Erst seine Aufgabe abwehren (Rahmen in ihrer Zone)" };
   if (s[side].locked.includes(c.id) && !continuesHold(s, side, c)) return { id: c.id, ok: false, reason: "Gesperrt (gerade gespielt)" };
   const unmet = unmetRequires(s, side, c);

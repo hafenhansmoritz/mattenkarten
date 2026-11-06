@@ -7,10 +7,11 @@ import type { Card2, Pos2, Zone } from "../types";
 import { SRC } from "../../data/sources";
 import { canKonter, KONTER_COST, KONTER_PER_MATCH } from "../engine/konter";
 import { STIL_COST } from "../engine/stil";
+import { MULLIGAN_MAX, PLAN_SHARP, PLAN_SIZE, PLAN_START } from "../engine/plan";
 
-export type KeywordId = "keil" | "rahmen" | "griff" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "kette" | "konter" | "atem" | "stil";
+export type KeywordId = "keil" | "rahmen" | "griff" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "kette" | "konter" | "atem" | "stil" | "plan";
 /** Schlüsselwörter, die nicht auf Karten stehen (Regel des Kampfs, nicht der Karte): Spielstil (Mechanik 5). */
-export const NON_CARD_KEYWORDS: KeywordId[] = ["stil"];
+export const NON_CARD_KEYWORDS: KeywordId[] = ["stil", "plan"];
 
 export interface KeywordDef {
   id: KeywordId;
@@ -36,6 +37,9 @@ const ONE_STEP_AHEAD = { title: "Evolve MMA – Never Get Submitted Again: 5 Way
 /** Mechanik 5 (B44–B50), per WebFetch geprüft 2026-11-06: „Making a conscious decision about whether you want to focus on
  *  passing the guard or playing guard“ – „it is important for every player to learn the basics“. */
 const A_GAME = { title: "Evolve MMA – Guard Passers vs Guard Players: A Guide To Picking Your BJJ Style", url: "https://evolve-mma.com/blog/guard-passers-vs-guard-players-a-guide-to-picking-your-bjj-style/" };
+/** Mechanik 6 (B51–B56), per WebFetch geprüft 2026-11-06: „Study all aspects of that smaller number of A Game techniques and
+ *  make them as sharp as possible.“ – „Foundation in the fundamentals comes first.“ */
+const A_GAME_PLAN = { title: "Gracie Barra – How To Build Your A Game", url: "https://graciebarra.com/gb-learning/how-to-build-your-a-game" };
 const RNC_STEPS = { title: "Grapplearts – Preventing & Escaping the RNC", url: "https://www.grapplearts.com/preventing-escaping-the-rnc/" };
 
 /** Reihenfolge = Reihenfolge auf der Karte und im Glossar. */
@@ -123,6 +127,14 @@ export const KEYWORDS: KeywordDef[] = [
     hint: "Spielstil: dein A-Game – zusätzlich +1 in deiner Zone.",
     bjj: "Jeder baut sein eigenes A-Game – Ringer, Guard-Spieler, Drücker –, doch die Grundlagen lernen alle.",
     source: A_GAME,
+  },
+  {
+    // Mechanik 6 (B51–B56): Deck, Nachziehen, Mulligan. Steht auf keiner Karte – es ist die Regel des Spielplan-Modus.
+    id: "plan", name: "Spielplan",
+    rule: `Dein Spielplan sind ${PLAN_SIZE} Angriffe: Du startest mit ${PLAN_START}, tauschst einmal bis zu ${MULLIGAN_MAX} und ziehst jede Runde 1. Gezogene Angriffe sind geübt und brauchen in ihrer Zone ${PLAN_SHARP} weniger. Aufbauen, Rahmen und Befreiungen kannst du immer.`,
+    hint: "Spielplan: nur gezogene Angriffe – Aufbauen und Verteidigen geht immer.",
+    bjj: "Erst die Grundlagen, dann wenige eigene Techniken – die übst du, bis sie richtig scharf sind.",
+    source: A_GAME_PLAN,
   },
   {
     id: "atem", name: "Atem",

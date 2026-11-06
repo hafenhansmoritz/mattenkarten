@@ -41,13 +41,15 @@ export function reqMet(req: ZoneReq | undefined, myBoard: Board | undefined, zon
 }
 
 /** Bedingungen einer Karte. gripZones (Mechanik 2): Zonen mit eigenem Griff – dort braucht ein Angriff in dieser Zone 1 weniger. */
-export function reqList(c: Card2, gripZones: Zone[] = [], chainReady = false): { zone: Zone; n: number; grip?: boolean; chain?: boolean }[] {
+export function reqList(c: Card2, gripZones: Zone[] = [], chainReady = false, sharp = false): { zone: Zone; n: number; grip?: boolean; chain?: boolean; sharp?: boolean }[] {
   if (!c.requires) return [];
   return ZONES.filter((z) => c.requires![z] != null).map((z) => {
     const grip = z === c.zone && gripZones.includes(z);
     // Mechanik 3: eine bereite Kette senkt die Bedingung in der Zone der Karte um 1 (stapelt mit dem Griff).
     const chain = z === c.zone && chainReady;
-    return { zone: z, n: (c.requires![z] as number) - (grip ? 1 : 0) - (chain ? 1 : 0), ...(grip ? { grip } : {}), ...(chain ? { chain } : {}) };
+    // Mechanik 6 (B52): gezogener Spielplan-Angriff ist geübt – 1 weniger in seiner Zone (stapelt).
+    const sh = z === c.zone && sharp;
+    return { zone: z, n: (c.requires![z] as number) - (grip ? 1 : 0) - (chain ? 1 : 0) - (sh ? 1 : 0), ...(grip ? { grip } : {}), ...(chain ? { chain } : {}), ...(sh ? { sharp: sh } : {}) };
   });
 }
 

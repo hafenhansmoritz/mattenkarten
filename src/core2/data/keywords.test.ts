@@ -6,6 +6,7 @@ import { ZONES } from "../types";
 import { CARDS2 } from "./cards";
 import { KEYWORDS, KEYWORD, KEYWORDS_SEEN_KEY, NON_CARD_KEYWORDS, firstUnseen, isPass, isTakedown, keywordsOf, type KeywordId } from "./keywords";
 import { STIL_COST } from "../engine/stil";
+import { MULLIGAN_MAX, PLAN_SIZE } from "../engine/plan";
 import { legalCards, newMatch, PASS, playRound, setCardRegistry, KRAFT_MAX } from "../engine";
 import { BALANCE } from "../engine/resolve";
 import { HOLD_STEP } from "../engine/legal";
@@ -32,8 +33,8 @@ const ok = (s: State2, side: Side, id: string) => legalCards(s, side).find((l) =
 describe("Glossar", () => {
   it("zehn Schlüsselwörter, eindeutig, je mit Regel, Hinweis, BJJ-Satz und Quelle oder Trainer-Prüfung", () => {
     expect(KEYWORDS.length).toBeGreaterThanOrEqual(6);
-    // Jede Mechanik darf höchstens ein Wort mitbringen (Mechanik 4: Konter → 11, Mechanik 5: Spielstil → 12).
-    expect(KEYWORDS.length).toBeLessThanOrEqual(12);
+    // Jede Mechanik darf höchstens ein Wort mitbringen (Mechanik 4: Konter → 11, Mechanik 5: Spielstil → 12, Mechanik 6: Spielplan → 13).
+    expect(KEYWORDS.length).toBeLessThanOrEqual(13);
     expect(new Set(KEYWORDS.map((k) => k.id)).size).toBe(KEYWORDS.length);
     expect(new Set(KEYWORDS.map((k) => k.name)).size).toBe(KEYWORDS.length);
     for (const k of KEYWORDS) {
@@ -105,6 +106,8 @@ describe("keywordsOf folgt den Daten", () => {
   it("Regeltexte nennen die aktuellen Balance-Werte", () => {
     expect(KEYWORD.atem.rule).toContain(`höchstens ${KRAFT_MAX}`);
     expect(KEYWORD.stil.rule).toContain(`${STIL_COST} Atem`);
+    expect(KEYWORD.plan.rule).toContain(`${PLAN_SIZE} Angriffe`);
+    expect(KEYWORD.plan.rule).toContain(`bis zu ${MULLIGAN_MAX}`);
     expect(KEYWORD.flucht.rule).toContain(`Schritt ${HOLD_STEP}`);
     expect(BALANCE.unframedSubSteps).toBe(2);
     expect(KEYWORD.aufgabe.rule).toContain("zwei Schritte");

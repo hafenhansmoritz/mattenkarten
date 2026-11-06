@@ -7,6 +7,7 @@ import { cardById } from "./registry";
 import { breakable, GRIP_MAX, gripFits } from "./grips";
 import { chainFrom } from "./chains";
 import { checkKonter, KONTER_COST, KONTER_NO_GAIN, KONTER_ROUNDS, konterFits, splitPlay } from "./konter";
+import { clonePlan, drawPlans } from "./plan";
 import { checkStil, STIL_COST, STIL_GAIN, STIL_POWER, stilBlockedBy } from "./stil";
 
 export const KRAFT_MAX = 5;
@@ -41,6 +42,7 @@ export function cloneState(s: State2): State2 {
     result: s.result ? { ...s.result } : null,
     goal: s.goal ? s.goal.map((g) => ({ ...g })) : undefined,
     ...(s.konter ? { konter: Object.fromEntries(Object.entries(s.konter).map(([k, v]) => [k, { ...v }])) } : {}),
+    ...(s.plan ? { plan: clonePlan(s.plan) } : {}),
   };
 }
 
@@ -623,6 +625,8 @@ export function resolveRound(s0: State2, pPlay: string, oPlay: string): { state:
       s.result = { type: "points", winner: w };
     } else s.round += 1;
   }
+  // Mechanik 6 (B54): nach jeder Runde zieht jede Spielplan-Seite 1 Karte (nicht nach dem Ende).
+  if (!s.result) drawPlans(s);
 
   const winner: Round2["winner"] = triWinner ?? (ctx.acted.size === 2 ? "both" : ctx.acted.size === 1 ? [...ctx.acted][0] : "none");
   const top = ctx.notes.slice().sort((a, b) => b.prio - a.prio)[0];

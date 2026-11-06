@@ -13,6 +13,8 @@ import { isGrundlage, roundShare, seedStil, simMatch, stilPlayer, type SimPlayer
 import { stilAi } from "../src/core2/data/stile";
 import { STIL_IDS, STIL_POWER } from "../src/core2/engine/stil";
 import { BOSSES } from "../src/core2/data/bosses";
+import { BOSS_PLANS, DEFAULT_PLAN } from "../src/core2/data/plans";
+import { planErrors, planPlayed } from "../src/core2/engine/plan";
 import { mulberry32 } from "../src/engine/rng";
 import type { Pos2, Role2, Side, StilId, State2 } from "../src/core2/types";
 import { ZONES } from "../src/core2/types";
@@ -319,6 +321,83 @@ if (!noStil) {
     }
   }
   checks.push(["Stil-Matrix: kein Stil > 58% gegen einen anderen (gleiche Stufe)", worst.w <= 0.58, `max ${worst.a} gegen ${worst.b} (L${worst.lv}) ${pct(worst.w, 1)}`]);
+}
+
+// ---- Mechanik 6 (B56): Spielplan-Modus – L3 mit Standard-Plänen gegeneinander und gegen die volle Hand ----
+if (!noStil && !useFix && !args.includes("--noplan")) {
+  const NP = Math.max(40, Math.round(N / 2));
+  for (const id of STIL_IDS) {
+    const e = [...planErrors(DEFAULT_PLAN[id].cards, cardById), ...planErrors(BOSS_PLANS[id].cards, cardById)];
+    if (e.length) anomalies.push(`Spielplan ${id}: ${e.join("; ")}`);
+  }
+  const planPl = (id: StilId): SimPlayer => ({ ...stilPlayer(3, id), plan: DEFAULT_PLAN[id].cards });
+  let n = 0, taps = 0, draws = 0, passes = 0, rounds = 0, playedSum = 0, playedN = 0;
+  let worst = { a: "", b: "", w: 0 };
+  const share = new Map<string, number>();
+  // Jede Paarung einmal (2 × NP Matches, abwechselnd p/o), dazu die Spiegel-Paarungen (NP) für Taps/Remis.
+  for (let x = 0; x < STIL_IDS.length; x++) for (let y = x; y < STIL_IDS.length; y++) {
+    const a = STIL_IDS[x], b = STIL_IDS[y];
+    let w = 0, l = 0;
+    for (let i = 0; i < (a === b ? NP : 2 * NP); i++) {
+      const ap = i % 2 === 0;
+      const m = ap ? simMatch(planPl(a), planPl(b), 11000 + i) : simMatch(planPl(b), planPl(a), 11000 + i);
+      const r = m.state.result;
+      n++; if (r?.type === "tap") taps++; if (!r?.winner) draws++;
+      for (const h of m.state.history) { rounds += 2; if (h.pCard === PASS) passes++; if (h.oCard === PASS) passes++; }
+      for (const side of ["p", "o"] as Side[]) {
+        const id = (side === "p") === ap ? a : b;
+        playedSum += planPlayed(m.state, side, DEFAULT_PLAN[id].cards).played; playedN++;
+      }
+      if (a === b || !r?.winner) continue;
+      if ((r.winner === "p") === ap) w++; else l++;
+    }
+    if (a === b) continue;
+    const sh = w / Math.max(1, w + l);
+    share.set(`${a}/${b}`, sh); share.set(`${b}/${a}`, 1 - sh);
+    const hi = sh >= 0.5 ? { a, b, w: sh } : { a: b, b: a, w: 1 - sh };
+    if (hi.w > worst.w) worst = { a: DEFAULT_PLAN[hi.a].name, b: DEFAULT_PLAN[hi.b].name, w: hi.w };
+  }
+  console.log(`\nSpielplan-Matrix L3 (${2 * NP} Matches je Paarung, abwechselnd p/o; Zeile gewinnt gegen Spalte, entschiedene Matches):`);
+  console.log(`  ${"".padEnd(14)}${STIL_IDS.map((id) => DEFAULT_PLAN[id].name.padEnd(13)).join("")}`);
+  for (const a of STIL_IDS) console.log(`  ${DEFAULT_PLAN[a].name.padEnd(14)}${STIL_IDS.map((b) => (a === b ? "–" : pct(share.get(`${a}/${b}`)!, 1)).padEnd(13)).join("")}`);
+  // Volle Hand (L3, gleicher Stil) gegen Spielplan (L3): der Plan-Spieler ist schwächer, aber nicht chancenlos.
+  let pw = 0, pl = 0;
+  const vs: string[] = [];
+  for (const id of STIL_IDS) {
+    let w = 0, l = 0;
+    for (let i = 0; i < NP; i++) {
+      const pp = i % 2 === 0;
+      const full = stilPlayer(3, id), plan = planPl(id);
+      const m = pp ? simMatch(plan, full, 12000 + i) : simMatch(full, plan, 12000 + i);
+      const win = m.state.result?.winner;
+      if (!win) continue;
+      if ((win === "p") === pp) w++; else l++;
+    }
+    pw += w; pl += l;
+    vs.push(`${DEFAULT_PLAN[id].name} ${pct(w, w + l)}`);
+  }
+  const planShare = pw / Math.max(1, pw + pl);
+  console.log(`  Plan gegen Plan: ${n} Matches · Taps ${pct(taps, n)} · Unentschieden ${pct(draws, n)} · Passen ${pct(passes, rounds)} der Züge · Ø ${(playedSum / Math.max(1, playedN)).toFixed(1)} von 15 Plan-Karten gespielt`);
+  console.log(`  Spielplan (L3) gegen volle Hand (L3, gleicher Stil): Plan gewinnt ${pct(planShare, 1)} (${vs.join(", ")})`);
+  checks.push(["Spielplan: Taps 8–30% (Plan gegen Plan, L3)", taps / n >= 0.08 && taps / n <= 0.3, pct(taps, n)]);
+  checks.push(["Spielplan: Unentschieden < 20%", draws / n < 0.2, pct(draws, n)]);
+  checks.push(["Spielplan: kein Plan > 60% gegen einen anderen", worst.w <= 0.6, `max ${worst.a} gegen ${worst.b} ${pct(worst.w, 1)}`]);
+  checks.push(["Spielplan: gegen volle Hand 35–50% (schwächer, nicht chancenlos)", planShare >= 0.35 && planShare <= 0.5, pct(planShare, 1)]);
+  // Bosse mit Signatur-Plan (Info): Boss-Profil + Boss-Plan gegen L3 mit dem Standard-Plan desselben Stils.
+  const bl: string[] = [];
+  for (const b of BOSSES) {
+    let w = 0, l = 0;
+    for (let i = 0; i < NP; i++) {
+      const bp = i % 2 === 0;
+      const boss: SimPlayer = { level: b.level, style: b.style, stil: b.id, plan: BOSS_PLANS[b.id].cards };
+      const m = bp ? simMatch(boss, planPl(b.id), 13000 + i) : simMatch(planPl(b.id), boss, 13000 + i);
+      const win = m.state.result?.winner;
+      if (!win) continue;
+      if ((win === "p") === bp) w++; else l++;
+    }
+    bl.push(`${b.name} (${BOSS_PLANS[b.id].name}) ${pct(w, w + l)}`);
+  }
+  console.log(`  Bosse mit Signatur-Plan gegen L3-Plan: ${bl.join(", ")}`);
 }
 
 // ---- B28 Bosse: Spielstil auf Stufe 2/3 ----

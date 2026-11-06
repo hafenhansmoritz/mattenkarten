@@ -441,3 +441,52 @@
 .k2-end-stil { margin: 6px 0 0; font-size: 13px; color: var(--text-2, #a9b6d6); }
 .k2-end-stil b { color: var(--points, #ffd166); }
 .k2-end-stil .k2-ico, .k2-stil-chip .k2-ico, .k2-power .k2-ico { display: inline-block; flex: none; vertical-align: -2px; }
+
+/* ---------- Mechanik 6: Spielplan-Modus (B51–B56) ---------- */
+.k2-new-tag { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-family: var(--font-body, inherit); font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #10172a; background: var(--points, #ffd166); }
+.k2-plan-group { display: flex; flex-direction: column; gap: 4px; }
+.k2-plan-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--text-2, #a9b6d6); text-transform: uppercase; letter-spacing: 0.05em; }
+.k2-plan-head b { color: var(--points, #ffd166); font-weight: 800; }
+.k2-plan-head.is-basics b { color: var(--text, #eef2ff); }
+.k2-plan-head.is-basics span { text-transform: none; letter-spacing: 0; }
+.k2-plan-deck { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; text-transform: none; letter-spacing: 0; color: var(--text, #eef2ff); }
+.k2-plan-deck-stack { display: inline-block; width: 12px; height: 15px; border-radius: 2px; background: linear-gradient(135deg, #2a3a66, #18213b); border: 1px solid var(--line-strong, #3a4a72); box-shadow: 2px 2px 0 -1px #2a3a66, 4px 4px 0 -2px #2a3a66; vertical-align: middle; }
+.k2-plan-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.k2-plan-none { margin: 0; font-size: 12px; color: var(--text-2, #a9b6d6); padding: 6px 8px; border: 1px dashed var(--line, #2a3654); border-radius: 8px; }
+.k2-hcard.is-plan { box-shadow: 0 0 0 1px color-mix(in srgb, var(--points, #ffd166) 55%, transparent), var(--shadow-1); }
+.k2-hcard-zone { display: inline-flex; align-items: center; gap: 2px; font-size: 8.5px; font-weight: 700; color: var(--text-2, #a9b6d6); text-transform: uppercase; }
+.k2-fresh-badge { font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #10172a; background: var(--points, #ffd166); border-radius: 4px; padding: 0 4px; }
+.k2-req.by-plan { outline: 1px dashed var(--points, #ffd166); }
+.k2-drawn { margin: 0; font-size: 12px; color: var(--text, #eef2ff); display: flex; align-items: center; gap: 6px; }
+.k2-mull { gap: 8px; }
+.k2-mull-h { margin: 0; font-size: 16px; color: var(--text, #eef2ff); }
+.k2-mull-sub, .k2-mull-rule { margin: 0; font-size: 12.5px; color: var(--text-2, #a9b6d6); }
+.k2-mull-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.k2-mull-card { --kc: var(--line-strong); position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 92px; padding: 8px 9px; text-align: left; font: inherit; color: var(--text); cursor: pointer;
+  border-radius: 10px; border: 1px solid color-mix(in srgb, var(--kc) 45%, transparent); border-top: 4px solid var(--kc); background: linear-gradient(180deg, color-mix(in srgb, var(--kc) 14%, #1a2440), #121a2e); }
+.k2-mull-card.kind-angriff { --kc: var(--k2-a); }
+.k2-mull-card.kind-aufbauen { --kc: var(--k2-b); }
+.k2-mull-card.kind-rahmen { --kc: var(--k2-r); }
+.k2-mull-card.is-swap { opacity: 0.6; border-style: dashed; transform: rotate(-2deg); }
+.k2-mull-card:disabled { cursor: not-allowed; opacity: 0.5; }
+.k2-mull-card:focus-visible { outline: 2px solid var(--k2-focus); outline-offset: 2px; }
+.k2-mull-kind { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--kc); display: inline-flex; align-items: center; gap: 3px; }
+.k2-mull-t { font-size: 14px; line-height: 1.15; }
+.k2-mull-where { font-size: 11px; color: var(--text-2, #a9b6d6); margin-top: auto; }
+.k2-mull-tag { position: absolute; top: 6px; right: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #10172a; background: var(--points, #ffd166); border-radius: 4px; padding: 1px 5px; }
+.k2-end-plan { margin: 6px 0 0; font-size: 13px; color: var(--text-2, #a9b6d6); }
+.k2-end-plan b { color: var(--points, #ffd166); }
+.k2-planmode .k2-plan-rule { font-size: 14px; line-height: 1.4; margin: 6px 0; }
+.k2-planmode .k2-plan-bjj a { color: #a9cbff; }
+.k2-plan-hint { display: flex; gap: 10px; align-items: flex-start; margin: 10px 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 209, 102, 0.08); border: 1px solid rgba(255, 209, 102, 0.4); }
+.k2-plan-hint ol { margin: 6px 0 8px; padding-left: 18px; font-size: 13px; }
+.k2-plan-list { display: flex; flex-direction: column; gap: 8px; }
+.k2-plan-card { border-radius: 12px; border: 1px solid var(--line, #2a3654); background: var(--surface, #141c30); overflow: hidden; }
+.k2-plan-card.is-on { border-color: var(--points, #ffd166); box-shadow: 0 0 0 1px var(--points, #ffd166); }
+.k2-plan-pick { all: unset; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; cursor: pointer; }
+.k2-plan-pick:focus-visible, .k2-plan-more:focus-visible { outline: 2px solid var(--points, #ffd166); outline-offset: -2px; }
+.k2-plan-stil { font-size: 12px; font-weight: 700; color: var(--points, #ffd166); }
+.k2-plan-idea { font-size: 13px; color: var(--text, #eef2ff); }
+.k2-plan-spread { font-size: 11.5px; color: var(--text-2, #a9b6d6); }
+.k2-plan-more { all: unset; box-sizing: border-box; display: block; width: 100%; min-height: 40px; padding: 8px 12px; font-size: 12.5px; color: #a9cbff; text-decoration: underline; cursor: pointer; border-top: 1px solid var(--line, #2a3654); }
+.k2-plan-cards { margin: 0; padding: 4px 12px 10px 28px; font-size: 12.5px; display: flex; flex-direction: column; gap: 2px; }

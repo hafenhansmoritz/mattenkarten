@@ -10,9 +10,10 @@ import { cardById } from "./registry";
 import { splitPlay } from "./konter";
 import { STIL_IDS } from "./stil";
 import { stilAi } from "../data/stile";
+import { isGrundlage, aiMulligan, mulligan } from "./plan";
 
 /** stil (Mechanik 5): Spielstil dieser Seite – Stufe 1 setzt seine Fähigkeit ein, sobald sie geht, Stufe 2/3 gezielt (B47). */
-export interface SimPlayer { level: 1 | 2 | 3; style?: AiStyle; stil?: StilId }
+export interface SimPlayer { level: 1 | 2 | 3; style?: AiStyle; stil?: StilId; /** Mechanik 6: Spielplan (15 Karten-IDs) – fehlt er, volle Hand. */ plan?: string[] }
 
 /** Fester „zufälliger“ Spielstil je Seed und Seite (Balance-Sim: freie Matches haben beide einen Stil). */
 export function seedStil(seed: number, side: Side): StilId {
@@ -32,9 +33,11 @@ export interface SimMatch {
 }
 
 /** Ein Match zwischen zwei KI-Spielern. */
-export function simMatch(p: SimPlayer, o: SimPlayer, seed: number): SimMatch {
+export function simMatch(p: SimPlayer, o: SimPlayer, seed: number, opts: { maxRounds?: number } = {}): SimMatch {
   const rng = mulberry32(seed);
-  let s = newMatch({ seed, stil: { p: p.stil, o: o.stil } });
+  let s = newMatch({ seed, ...(opts.maxRounds ? { maxRounds: opts.maxRounds } : {}), stil: { p: p.stil, o: o.stil }, ...(p.plan || o.plan ? { plan: { p: p.plan, o: o.plan } } : {}) });
+  // Mechanik 6 (B53): beide machen vor Runde 1 ihren Mulligan (nur mit Blick auf die eigenen 4 Karten).
+  for (const side of ["p", "o"] as Side[]) if (s.plan?.[side]) s = mulligan(s, side, aiMulligan(s.plan[side]!.hand, cardById));
   const slots: Record<Side, Set<string>> = { p: new Set(), o: new Set() };
   const reached = new Set<Pos2>();
   const note = () => {
@@ -69,24 +72,7 @@ export function roundShare(m: SimMatch, side: Side, keys: string[]): { n: number
   return { n, rounds: m.state.history.length };
 }
 
-/** Lagen, in denen man festgehalten wird (Unten-Kontrolle) – hier sind Rahmen und Befreiungen die Grundlage. */
-const PINNED = new Set<Pos2>(["side", "mount", "back", "turtle", "headlock", "half"]);
-
-/** Aufbauen-Karten, die selbst ein Rahmen bzw. Handkampf sind (Ellbogen-Knie, Unterarm-Stütze, Knie innen, Hände gegen Hände). */
-const FRAME_BUILDS = new Set(["bot_elbow_knee", "scb_frame", "mb_knee_inside", "bb_hand_fight", "hlb_hands", "tb_hands"]);
-
-/**
- * B29 Didaktik-Metrik „Grundlage“: Karten, die ein Anfänger zuerst können muss, wenn er unten liegt –
- * Rahmen (jede Verteidigung), Befreiungen (Weg raus aus einer Festhalte-Lage; aus der Guard nur Aufstehen/Guard halten)
- * und Aufbauen, das selbst ein Rahmen ist (FRAME_BUILDS). Angriffe von unten (Sweep, Aufgabe aus der Guard) zählen nicht.
- */
-export function isGrundlage(c: Card2 | undefined, pos: Pos2, role: Role2): boolean {
-  if (!c || role !== "bottom") return false;
-  if (c.kind === "rahmen") return true;
-  // Angriff: jeder Weg raus aus einer Festhalte-Lage; aus der Guard nur Aufstehen/Guard halten (kein Sweep).
-  if (c.kind === "angriff") return !!c.to && (PINNED.has(pos) || (!!c.to.escape && c.to.escape !== "reversal"));
-  return FRAME_BUILDS.has(c.id);
-}
+export { isGrundlage } from "./plan";
 
 /** Anteil der Unten-Entscheidungen, die Grundlage-Karten sind. */
 export function grundlageShare(picks: SimPick[]): { n: number; bottom: number } {

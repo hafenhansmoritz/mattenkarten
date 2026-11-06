@@ -7,7 +7,9 @@ import {
   slotCards, cardById, PASS, KRAFT_MAX, gripsOf, chainFrom, finishThreats,
   checkKonter, withKonter, splitPlay, KONTER_COST,
   checkStil, withStil, stilStats, stilReadyRound, STIL_COST, STIL_POWER,
+  publicView, isBasic, mulligan, aiMulligan, canMulligan, planPlayed, MULLIGAN_MAX,
 } from "../engine";
+import { PLAN_RULE } from "../data/plans";
 import { STIL, matchStil, stilAi } from "../data/stile";
 import { FightersK2 } from "./FightersK2";
 import type { TapState } from "../../components/fighters/choreo";
@@ -51,9 +53,12 @@ export interface ArenaK2Props {
   stil?: StilId;
   /** Mechanik 5: Stil des Gegners (freies Match: zufällig; Boss: sein eigener). */
   foeStil?: StilId;
+  /** Mechanik 6: Spielplan-Modus – dein Plan (15 Angriffe) und der des Gegners. Fehlt er, volle Hand. */
+  plan?: { name: string; cards: string[] };
+  foePlan?: { name: string; cards: string[] };
 }
 
-type Phase = "pick" | "predict" | "flip" | "impact" | "result" | "tap" | "release" | "end";
+type Phase = "mulligan" | "pick" | "predict" | "flip" | "impact" | "result" | "tap" | "release" | "end";
 
 interface StampInfo { text: string; tone: StampTone; sub?: string; key: number }
 interface FloatInfo { text: string; color: string; key: number; x: string }
@@ -102,6 +107,14 @@ export function stampFor(r: Round2): Omit<StampInfo, "key"> | null {
   return null;
 }
 
+/** Mechanik 6: wo eine Karte passt („im Stand“, „oben in Side Control“), höchstens zwei Lagen. */
+export function whereOf(c: Card2): string {
+  const name = (p: Card2["slots"][number]["pos"]) => POS_LABEL[p].replace(/ \(.*\)$/, "");
+  const t = c.slots.map((sl) => (sl.role === "neutral" ? `im ${name(sl.pos)}` : `${sl.role === "top" ? "oben" : "unten"} in ${name(sl.pos)}`));
+  const u = [...new Set(t)];
+  return u.slice(0, 2).join(" oder ");
+}
+
 /** Wichtigkeit einer Runde für die End-Analyse. */
 function weight(r: Round2): number {
   let w = 0;
@@ -141,7 +154,15 @@ function startState(props: ArenaK2Props, seed: number): State2 {
     chains: t?.chains,
     konter: t?.konter,
     stil: matchStil({ tutorial: t, stil: props.stil, foeStil: props.foeStil, bossId: t ? undefined : props.boss?.id }),
+    ...(!t && (props.plan || props.foePlan) ? { plan: { p: props.plan?.cards, o: props.foePlan?.cards } } : {}),
   });
+}
+
+/** Mechanik 6: Startzustand plus Mulligan der KI (sie sieht nur ihre eigenen 4 Karten). */
+function startWithPlan(props: ArenaK2Props, seed: number): State2 {
+  let s = startState(props, seed);
+  if (s.plan?.o && canMulligan(s, "o")) s = mulligan(s, "o", aiMulligan(s.plan.o.hand, cardById));
+  return s;
 }
 
 /** Kern-2-Arena: Szene, Körperkarte, Aufgabe-Leisten, Hand, Aufdeck-Choreografie, Tap-Moment, Ende. */
@@ -156,9 +177,13 @@ export function ArenaK2(props: ArenaK2Props) {
   const [matchNo, setMatchNo] = useState(0);
   const seed = (tut?.seed ?? props.seed ?? Date.now() % 100000) + matchNo * 7919;
   const rng = useMemo(() => mulberry(seed), [seed]);
-  const [s, setS] = useState<State2>(() => startState(props, seed));
+  const [s, setS] = useState<State2>(() => startWithPlan(props, seed));
   const [shown, setShown] = useState<State2>(s);      // was die Bühne gerade zeigt (verzögert zur Choreografie)
-  const [phase, setPhase] = useState<Phase>("pick");
+  const [phase, setPhase] = useState<Phase>(() => (s.plan?.p && canMulligan(s, "p") ? "mulligan" : "pick"));
+  /** Mechanik 6: zum Tauschen markierte Startkarten (Mulligan) und eben gezogene Karten (Animation, Hinweis). */
+  const [swap, setSwap] = useState<string[]>([]);
+  const [fresh, setFresh] = useState<string[]>([]);
+  const [freshMull, setFreshMull] = useState(false);
   const [sel, setSel] = useState<string | null>(null);
   const [round, setRound] = useState<Round2 | null>(null);
   const [cards, setCards] = useState<{ p: Card2 | null; o: Card2 | null }>({ p: null, o: null });
@@ -203,11 +228,19 @@ export function ArenaK2(props: ArenaK2Props) {
 
   // ---------- abgeleitete Infos ----------
   const myRole = roleOf(s, "p");
-  const hand = useMemo(() => slotCards(s.pos, myRole), [s.pos, myRole]);
+  // Mechanik 6: im Spielplan-Modus nur gezogene Angriffe deines Plans plus Grundlagen (B52).
+  const myPlan = s.plan?.p;
+  const hand = useMemo(() => {
+    const all = slotCards(s.pos, myRole);
+    return myPlan ? all.filter((c) => isBasic(c, s.pos, myRole) || myPlan.hand.includes(c.id)) : all;
+  }, [s.pos, myRole, myPlan]);
+  const planIds = useMemo(() => (myPlan ? hand.filter((c) => !isBasic(c, s.pos, myRole)).map((c) => c.id) : []), [hand, myPlan, s.pos, myRole]);
+  // B55: im Spielplan-Modus siehst du nur seinen Plan, nicht seine Hand (öffentliche Sicht für Drohungen).
+  const pubP = useMemo(() => (s.plan ? publicView(s, "p") : s), [s]);
   const legal = useMemo(() => legalCards(s, "p"), [s]);
   const anyLegal = legal.some((l) => l.ok);
   const myBoard = useMemo(() => boardFor(s, "p"), [s]);
-  const thr = useMemo(() => threatsOf(s, "p"), [s]);
+  const thr = useMemo(() => threatsOf(pubP, "p"), [pubP]);
   const hisLocked = s.o.locked.map((id) => cardById(id)).filter(Boolean) as Card2[];
   // Mechanik 4: Konter (eigener sichtbar, seiner nur „liegt“), Prüfung fürs Hand-Angebot und für die gewählte Kombination.
   const myKonter = s.konter?.p, hisKonter = s.konter?.o;
@@ -230,7 +263,7 @@ export function ArenaK2(props: ArenaK2Props) {
   }, [s, legal]);
   // Erste drei Lektionen: unverändert (Ketten aus, keine neue Anzeige).
   const showFinish = phase === "pick" && tut?.chains !== false;
-  const finishOn = useMemo(() => (showFinish ? [...finishThreats(s, "p"), ...finishThreats(s, "o")] : []), [s, showFinish]);
+  const finishOn = useMemo(() => (showFinish ? [...finishThreats(s, "p"), ...finishThreats(pubP, "o")] : []), [s, pubP, showFinish]);
   const hisFinish = finishOn.find((f) => f.side === "o");
   const shownThreats = phase === "pick" ? thr : [];
 
@@ -261,16 +294,28 @@ export function ArenaK2(props: ArenaK2Props) {
     const konterNew = !!s.konter?.o && !kwSeen.includes("konter");
     // Mechanik 5: mit Spielstil einmal „Spielstil“ erklären (auch in der Tages-Challenge).
     const stilNew = !!s.stil?.p && !kwSeen.includes("stil");
+    // Mechanik 6: im ersten Spielplan-Kampf einmal „Spielplan“ erklären.
+    const planNew = !!s.plan?.p && !kwSeen.includes("plan");
     if (tut && !gripNew && !konterNew && !stilNew) return;
-    const id = stilNew ? "stil" : gripNew ? "griff" : konterNew ? "konter" : firstUnseen(handShown, kwSeen);
+    const id = planNew ? "plan" : stilNew ? "stil" : gripNew ? "griff" : konterNew ? "konter" : firstUnseen(handShown, kwSeen);
     if (!id) return;
     kwRound.current = s.round + matchNo * 100;
     markKeywordSeen(id);
     setKwSeen((k) => [...k, id]);
     setKwToast(id);
-  }, [tut, phase, handShown, kwSeen, kwToast, s.round, matchNo, liveGrips, s.konter?.o, s.stil?.p]);
+  }, [tut, phase, handShown, kwSeen, kwToast, s.round, matchNo, liveGrips, s.konter?.o, s.stil?.p, s.plan?.p]);
   useEffect(() => { if (phase !== "pick") setKwToast(null); }, [phase]);
   const closeKwToast = useCallback(() => setKwToast(null), []);
+
+  // ---------- Mulligan (Mechanik 6, B53) ----------
+  const doMulligan = () => {
+    if (phase !== "mulligan" || !s.plan?.p) return;
+    const ns = mulligan(s, "p", swap);
+    setFresh(swap.length ? ns.plan!.p!.hand.filter((id) => !s.plan!.p!.hand.includes(id)) : []);
+    setFreshMull(true);
+    setS(ns); setShown(ns); setSwap([]); setPhase("pick");
+    sfx.select();
+  };
 
   // ---------- Aufdecken ----------
   const reveal = () => {
@@ -329,6 +374,9 @@ export function ArenaK2(props: ArenaK2Props) {
     later(flipMs, () => {
       // Aufprall
       setPhase("impact");
+      // Mechanik 6 (B54): nach der Runde gezogen – neue Karten merken (Animation in der Hand, Hinweis).
+      setFresh(next.plan?.p ? next.plan.p.hand.filter((id) => !s.plan?.p?.hand.includes(id)) : []);
+      setFreshMull(false);
       setS(next);
       setShown(next);
       const strong = moved || tapped || r.rule === "rahmen>angriff";
@@ -409,7 +457,8 @@ export function ArenaK2(props: ArenaK2Props) {
     const n = matchNo + 1;
     setMatchNo(n);
     const ns = props.initialState ?? startState({ ...props, initialState: undefined }, (tut?.seed ?? props.seed ?? Date.now() % 100000) + n * 7919);
-    setS(ns); setShown(ns); setPhase("pick"); setSel(null); setKonterSel(null); setStilOn(false); setRound(null); setTapOk(null); setTapAnim(null); setBubbleDone([]);
+    const ns2 = ns === props.initialState ? ns : (ns.plan?.o && canMulligan(ns, "o") ? mulligan(ns, "o", aiMulligan(ns.plan.o.hand, cardById)) : ns);
+    setS(ns2); setShown(ns2); setPhase(ns2.plan?.p && canMulligan(ns2, "p") ? "mulligan" : "pick"); setSwap([]); setFresh([]); setSel(null); setKonterSel(null); setStilOn(false); setRound(null); setTapOk(null); setTapAnim(null); setBubbleDone([]);
     setPending(null); setGuess(null); setPredStats({ n: 0, ok: 0 });
     setNewCards([]); resultSent.current = false;
     setCards({ p: null, o: null });
@@ -557,6 +606,36 @@ export function ArenaK2(props: ArenaK2Props) {
         )}
       </AnimatePresence>
 
+      {/* Mechanik 6: Mulligan – 4 Startkarten, bis zu 2 tauschen */}
+      {phase === "mulligan" && myPlan && (
+        <section className="k2-pick k2-mull" aria-labelledby="k2-mull-h">
+          <p id="k2-mull-h" className="k2-mull-h"><b>Deine Starthand{props.plan ? ` · ${props.plan.name}` : ""}</b></p>
+          <p className="k2-mull-sub">Tippe bis zu {MULLIGAN_MAX} Karten zum Tauschen an. Sie kommen unter den Stapel ({myPlan.deck.length} Karten).</p>
+          <div className="k2-mull-cards">
+            {myPlan.hand.map((id, i) => {
+              const c = cardById(id);
+              if (!c) return null;
+              const on = swap.includes(id);
+              const full = !on && swap.length >= MULLIGAN_MAX;
+              return (
+                <motion.button key={id} type="button" className={`k2-mull-card kind-${c.kind}${on ? " is-swap" : ""}`} aria-pressed={on} disabled={full}
+                  initial={reduced ? { opacity: 0 } : { opacity: 0, y: -30, rotate: -6 }} animate={{ opacity: 1, y: 0, rotate: 0 }}
+                  transition={reduced ? { duration: 0.1 } : { type: "spring", stiffness: 320, damping: 24, delay: i * 0.08 }}
+                  onClick={() => { setSwap((x) => (on ? x.filter((y) => y !== id) : [...x, id])); sfx.click(); }}>
+                  <span className="k2-mull-kind"><ZoneIcon zone={c.zone} size={10} /> {KIND_LABEL[c.kind]}</span>
+                  <b className="k2-mull-t">{c.plain}</b>
+                  <span className="k2-term">{c.term}</span>
+                  <span className="k2-mull-where">{whereOf(c)}</span>
+                  {on && <span className="k2-mull-tag">tauschen</span>}
+                </motion.button>
+              );
+            })}
+          </div>
+          <p className="k2-mull-rule">{PLAN_RULE[1]}</p>
+          <button type="button" className="btn primary big k2-go" onClick={doMulligan}>{swap.length ? `${swap.length} ${swap.length === 1 ? "Karte" : "Karten"} tauschen` : "Behalten"}</button>
+        </section>
+      )}
+
       {/* Wahl */}
       {phase === "pick" && (
         <section className="k2-pick">
@@ -568,9 +647,15 @@ export function ArenaK2(props: ArenaK2Props) {
               {hisLocked.length > 0 && <span className="k2-hislock"><LockIcon size={10} /> {hisLocked.map((c) => c.plain).join(", ")}</span>}
             </div>
           )}
+          {myPlan && fresh.length > 0 && (
+            <p className="k2-drawn" role="status">
+              <span className="k2-plan-deck-stack" aria-hidden /> {freshMull ? "Neu getauscht" : "Gezogen"}: {fresh.map((id) => { const c = cardById(id); return c ? (planIds.includes(id) ? c.plain : `${c.plain} (passt ${whereOf(c)})`) : id; }).join(", ")}
+            </p>
+          )}
           <Hand2 cards={handShown} legal={legal} hiddenZones={hidZones} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.click(); }}
             myBoard={myBoard} locked={s.p.locked} kraft={s.p.kraft} requireCard={requireCard} highlightZone={hlZone}
-            gripZones={liveGrips.filter((g) => g.owner === "p").map((g) => g.zone)} chainReady={chainReady} konter={konterProp} />
+            gripZones={liveGrips.filter((g) => g.owner === "p").map((g) => g.zone)} chainReady={chainReady} konter={konterProp}
+            plan={myPlan ? { ids: planIds, deck: myPlan.deck.length, fresh } : undefined} />
           <div className="k2-go-row">
             {myStil && stilAvail && (
               <button type="button" className="k2-power" aria-pressed={stilOn} disabled={!stilAvail.ok}
@@ -637,7 +722,7 @@ export function ArenaK2(props: ArenaK2Props) {
           <Confetti run={won} />
           <motion.div className={`k2-end-card ${won ? "won" : s.result.winner === null ? "draw" : "lost"}`}
             initial={{ scale: 0.88, y: 30 }} animate={{ scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 240, damping: 20 }}>
-            <span className="label">{tut ? tut.title : boss ? `Boss · ${boss.name}` : `Körperkarte · KI Stufe ${aiLevel}`}</span>
+            <span className="label">{tut ? tut.title : `${props.plan ? `Spielplan · ${props.plan.name} · ` : ""}${boss ? `Boss · ${boss.name}` : `${props.plan ? "" : "Körperkarte · "}KI Stufe ${aiLevel}`}`}</span>
             <h2 className="display">{resultTitle}</h2>
             <div className="k2-end-score"><span className="p">{s.p.pts}</span><span className="sep">:</span><span className="o">{s.o.pts}</span></div>
             {tapOk !== null && (
@@ -665,6 +750,13 @@ export function ArenaK2(props: ArenaK2Props) {
                     : st.hit === 0 ? `Dein Stil hat diesmal nicht geholfen (${st.used}× eingesetzt). Setz ihn ein, wo er nicht spielt.`
                     : `Dein Stil hat ${n} geholfen (${st.used}× eingesetzt).`}
                 </p>
+              );
+            })()}
+            {props.plan && (() => {
+              const pp = planPlayed(s, "p", props.plan.cards);
+              return (
+                <p className="k2-end-plan"><b>Dein Spielplan:</b> {pp.played} von {pp.total} Karten gespielt.{" "}
+                  {pp.played === 0 ? "Komm in die Lagen deines Plans – dort warten deine Angriffe." : "Wenige Wege, oft gespielt – so wächst dein A-Game."}</p>
               );
             })()}
             {(() => { const v = props.verdict?.(s); return v ? <p className={`k2-end-verdict ${v.ok ? "ok" : "no"}`}>{v.text}</p> : null; })()}

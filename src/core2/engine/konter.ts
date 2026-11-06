@@ -3,6 +3,7 @@
 // Variante „zusätzlich“: Du spielst deine Karte wie immer und legst zusätzlich einen Rahmen verdeckt (2 Atem). Ab der
 // nächsten Runde springt er ein, sobald der Gegner in dieser Zone angreift – statt deiner dann gewählten Karte.
 // Der Gegner sieht nur „Er hat etwas vorbereitet“ (ohne Zone).
+import { planPublic } from "./plan";
 import type { Card2, Konter2, Role2, Side, State2, Zone } from "../types";
 import { ZONES } from "../types";
 import { other, roleOf } from "./board";
@@ -103,8 +104,10 @@ export function konterFits(s: Pick<State2, "pos" | "top">, side: Side, k: Konter
 export function publicView(s: State2, viewer: Side): State2 {
   const foe = other(viewer);
   const k = s.konter?.[foe];
-  if (!k?.card) return s;
-  return { ...s, konter: { ...s.konter, [foe]: { left: k.left } } };
+  // Mechanik 6 (B55): eigener Stapel unbekannt, vom Gegner nur sein Spielplan (nicht seine Hand).
+  const plan = s.plan ? { plan: planPublic(s.plan, viewer) } : {};
+  if (!k?.card) return s.plan ? { ...s, ...plan } : s;
+  return { ...s, ...plan, konter: { ...s.konter, [foe]: { left: k.left } } };
 }
 
 /** Seine Rahmen, die gerade verdeckt liegen könnten: Konter-Rahmen seines Slots, nicht öffentlich gesperrt und seit
