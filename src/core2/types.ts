@@ -73,6 +73,10 @@ export interface Card2 {
   grip?: { id: string; name: string };
   /** B32 „Griff lösen“: wird diese Karte nicht geschlagen, fallen diese gegnerischen Griffe (Griff-IDs). */
   breaks?: string[];
+  /** Mechanik 3 „Kette“ (B35): folgt diese Angriffskarte direkt auf eine passende eigene Karte der Vorrunde
+   *  (Karten-ID oder Tag "sub:<Aufgabe-ID>"), braucht sie in ihrer Zone 1 weniger (CHAIN_EFFECT). Egal, ob die
+   *  Vorrunden-Karte klappte oder er sie abwehrte – gerade seine Abwehr öffnet die nächste Technik. */
+  chain?: { after: string[]; why: string; source?: { title: string; url: string }; check?: boolean };
 }
 
 /** Ein liegender Griff (Mechanik 2). */
@@ -96,6 +100,8 @@ export interface State2 {
   grips: Grip2[];
   /** Griffe ausgeschaltet (erste drei Lektionen): Griff-Karten wirken dann nur als Keil. */
   noGrips?: boolean;
+  /** Ketten aus (erste drei Lektionen): keine Ketten-Erleichterung (Mechanik 3). */
+  noChains?: boolean;
   history: Round2[];
   result: null | { type: "tap"; winner: Side; sub: string } | { type: "points"; winner: Side | null } | { type: "goal"; winner: Side };
   /** Tutorial-Ziel: Spieler gewinnt, sobald (pos, role) erreicht. */
@@ -111,7 +117,9 @@ export type Event2 =
   | { t: "dilemma"; side: Side; zone: Zone }
   | { t: "kraft"; side: Side; delta: number }
   /** Griff gelegt (on) oder gelöst (off); why: wodurch er fiel. */
-  | { t: "grip"; owner: Side; id: string; name: string; zone: Zone; on: boolean; why?: "rahmen" | "loesen" | "verdraengt" | "position" | "alt" };
+  | { t: "grip"; owner: Side; id: string; name: string; zone: Zone; on: boolean; why?: "rahmen" | "loesen" | "verdraengt" | "position" | "alt" }
+  /** Mechanik 3: eine Ketten-Karte hat getroffen (from = eigene Karte der Vorrunde, card = diese Runde). */
+  | { t: "chain"; side: Side; from: string; card: string };
 
 export interface Round2 {
   round: number;

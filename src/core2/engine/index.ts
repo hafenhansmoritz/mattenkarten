@@ -11,7 +11,8 @@ export { aiChoose } from "./ai";
 export { setCardRegistry, cardById, slotCards, allCards } from "./registry";
 export { KRAFT_MAX } from "./resolve";
 export { GRIP_MAX, GRIP_EFFECT, gripsOf, gripBonus, gripFits, breakable } from "./grips";
-export { needIn } from "./legal";
+export { needIn, finishThreats, type FinishThreat } from "./legal";
+export { CHAIN_EFFECT, chainFrom, chainPrev, chainAfterNames } from "./chains";
 
 export const KRAFT_START = 3;
 
@@ -22,6 +23,8 @@ export interface NewMatchOpts {
   goal?: State2["goal"];
   /** false: Griffe aus (erste drei Lektionen) – Griff-Karten wirken dann nur als Keil. */
   grips?: boolean;
+  /** false: Ketten aus (erste drei Lektionen, Mechanik 3). */
+  chains?: boolean;
   /** Optional: eigenes Kartenregister (setzt das globale Register; Tests/Tutorials). */
   cards?: Card2[];
 }
@@ -41,6 +44,7 @@ export function newMatch(opts: NewMatchOpts): State2 {
     subs: [],
     grips: [],
     ...(opts.grips === false ? { noGrips: true } : {}),
+    ...(opts.chains === false ? { noChains: true } : {}),
     history: [],
     result: null,
     goal: opts.goal,

@@ -7,6 +7,7 @@ import { cardsOfSlot, checkCard, okCards, PASS, threats, unmetRequires } from ".
 import { cardById } from "./registry";
 import { breakable, gripsOf } from "./grips";
 import { resolveRound } from "./resolve";
+import { chainFrom } from "./chains";
 
 /** B28 Boss-Spielstil: Gewichte, die auf Stufe 2/3 aufgeschlagen werden (siehe data/bosses.ts). */
 export interface AiStyle {
@@ -18,6 +19,8 @@ export interface AiStyle {
   subs?: Partial<Record<string, number>>;
   /** Mechanik 2: Bonus für einen liegenden eigenen Griff (Griff-ID, z. B. "seatbelt") – Signatur-Griffe der Bosse. */
   grips?: Partial<Record<string, number>>;
+  /** Mechanik 3: Bonus für eine bereite Signatur-Kette (Karten-ID der Ketten-Karte, z. B. "gb_triangle"). */
+  chains?: Partial<Record<string, number>>;
 }
 
 /** Stilwert einer Lage aus Sicht von side: Positionsvorliebe + eigene Aufgaben-Schritte. */
@@ -76,6 +79,8 @@ const GRIP_BREAK_KEY = 1.5;
 /** Rahmen, der einen Griff löst, geht nicht ins Leere: hebt den Leere-Abzug (−4) auf. */
 const GRIP_BREAK_FRAME = 4;
 const GRIP_FRAME_HIT = 1;
+/** Mechanik 3 (B37): bereite Kette spielen (Stufe 2 und Gegnermodell von Stufe 3). */
+const CHAIN_READY = 3;
 /** Stufe 3: Wert eines liegenden Griffs in der Bewertung. */
 const GRIP_EVAL = 1.5;
 
@@ -159,6 +164,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
     // Der Griff trägt einen seiner Angriffe (Angriff in der Griff-Zone mit Bedingung dort) – dann erst recht lösen.
     if (cardsOfSlot(s, other(side)).some((x) => x.kind === "angriff" && br.some((g) => x.zone === g.zone && x.requires?.[g.zone] !== undefined))) v += GRIP_BREAK_KEY;
   }
+  // Mechanik 3: Kette – eine bereite Ketten-Karte aufwerten (seine Abwehr hat die nächste Technik geöffnet).
+  if (chainFrom(s, side, c)) v += CHAIN_READY;
   // Rahmen, der seinen Angriff in der Zone seines Griffs stoppt, löst auch den Griff.
   if (c.kind === "rahmen" && thrZones.has(c.zone) && gripsOf(s, other(side)).some((g) => g.zone === c.zone)) v += GRIP_FRAME_HIT;
 
@@ -183,7 +190,8 @@ function scoreCard(s: State2, side: Side, c: Card2, level: 2 | 3, rng: () => num
 function styleCardBonus(s: State2, side: Side, c: Card2, st: AiStyle): number {
   const v = st.cards?.[c.id] ?? 0;
   if (v > 0 && c.kind === "rahmen" && !threats(s, side).some((t) => t.zone === c.zone)) return 0;
-  return v;
+  // Mechanik 3: Signatur-Ketten der Bosse, nur wenn die Kette bereit ist.
+  return v + (st.chains?.[c.id] && chainFrom(s, side, c) ? st.chains[c.id]! : 0);
 }
 
 /** Stufe 2 mit Stil: Kartenbonus, Positionsvorliebe des Ziels (statt der aktuellen Lage) und Aufgaben-Vorliebe. */

@@ -67,6 +67,8 @@ export const BOSSES: BossDef[] = [
       subs: { guillotine: 1 },
       // Mechanik 2: seine Signatur-Griffe im Clinch.
       grips: { collar_tie: 1.5, underhook: 1 },
+      // Mechanik 3: Signatur-Kette Snap Down → Go-Behind.
+      chains: { hl_go_behind: 2 },
     },
     counter: {
       // Am Boden oben ist er schwächer: Lagen oben aufwerten, Front Headlock unten meiden.
@@ -94,6 +96,8 @@ export const BOSSES: BossDef[] = [
       },
       subs: { triangle: 2, guillotine: 1.5, armbar: 1 },
       grips: { wrist: 1.5 },
+      // Mechanik 3: Signatur-Kette Armbar ↔ Triangle.
+      chains: { gb_triangle: 2, gb_armbar: 2 },
     },
     counter: {
       pos: { "side/top": 2, "half/top": 1 },
@@ -121,6 +125,8 @@ export const BOSSES: BossDef[] = [
       },
       subs: { americana: 2, kimura: 2 },
       grips: { crossface: 2, underhook: 1 },
+      // Mechanik 3: Signatur-Ketten Americana ↔ Kimura (Side) und Americana ↔ Armbar (Mount).
+      chains: { sct_kimura: 2, sct_americana: 1.5, mt_armbar: 2, mt_americana: 1.5 },
     },
     counter: {
       pos: { "side/bottom": -2, "mount/bottom": -3 },
@@ -149,6 +155,8 @@ export const BOSSES: BossDef[] = [
       },
       subs: { rnc: 3, back_armbar: 1 },
       grips: { seatbelt: 1, chin_strap: 0.5 },
+      // Mechanik 3: Signatur-Kette RNC → Armbar vom Rücken.
+      chains: { bt_armbar: 2 },
     },
     counter: {
       pos: { "turtle/bottom": -3, "back/bottom": -4 },

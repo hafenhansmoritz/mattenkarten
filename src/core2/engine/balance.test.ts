@@ -1,5 +1,6 @@
 // Bauplan 83: Balance-Ziele als CI-Test (verkleinerte Simulation von scripts/simulate2.ts).
-// 60 Matches je Paarung (L1–L3 × L1–L3), feste Seeds. Toleranzen etwas weiter als in simulate2.ts,
+// 100 Matches je Paarung (L1–L3 × L1–L3), feste Seeds (Mechanik 3: vorher 60 – „kein Griff > 30 %“ lag schon ohne Ketten
+// genau auf der Grenze, RNC 30,0 %; ein einziger anders verlaufender Seed kippte den Test). Toleranzen etwas weiter als in simulate2.ts,
 // weil die Stichprobe kleiner ist – ein Ausreißer im Balancing bricht trotzdem den Build.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Pos2 } from "../types";
@@ -9,7 +10,7 @@ import { grundlageShare, simMatch, type SimMatch } from "./sim";
 beforeAll(() => setCardRegistry(null));
 afterAll(() => setCardRegistry(null));
 
-const N = 60;
+const N = 100;
 const POS: Pos2[] = ["stand", "clinch", "headlock", "guard", "half", "turtle", "side", "mount", "back"];
 type Lv = 1 | 2 | 3;
 

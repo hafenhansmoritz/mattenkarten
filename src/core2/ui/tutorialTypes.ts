@@ -45,4 +45,6 @@ export interface TutorialK2Def {
   predictAll?: boolean;
   /** false: Griffe (Mechanik 2) aus – die ersten drei Lektionen führen sie noch nicht ein. */
   grips?: boolean;
+  /** false: Ketten (Mechanik 3) aus – die ersten drei Lektionen erklären sie höchstens als Text. */
+  chains?: boolean;
 }

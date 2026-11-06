@@ -20,7 +20,7 @@ function requiredCard(t: TutorialK2Def, round: number): string | undefined {
 }
 
 export function runLesson(t: TutorialK2Def, oSeed: number, pSeed: number) {
-  let s = newMatch({ seed: oSeed, maxRounds: t.maxRounds, start: t.start, goal: t.goal, grips: t.grips });
+  let s = newMatch({ seed: oSeed, maxRounds: t.maxRounds, start: t.start, goal: t.goal, grips: t.grips, chains: t.chains });
   const oRng = mulberry32(oSeed || 1);
   const pRng = mulberry32(pSeed ^ 0x9e3779b9);
   const log: string[] = [];
@@ -47,7 +47,7 @@ describe("Startprogramm – neue Kern-2-Lektionen", () => {
     const ids = LESSONS_PROGRAM.map((t) => t.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const t of LESSONS_PROGRAM) {
-      const s = newMatch({ seed: 1, start: t.start, grips: t.grips });
+      const s = newMatch({ seed: 1, start: t.start, grips: t.grips, chains: t.chains });
       expect(VALID_SLOT.has(`${s.pos}:${roleOf(s, "p")}`), t.id).toBe(true);
       for (const g of t.goal ?? []) expect(VALID_SLOT.has(`${g.pos}:${g.role}`), `${t.id} goal`).toBe(true);
       for (const st of t.steps) if (st.requireCard) expect(CARD2[st.requireCard], st.requireCard).toBeDefined();

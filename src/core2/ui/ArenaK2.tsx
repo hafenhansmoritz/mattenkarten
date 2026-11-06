@@ -4,7 +4,7 @@ import type { Card2, Event2, Grip2, Round2, Side, State2, SubTrack, Zone } from 
 import { ZONES } from "../types";
 import {
   newMatch, roleOf, boardFor, legalCards, playRound, aiChoose, threats as threatsOf,
-  slotCards, cardById, PASS, KRAFT_MAX, gripsOf,
+  slotCards, cardById, PASS, KRAFT_MAX, gripsOf, chainFrom, finishThreats,
 } from "../engine";
 import { FightersK2 } from "./FightersK2";
 import type { TapState } from "../../components/fighters/choreo";
@@ -127,6 +127,7 @@ function startState(props: ArenaK2Props, seed: number): State2 {
     start: t ? { pos: t.start.pos, top: t.start.top, board: t.start.board } : undefined,
     goal: t?.goal,
     grips: t?.grips,
+    chains: t?.chains,
   });
 }
 
@@ -151,6 +152,8 @@ export function ArenaK2(props: ArenaK2Props) {
   const [stamp, setStamp] = useState<StampInfo | null>(null);
   const [floats, setFloats] = useState<FloatInfo[]>([]);
   const [burst, setBurst] = useState<number | null>(null);
+  /** Mechanik 3: kurzer „KETTE!“-Effekt nach einem Ketten-Treffer (beide Kartennamen). */
+  const [chainFx, setChainFx] = useState<{ side: Side; from: string; card: string; key: number } | null>(null);
   const [more, setMore] = useState(false);
   const [bubbleDone, setBubbleDone] = useState<number[]>([]);
   const [tapOk, setTapOk] = useState<boolean | null>(null);
@@ -185,6 +188,16 @@ export function ArenaK2(props: ArenaK2Props) {
   const myBoard = useMemo(() => boardFor(s, "p"), [s]);
   const thr = useMemo(() => threatsOf(s, "p"), [s]);
   const hisLocked = s.o.locked.map((id) => cardById(id)).filter(Boolean) as Card2[];
+  // Mechanik 3: bereite Ketten (deine spielbaren Ketten-Karten → Vorrunden-Karte) und „Abschluss möglich“ für beide Seiten.
+  const chainReady = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const l of legal) { const c = l.ok ? cardById(l.id) : undefined; const f = c && chainFrom(s, "p", c); if (f) out[c!.id] = f.term; }
+    return out;
+  }, [s, legal]);
+  // Erste drei Lektionen: unverändert (Ketten aus, keine neue Anzeige).
+  const showFinish = phase === "pick" && tut?.chains !== false;
+  const finishOn = useMemo(() => (showFinish ? [...finishThreats(s, "p"), ...finishThreats(s, "o")] : []), [s, showFinish]);
+  const hisFinish = finishOn.find((f) => f.side === "o");
   const shownThreats = phase === "pick" ? thr : [];
 
   // Tutorial-Schritte dieser Runde
@@ -285,6 +298,11 @@ export function ArenaK2(props: ArenaK2Props) {
       if (got.length) setNewCards((n) => [...n, ...got.filter((id) => !n.includes(id))]);
       if (tapped || moved) sfx.mat(); else if (r.rule === "rahmen>angriff") sfx.counter(); else sfx.select();
       if (st) setStamp({ ...st, key: Date.now() });
+      const ch = r.events.find((e): e is Extract<Event2, { t: "chain" }> => e.t === "chain");
+      if (ch) {
+        const a = cardById(ch.from), b = cardById(ch.card);
+        if (a && b) { setChainFx({ side: ch.side, from: a.term, card: b.term, key: Date.now() }); later(1500, () => setChainFx(null)); }
+      }
       const pts = r.events.filter((e): e is Extract<Event2, { t: "points" }> => e.t === "points");
       if (pts.length) {
         sfx.points();
@@ -405,11 +423,24 @@ export function ArenaK2(props: ArenaK2Props) {
           <FloatText key={f.key} text={f.text} color={f.color} x={f.x} y="40%" onDone={() => setFloats((fs) => fs.filter((x) => x.key !== f.key))} />
         ))}
         <AnimatePresence>{stamp && <Stamp key={stamp.key} text={stamp.text} tone={stamp.tone} sub={stamp.sub} onDone={() => setStamp(null)} />}</AnimatePresence>
+        <AnimatePresence>
+          {chainFx && (
+            <motion.div key={chainFx.key} className={`k2-chainfx ${chainFx.side}`} role="status"
+              aria-label={`${chainFx.side === "p" ? "Deine" : "Seine"} Kette: ${chainFx.from}, dann ${chainFx.card}`}
+              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.7, y: 8 }}
+              animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0 }} transition={reduced ? { duration: 0.1 } : { type: "spring", stiffness: 420, damping: 22 }}>
+              <b>KETTE!</b>
+              <span>{chainFx.from} <i aria-hidden>→</i> {chainFx.card}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* Brett + Aufdeck-Ebene */}
       <section className="k2-board-wrap">
-        <Board board={s.board} focus={focus} lastDeltas={deltas} threats={shownThreats} hidden={hidZones} grips={liveGrips} />
+        <Board board={s.board} focus={focus} lastDeltas={deltas} threats={shownThreats} hidden={hidZones} grips={liveGrips}
+          finish={finishOn.map((f) => ({ side: f.side, zone: f.zone }))} />
         <AnimatePresence>
           {showCards && (
             <RevealLayer key={`rv-${round?.round}`} p={cards.p} o={cards.o} same={sameZone} impact={phase === "impact"} reduced={reduced} />
@@ -417,7 +448,7 @@ export function ArenaK2(props: ArenaK2Props) {
         </AnimatePresence>
       </section>
 
-      <SubTracks subs={s.subs} />
+      <SubTracks subs={s.subs} finish={finishOn.map((f) => ({ side: f.side, id: f.sub }))} />
       <GripStrip grips={liveGrips} onOpen={() => setKwPop("griff")} />
 
       {/* Ergebnis: eine schlanke Zeile */}
@@ -452,14 +483,14 @@ export function ArenaK2(props: ArenaK2Props) {
           {pickStep && !startBubble ? (
             <div className="k2-coach-line"><CoachAvatar size={22} /><span>{pickStep.text}</span></div>
           ) : (
-            <div className={`k2-threatline${thr.length ? " has" : ""}`}>
-              <span>{threatLine}</span>
+            <div className={`k2-threatline${thr.length ? " has" : ""}${hisFinish ? " is-finish" : ""}`}>
+              <span>{hisFinish ? `Er kann beenden – Rahmen an ${ZONE_DAT[hisFinish.zone]}!` : threatLine}</span>
               {hisLocked.length > 0 && <span className="k2-hislock"><LockIcon size={10} /> {hisLocked.map((c) => c.plain).join(", ")}</span>}
             </div>
           )}
           <Hand2 cards={handShown} legal={legal} hiddenZones={hidZones} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.click(); }}
             myBoard={myBoard} locked={s.p.locked} kraft={s.p.kraft} requireCard={requireCard} highlightZone={hlZone}
-            gripZones={liveGrips.filter((g) => g.owner === "p").map((g) => g.zone)} />
+            gripZones={liveGrips.filter((g) => g.owner === "p").map((g) => g.zone)} chainReady={chainReady} />
           <button type="button" className="btn primary big k2-go" disabled={anyLegal ? !sel || (!!requireCard && sel !== requireCard) : false} onClick={reveal}>
             {!anyLegal ? "Passen" : sel ? "Aufdecken!" : "Wähle eine Karte"}
           </button>

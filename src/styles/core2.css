@@ -326,3 +326,29 @@
 .k2-grip-chip.o b, .k2-grip-chip.o .k2-ico { color: #ffb0b0; }
 .k2-grip-chip:focus-visible { outline: 2px solid var(--k2-focus, #ffd166); outline-offset: 2px; }
 .k2-req.by-grip { box-shadow: inset 0 0 0 1px rgba(255, 209, 102, 0.75); }
+
+/* ---------- Mechanik 3: Kette + „Abschluss möglich“ ---------- */
+.k2-hcard.is-chain { border-color: #ffd166; box-shadow: 0 0 0 1px #ffd166, 0 0 14px rgba(255, 209, 102, 0.45), var(--shadow-1); animation: k2-chain-glow 1.6s ease-in-out infinite; }
+@keyframes k2-chain-glow { 50% { box-shadow: 0 0 0 1px #ffd166, 0 0 22px rgba(255, 209, 102, 0.7), var(--shadow-1); } }
+.k2-chain-badge { display: inline-block; max-width: 100%; padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 800; line-height: 1.2; color: #1a1300; background: #ffd166; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
+.k2-req.by-chain { outline: 1px solid #ffd166; border-radius: 3px; }
+.k2-chain-info { margin: 4px 0 0; font-size: 12px; color: var(--text-2); }
+.k2-chain-info b { color: var(--text); }
+.k2-chain-info.on b { color: #ffd166; }
+.k2-chainfx { position: absolute; left: 50%; top: 16%; z-index: 6; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 14px 7px; border-radius: 12px; pointer-events: none; background: rgba(11, 15, 26, 0.88); border: 2px solid #ffd166; box-shadow: 0 0 24px rgba(255, 209, 102, 0.55); text-align: center; max-width: calc(100% - 32px); }
+.k2-chainfx b { font-family: var(--font-display, inherit); font-size: 22px; letter-spacing: 0.08em; color: #ffd166; line-height: 1; }
+.k2-chainfx span { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.k2-chainfx span i { font-style: normal; color: #ffd166; margin: 0 3px; }
+.k2-chainfx.o { border-color: #ff9a9d; box-shadow: 0 0 24px rgba(229, 72, 77, 0.5); }
+.k2-chainfx.o b, .k2-chainfx.o span i { color: #ff9a9d; }
+.k2-row.is-finish { border-radius: 6px; animation: k2-finish 1s ease-in-out infinite; }
+.k2-row.is-finish .k2-row-label { color: #ffb0b0; font-weight: 800; }
+@keyframes k2-finish { 0%, 100% { box-shadow: 0 0 0 1px rgba(255, 90, 95, 0.55); background: rgba(255, 90, 95, 0.06); } 50% { box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.95), 0 0 16px rgba(255, 90, 95, 0.5); background: rgba(255, 90, 95, 0.14); } }
+.k2-sub.is-finish .k2-sub-in { border-color: #ff5a5f; animation: k2-finish 1s ease-in-out infinite; }
+.k2-sub-fin { color: #ffb0b0; white-space: normal; text-align: right; }
+.k2-threatline.is-finish > span:first-child { color: #ffb0b0; }
+@media (prefers-reduced-motion: reduce) {
+  .k2-hcard.is-chain, .k2-row.is-finish, .k2-sub.is-finish .k2-sub-in { animation: none; }
+  .k2-row.is-finish, .k2-sub.is-finish .k2-sub-in { box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.95); }
+}
+.k2-hcard.is-chain.is-sel { box-shadow: 0 0 0 2px var(--kc), 0 0 0 4px #ffd166, 0 8px 20px rgba(255, 209, 102, 0.4); }

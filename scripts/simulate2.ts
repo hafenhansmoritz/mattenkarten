@@ -5,7 +5,9 @@ import { FIX } from "../src/core2/engine/fixtures";
 import {
   aiChoose, allCards, cardById, legalCards, newMatch, PASS, playRound, POS_LABEL, roleOf, setCardRegistry, slotCards,
 } from "../src/core2/engine/index";
-import { topFor } from "../src/core2/engine/board";
+import { other, topFor } from "../src/core2/engine/board";
+import { chainFrom } from "../src/core2/engine/chains";
+import { finishThreats } from "../src/core2/engine/legal";
 import { isGrundlage, roundShare, simMatch, type SimPlayer } from "../src/core2/engine/sim";
 import { BOSSES } from "../src/core2/data/bosses";
 import { mulberry32 } from "../src/engine/rng";
@@ -68,9 +70,13 @@ interface Agg {
   playedN: number; grundAll: number; bottomDec: number; grundBottom: number;
   /** Mechanik 2: Griffe gelegt (je Griff), gelöst (je Grund), Matches mit mindestens einem Griff. */
   gripOn: Map<string, number>; gripOff: Map<string, number>; gripMatches: number;
+  /** Mechanik 3: Ketten – bereit (spielbare Ketten-Karte in der Hand), gespielt (davon), Treffer je Ketten-Karte, Matches, Taps in Ketten-Runden. */
+  chainReady: number; chainPlayed: number; chainHit: Map<string, number>; chainMatches: number; chainTaps: number;
+  /** Mechanik 3: Entscheidungen, bei denen „Abschluss möglich“ für die Gegenseite angezeigt war, und wie oft der Verteidiger dann in der Zone rahmte. */
+  finishShown: number; finishFramed: number;
 }
 const inc = <K>(m: Map<K, number>, k: K, n = 1) => m.set(k, (m.get(k) ?? 0) + n);
-const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map(), playedN: 0, grundAll: 0, bottomDec: 0, grundBottom: 0, gripOn: new Map(), gripOff: new Map(), gripMatches: 0 });
+const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map(), playedN: 0, grundAll: 0, bottomDec: 0, grundBottom: 0, gripOn: new Map(), gripOff: new Map(), gripMatches: 0, chainReady: 0, chainPlayed: 0, chainHit: new Map(), chainMatches: 0, chainTaps: 0, finishShown: 0, finishFramed: 0 });
 const total = newAgg();
 
 function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
@@ -83,12 +89,20 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
   let domRound = 0;
   let vorteil = false;
   let gripped = false;
+  let chained = false;
   while (!s.result) {
     if (guard++ > 50) { anomalies.push(`Match seed ${seed} endet nicht (>50 Runden).`); break; }
     const ids: Record<Side, string> = { p: "", o: "" };
     for (const side of ["p", "o"] as Side[]) {
       const lv = side === "p" ? lp : lo;
       ids[side] = aiChoose(s, side, lv, rng);
+      const ready = legalCards(s, side).filter((l) => l.ok && chainFrom(s, side, cardById(l.id)!)).map((l) => l.id);
+      if (ready.length) rec((a) => { a.chainReady++; if (ready.includes(ids[side])) a.chainPlayed++; });
+      const fin = finishThreats(s, other(side));
+      if (fin.length) {
+        const c = cardById(ids[side]);
+        rec((a) => { a.finishShown++; if (c && fin.some((f) => f.zone === c.zone && c.kind === "rahmen")) a.finishFramed++; });
+      }
       const sk = `${s.pos}/${roleOf(s, side)}`;
       rec((a) => { inc(a.slotDec, sk); inc(a.slotPick, `${sk}|${ids[side]}`); });
       if (ids[side] === PASS) {
@@ -108,6 +122,7 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
     if (round.why.split(/\s+/).length > 20) anomalies.push(`Why > 20 Wörter (${ids.p}/${ids.o}): "${round.why}"`);
     if (round.winner === "none") rec((a) => a.zeroAction++);
     for (const e of round.events) {
+      if (e.t === "chain") { chained = true; rec((a) => inc(a.chainHit, e.card)); if (round.events.some((x) => x.t === "tap" && x.winner === e.side)) rec((a) => a.chainTaps++); }
       if (e.t === "grip") { gripped = true; if (e.on) rec((a) => inc(a.gripOn, e.name)); else rec((a) => inc(a.gripOff, e.why ?? "?")); }
       if (e.t === "tap") { const id = e.winner === "p" ? ids.p : ids.o; rec((a) => inc(a.decisive, id)); }
       if (e.t === "move") {
@@ -133,6 +148,7 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
     if (domRound) { agg.domRoundSum += domRound; agg.domMatches++; }
     if (vorteil) agg.vorteil++;
     if (gripped) agg.gripMatches++;
+    if (chained) agg.chainMatches++;
     if (!r) return;
     if (r.type === "tap") { agg.tap++; inc(agg.taps, r.sub); }
     else if (r.type === "goal") agg.goal++;
@@ -196,6 +212,11 @@ for (const [pos, role] of ESC_SLOTS) {
   const off = [...total.gripOff.values()].reduce((a, b) => a + b, 0);
   const WHY: Record<string, string> = { rahmen: "Rahmen stoppt Angriff", loesen: "Griff lösen", verdraengt: "verdrängt", position: "Positionswechsel", alt: "ältester ersetzt" };
   console.log(`  gelöst:  ${top(total.gripOff, 10).map(([k, v]) => `${WHY[k] ?? k} ${pct(v, off)}`).join(", ")} (${pct(off, on)} aller gelegten)`);
+  const ch = [...total.chainHit.values()].reduce((a, b) => a + b, 0);
+  console.log(`\nKetten (Mechanik 3): in ${pct(total.chainMatches, M)} der Matches, ${(ch / M).toFixed(2)} Treffer je Match, Taps in Ketten-Runden ${pct(total.chainTaps, Math.max(1, [...total.taps.values()].reduce((a, b) => a + b, 0)))} aller Taps`);
+  console.log(`  bereit: ${total.chainReady} Entscheidungen, gespielt ${pct(total.chainPlayed, Math.max(1, total.chainReady))}`);
+  console.log(`  Treffer: ${top(total.chainHit, 12).map(([k, v]) => `${k} ${pct(v, Math.max(1, ch))}`).join(", ")}`);
+  console.log(`Abschluss möglich (B36): bei ${total.finishShown} Entscheidungen angezeigt, Verteidiger rahmt die Zone in ${pct(total.finishFramed, Math.max(1, total.finishShown))}`);
 }
 const tapTot = [...total.taps.values()].reduce((a, b) => a + b, 0);
 const topTap = top(total.taps, 1)[0];

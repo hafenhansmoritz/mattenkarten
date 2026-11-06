@@ -8,6 +8,7 @@ import { Foil, KindIcon, RarityGem } from "./frame";
 import { RARITY_LABEL, rarityOf } from "./rarity";
 import { HAND_EXTRA, keywordsOf, type KeywordId } from "../data/keywords";
 import { KeywordChips, KeywordPopover, KeywordTags } from "./Keywords";
+import { chainAfterNames } from "../engine/chains";
 
 export interface Hand2Props {
   /** Alle Karten des Slots (cardsFor(pos, role)). */
@@ -30,13 +31,15 @@ export interface Hand2Props {
   hiddenZones?: Zone[];
   /** Mechanik 2: Zonen, in denen du gerade einen Griff hältst (Angriffe dort brauchen 1 weniger). */
   gripZones?: Zone[];
+  /** Mechanik 3: Ketten-Karten, deren Kette gerade bereit ist → Name der eigenen Vorrunden-Karte. */
+  chainReady?: Record<string, string>;
   /** Max. sichtbare Karten (Standard 8), Rest hinter "+N". */
   max?: number;
   className?: string;
 }
 
 /** Hand für Kern 2: Karten nach Zone gruppiert (vier Spalten), Farbe = Art. */
-export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, hiddenZones = [], gripZones = [], max = 8, className }: Hand2Props) {
+export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], kraft, requireCard, highlightZone = null, hiddenZones = [], gripZones = [], chainReady = {}, max = 8, className }: Hand2Props) {
   const reduced = !!useReducedMotion();
   const [showAll, setShowAll] = useState(false);
   const lmap = useMemo(() => new Map(legal.map((l) => [l.id, l])), [legal]);
@@ -80,17 +83,18 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                 const disabled = !ok || blockedByTut;
                 const isSel = selected === c.id;
                 const tooExpensive = c.kraft != null && kraft != null && c.kraft > kraft;
-                const reqs = reqList(c, gripZones);
+                const chainFrom = chainReady[c.id];
+                const reqs = reqList(c, gripZones, !!chainFrom);
                 const rar = rarityOf(c);
                 const kws = keywordsOf(c);
                 return (
                   <Pulse key={c.id} active={requireCard === c.id && !isSel} radius="8px" className="k2-hcard-pulse">
                     <motion.button type="button"
-                      className={`k2-hcard kind-${c.kind} rar-${rar}${isSel ? " is-sel" : ""}${disabled ? " is-off" : ""}${isLocked ? " is-locked" : ""}`}
+                      className={`k2-hcard kind-${c.kind} rar-${rar}${isSel ? " is-sel" : ""}${disabled ? " is-off" : ""}${isLocked ? " is-locked" : ""}${chainFrom && ok ? " is-chain" : ""}`}
                       disabled={disabled}
                       data-card={c.id}
                       aria-pressed={isSel}
-                      aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${kws.filter((k) => HAND_EXTRA.includes(k.id)).map((k) => ` ${k.label}`).join("")}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}${r.grip ? " dank Griff" : ""}`).join("")}${c.kraft ? `, ${c.kraft} Atem nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
+                      aria-label={`${KIND_LABEL[c.kind]}: ${c.plain}${kws.filter((k) => HAND_EXTRA.includes(k.id)).map((k) => ` ${k.label}`).join("")}${chainFrom && ok ? ", Kette bereit" : ""}${reqs.map((r) => `, ${ZONE_SHORT[r.zone]} ${fmtSigned(r.n)}`).join("")}${c.kraft ? `, ${c.kraft} Atem nötig` : ""}. ${RARITY_LABEL[rar]}, Zone ${ZONE_LABEL[c.zone]}${reqs.some((r) => r.grip) ? ". Dein Griff senkt die Bedingung um 1" : ""}${chainFrom && ok ? `. Kette nach ${chainFrom} senkt die Bedingung um 1` : ""}${!ok && l?.reason ? `. ${l.reason}` : blockedByTut ? ". Erst die markierte Karte" : ""}`}
                       title={!ok ? l?.reason : blockedByTut ? "Erst die markierte Karte" : c.plainDo}
                       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.9 }}
                       animate={{ opacity: 1, y: isSel && !reduced ? -4 : 0, scale: 1 }}
@@ -104,17 +108,19 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
                       <RarityGem rarity={rar} size={10} className="k2-hcard-gem" />
                       <span className="k2-hcard-t">{c.plain}</span>{" "}
                       <KeywordTags hits={kws.filter((k) => HAND_EXTRA.includes(k.id))} />{" "}
+                      {chainFrom && ok && <span className="k2-chain-badge">Kette bereit </span>}
                       {(reqs.length > 0 || c.kraft) && (
                         <span className="k2-hcard-reqs">
                           {reqs.map((r) => {
                             const met = myBoard ? myBoard[r.zone] >= r.n : null;
-                            return <span key={r.zone} className={`k2-req${met === true ? " met" : met === false ? " miss" : ""}${r.grip ? " by-grip" : ""}`}
-                              title={r.grip ? "Dein Griff senkt die Bedingung um 1" : undefined}>{ZONE_SHORT[r.zone]} {fmtSigned(r.n)} </span>;
+                            return <span key={r.zone} className={`k2-req${met === true ? " met" : met === false ? " miss" : ""}${r.grip ? " by-grip" : ""}${r.chain ? " by-chain" : ""}`}
+                              title={r.chain ? "Deine Kette senkt die Bedingung um 1" : r.grip ? "Dein Griff senkt die Bedingung um 1" : undefined}>{ZONE_SHORT[r.zone]} {fmtSigned(r.n)} </span>;
                           })}
                           {c.kraft ? <span className={`k2-req kraft${tooExpensive ? " miss" : ""}`}><KraftIcon size={9} />{c.kraft}</span> : null}
                         </span>
                       )}
                       {isLocked && <span className="k2-lock" aria-hidden><LockIcon size={11} /></span>}
+
                     </motion.button>
                   </Pulse>
                 );
@@ -135,6 +141,11 @@ export function Hand2({ cards, legal, selected, onSelect, myBoard, locked = [], 
             <b>{sel.plain}</b><RarityGem rarity={rarityOf(sel)} size={10} /><span className="k2-rar-t">{RARITY_LABEL[rarityOf(sel)]}</span> <span className="k2-term">{sel.term}</span>
             {sel.mma && <MmaChip mma={sel.mma} note={sel.mmaNote} />}
             <p>{sel.plainDo}</p>
+            {sel.chain && (
+              <p className={`k2-chain-info${chainReady[sel.id] ? " on" : ""}`}>
+                <b>{chainReady[sel.id] ? `Kette bereit nach ${chainReady[sel.id]}:` : `Kette nach ${chainAfterNames(sel).join(" oder ")}:`}</b> {sel.chain.why}
+              </p>
+            )}
             <KeywordChips card={sel} onOpen={(id) => openKw(sel, id)} />
           </motion.div>
         ) : (

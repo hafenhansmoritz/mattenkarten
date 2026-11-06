@@ -6,7 +6,7 @@
 import type { Card2, Pos2, Zone } from "../types";
 import { SRC } from "../../data/sources";
 
-export type KeywordId = "keil" | "rahmen" | "griff" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "atem";
+export type KeywordId = "keil" | "rahmen" | "griff" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "kette" | "atem";
 
 export interface KeywordDef {
   id: KeywordId;
@@ -89,6 +89,15 @@ export const KEYWORDS: KeywordDef[] = [
     source: SRC.dilemmas,
   },
   {
+    // Mechanik 3 (B35). Quellen per WebFetch geprüft: Evolve University, Basic BJJ Combinations („work hand in hand and
+    // always open an opportunity for one another“); BJJ Atlas Armbar („armbar defense creates triangle“).
+    id: "kette", name: "Kette",
+    rule: "Folgt die Karte direkt auf die passende Technik aus deiner Vorrunde, braucht sie in ihrer Zone 1 weniger. Das gilt auch, wenn er die erste Technik abgewehrt hat. Wechselt die Position dazwischen, reißt die Kette.",
+    hint: "Kette: nach der passenden Technik brauchst du 1 weniger.",
+    bjj: "Wehrt er die eine Technik ab, öffnet er die nächste – darum lernst du Techniken in Ketten.",
+    source: SRC.combos,
+  },
+  {
     id: "atem", name: "Atem",
     rule: "Die Zahl ist der Preis in Atem, du zahlst beim Aufdecken. Jede Runde bekommst du 1 zurück, höchstens 5.",
     hint: "Atem: große Aktionen kosten Atem – teil ihn dir ein.",
@@ -127,6 +136,7 @@ export function keywordsOf(c: Card2): KeywordHit[] {
   if (c.to?.escape) out.push({ id: "flucht", label: "Flucht" });
   if (c.submission) out.push({ id: "aufgabe", label: "Aufgabe" });
   if (c.dilemmaOpens) out.push({ id: "dilemma", label: `Dilemma → ${ZONE_NAME[c.dilemmaOpens]}` });
+  if (c.chain && c.kind === "angriff") out.push({ id: "kette", label: "Kette" });
   if (c.kraft) out.push({ id: "atem", label: `Atem ${c.kraft}` });
   return out;
 }

@@ -55,6 +55,13 @@ const K2 = {
   standGuill: s("Grapplearts – Standing Guillotine Choke Escapes", "https://www.grapplearts.com/standing-guillotine-choke-escapes/"),
   singleDef: s("FanaticWrestling – Single Leg Defense with Henry Cejudo", "https://fanaticwrestling.com/blogs/news/single-leg-defense-with-henry-cejudo"),
   fulcrum: s("BJJ Fanatics – Danaher: Overlooked Part of a Submission (Fulcrum)", "https://bjjfanatics.com/blogs/news/john-danaher-says-this-is-one-of-the-most-overlooked-parts-of-a-successful-submission"),
+  // Mechanik 3 „Kette“ (B35): Ketten-Quellen, per WebFetch geprüft 2026-11-06.
+  atlasArmbar: s("BJJ Atlas – Armbar („armbar defense creates triangle“)", "https://bjj-atlas.pages.dev/submissions/armbar"),
+  atlasAmericana: s("BJJ Atlas – Americana („switch to armbar if straight“, Kimura „learn both for dilemmas“)", "https://bjj-atlas.pages.dev/submissions/americana"),
+  atlasKimura: s("BJJ Atlas – Kimura („combines well with“ Americana)", "https://bjj-atlas.pages.dev/submissions/kimura"),
+  iqAmericana: s("JitsuIQ – Americana („switch to a Kimura or Armbar if the opponent defends by straightening their arm“)", "https://jitsuiq.com/submissions/locks/joint-locks/americana.html"),
+  amToArm: s("BJJ Fanatics – The First Submission Transition Every Grappler Should Master (Americana → Armbar)", "https://bjjfanatics.com/blogs/news/the-first-submission-transition-every-grappler-should-master"),
+  atlasRnc: s("BJJ Atlas – Rear Naked Choke („defend RNC with both hands, armbar the exposed arm“)", "https://bjj-atlas.pages.dev/submissions/rear-naked-choke"),
 } satisfies Record<string, Src>;
 
 const SAFETY_SUB = "Im Training langsam ansetzen, früh abklopfen, beim Tap sofort loslassen.";
@@ -384,6 +391,7 @@ const guardBottom: Card2[] = [
     mistakes: ["Daumen nach unten", "Knie offen", "Ruckartig strecken"],
     safety: "Häufigste Submission-Verletzung (22,4 %). " + SAFETY_SUB,
     source: SRC.combos,
+    chain: { after: ["gb_triangle"], why: "Stemmt er sich aus dem Triangle hoch, wird sein Arm lang: Armbar.", source: SRC.combos },
   },
   {
     id: "gb_triangle", plain: "Beine-Dreieck um Hals", term: "Triangle",
@@ -395,6 +403,7 @@ const guardBottom: Card2[] = [
     mistakes: ["Frontaler Winkel", "Mit den Knöcheln drücken"],
     safety: SAFETY_CHOKE,
     source: SRC.combos,
+    chain: { after: ["gb_armbar"], why: "Zieht er den Arm aus der Armbar, steckt sein Kopf schon zwischen deinen Beinen: Triangle.", source: K2.atlasArmbar },
   },
   {
     id: "gb_guillotine", plain: "Hals vorne umfassen", term: "Guillotine (Guard)",
@@ -632,6 +641,7 @@ const sideTop: Card2[] = [
     mistakes: ["Ellbogen driftet weg", "Brustkontakt verlieren"],
     safety: "12,6 % der Submission-Verletzungen. " + SAFETY_SUB,
     source: SRC.kimura,
+    chain: { after: ["sct_americana"], why: "Wehrt er die Americana ab, drehst du den Arm in die andere Richtung: Kimura.", source: K2.iqAmericana },
   },
   {
     // B11: zweiter Abschluss aus der Seitkontrolle (No-Gi), wirkt am Kopf statt an den Armen.
@@ -657,6 +667,7 @@ const sideTop: Card2[] = [
     mistakes: ["Arm jagen und die Hüfte freigeben", "Mit der Kimura-Richtung verwechseln"],
     safety: "Langsam, ohne Ruck. " + SAFETY_SUB,
     source: SRC.americana, check: true,
+    chain: { after: ["sct_kimura"], why: "Wehrt er die Kimura ab, drehst du den Arm in die andere Richtung: Americana.", source: K2.atlasKimura },
   },
   {
     id: "sct_hip_block", plain: "Hüfte zumachen", term: "Hip Block",
@@ -787,6 +798,7 @@ const mountTop: Card2[] = [
     mistakes: ["Ohne Kontrolle springen", "Daumen nach unten"],
     safety: "Häufigste Submission-Verletzung. " + SAFETY_SUB,
     source: K2.fulcrum,
+    chain: { after: ["sub:americana"], why: "Streckt er den Arm gegen die Americana, streckst du weiter: Armbar.", source: K2.amToArm },
   },
   {
     id: "mt_americana", plain: "Arm nach unten drehen", term: "Americana",
@@ -798,6 +810,7 @@ const mountTop: Card2[] = [
     mistakes: ["Mit der Kimura-Richtung verwechseln"],
     safety: "Langsam, ohne Ruck. " + SAFETY_SUB,
     source: SRC.americana, check: true,
+    chain: { after: ["mt_armbar"], why: "Beugt er den Arm gegen die Armbar, drehst du ihn zur Matte: Americana.", source: K2.atlasAmericana, check: true },
   },
   {
     id: "mt_to_back", plain: "Mitdrehen, auf Rücken", term: "Mount to Back",
@@ -949,6 +962,7 @@ const backTop: Card2[] = [
     mistakes: ["Rückenkontrolle aufgeben, bevor der Arm isoliert ist"],
     safety: SAFETY_SUB,
     source: SRC.backControl,
+    chain: { after: ["bt_rnc"], why: "Verteidigt er den Würger mit beiden Händen, ist ein Arm frei: Armbar vom Rücken.", source: K2.atlasRnc },
   },
   {
     id: "bt_hook_retention", plain: "Haken drin lassen", term: "Hook Retention",
@@ -1221,6 +1235,7 @@ const headlockTop: Card2[] = [
     keys: ["Erst ziehen, dann rumgehen", "Arm blockt seine Achsel", "Knie in die Lücke"],
     mistakes: ["Kopf zu früh loslassen", "Weit außen rumlaufen"],
     source: K2.goBehind,
+    chain: { after: ["cl_snap_down"], why: "Nach dem Snap Down sind seine Hände auf der Matte – jetzt rumgehen, bevor er sich aufrichtet.", source: K2.goBehind },
   },
   {
     id: "hl_head_block", plain: "Brust auf den Kopf", term: "Head Pressure",

@@ -35,7 +35,7 @@ function policy(t: TutorialK2Def, s: State2, rng: () => number): string {
 }
 
 function run(t: TutorialK2Def, oSeed: number, pSeed: number) {
-  let s = newMatch({ seed: oSeed, maxRounds: t.maxRounds, start: t.start, goal: t.goal, grips: t.grips });
+  let s = newMatch({ seed: oSeed, maxRounds: t.maxRounds, start: t.start, goal: t.goal, grips: t.grips, chains: t.chains });
   const oRng = mulberry32(oSeed || 1); // ArenaK2: mulberry(seed || 1)
   const pRng = mulberry32(pSeed ^ 0x9e3779b9);
   const log: string[] = [];
@@ -71,7 +71,7 @@ describe("Kern 2 – Tutorials: Daten", () => {
 
   it("Ziele und Startlagen sind gültige Slots", () => {
     for (const t of TUTORIALS_K2) {
-      const s = newMatch({ seed: 1, start: t.start, grips: t.grips });
+      const s = newMatch({ seed: 1, start: t.start, grips: t.grips, chains: t.chains });
       expect(VALID_SLOT.has(`${s.pos}:${roleOf(s, "p")}`), t.id).toBe(true);
       for (const g of t.goal ?? []) expect(VALID_SLOT.has(`${g.pos}:${g.role}`), `${t.id} goal`).toBe(true);
       for (const v of Object.values(t.start.board ?? {})) expect(Math.abs(v!)).toBeLessThanOrEqual(2);
@@ -129,7 +129,7 @@ describe("Kern 2 – Tutorials: mit echter Engine lösbar", () => {
     const t = TUTORIALS_K2[1];
     let ok = 0;
     for (const seed of SEEDS) {
-      let s = newMatch({ seed, start: t.start, goal: t.goal, grips: t.grips });
+      let s = newMatch({ seed, start: t.start, goal: t.goal, grips: t.grips, chains: t.chains });
       const passes = () => legalCards(s, "p").filter((l) => l.ok && (l.id === "gt_knee_slice" || l.id === "gt_toreando"));
       expect(passes(), "vor dem Keil kein Pass").toHaveLength(0);
       s = playRound(s, "gt_open_guard", aiChoose(s, "o", 1, mulberry32(seed))).state;

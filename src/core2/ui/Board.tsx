@@ -19,6 +19,8 @@ export interface BoardProps {
   hidden?: Zone[];
   /** Mechanik 2: liegende Griffe (State2.grips) – Marke neben der Zone, Farbe des Besitzers. */
   grips?: { id: string; name: string; owner: Side; zone: Zone }[];
+  /** Mechanik 3 „Abschluss möglich“ (B36): Zonen, in denen eine Seite nächste Runde beenden kann, wenn dort niemand rahmt. */
+  finish?: { side: Side; zone: Zone }[];
   /** Tippen auf eine Zeile (z. B. für Erklärung). */
   onZoneTap?: (z: Zone) => void;
   className?: string;
@@ -36,7 +38,7 @@ function ownerWord(v: number): string {
  * Körperkarte: vier Tauzieh-Leisten (Kopf/Nacken, Arme, Hüfte, Beine), je −2…+2.
  * Links = du (blau), rechts = er (rot). Der Puck rutscht zu dem, der die Zone kontrolliert.
  */
-export function Board({ board, focus = null, lastDeltas = null, threats = [], perspective = "p", hidden = [], grips = [], onZoneTap, className }: BoardProps) {
+export function Board({ board, focus = null, lastDeltas = null, threats = [], perspective = "p", hidden = [], grips = [], finish = [], onZoneTap, className }: BoardProps) {
   const reduced = !!useReducedMotion();
   const sign = perspective === "p" ? 1 : -1;
   const threatZones = new Set(threats.filter((t) => t.cardIds.length > 0).map((t) => t.zone));
@@ -78,6 +80,9 @@ export function Board({ board, focus = null, lastDeltas = null, threats = [], pe
         }
         const isFocus = focus === z;
         const threat = threatZones.has(z);
+        const fin = finish.filter((f) => f.zone === z);
+        const finMine = fin.some((f) => f.side === perspective), finHis = fin.some((f) => f.side !== perspective);
+        const finTxt = finHis ? ". Er kann hier beenden – rahmen!" : finMine ? ". Du kannst hier beenden." : "";
         const zg = grips.filter((g) => g.zone === z);
         const gripTxt = zg.map((g) => `${g.owner === perspective ? "Dein" : "Sein"} Griff: ${g.name}`).join(". ");
         // +2 → Puck ganz links (bei dir), −2 → ganz rechts (bei ihm).
@@ -85,8 +90,8 @@ export function Board({ board, focus = null, lastDeltas = null, threats = [], pe
         const tone = v > 0 ? "p" : v < 0 ? "o" : "n";
         return (
           <div key={z}
-            className={`k2-row tone-${tone}${isFocus ? " is-focus" : ""}${threat ? " is-threat" : ""}${onZoneTap ? " is-tappable" : ""}`}
-            aria-label={`${ZONE_QUESTION[z]} ${ownerWord(v)}${threat ? ". Er kann hier angreifen." : ""}${gripTxt ? `. ${gripTxt}` : ""}`}
+            className={`k2-row tone-${tone}${isFocus ? " is-focus" : ""}${threat ? " is-threat" : ""}${finHis ? " is-finish his" : finMine ? " is-finish mine" : ""}${onZoneTap ? " is-tappable" : ""}`}
+            aria-label={`${ZONE_QUESTION[z]} ${ownerWord(v)}${threat ? ". Er kann hier angreifen." : ""}${finTxt}${gripTxt ? `. ${gripTxt}` : ""}`}
             title={ZONE_QUESTION[z]}
             role={onZoneTap ? "button" : "group"}
             tabIndex={onZoneTap ? 0 : undefined}

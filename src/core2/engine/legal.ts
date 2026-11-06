@@ -3,6 +3,7 @@ import type { Card2, Side, State2, Zone } from "../types";
 import { ZONES } from "../types";
 import { boardFor, fmtSigned, other, roleOf, ZONE_LABEL } from "./board";
 import { gripBonus } from "./grips";
+import { chainBonus } from "./chains";
 import { slotCards } from "./registry";
 
 /** Platzhalter, wenn eine Seite keine spielbare Karte hat (Slot leer oder alles gesperrt). */
@@ -14,13 +15,16 @@ export function cardsOfSlot(s: State2, side: Side): Card2[] {
   return slotCards(s.pos, roleOf(s, side));
 }
 
-/** Bedingung einer Karte in Zone z für side – B31: ein eigener Griff in der Zone der Karte senkt dort ihre Bedingung um 1. */
-export function needIn(s: State2, side: Side, c: Pick<Card2, "requires" | "zone">, z: Zone): number | undefined {
+/** Bedingung einer Karte in Zone z für side – B31: ein eigener Griff in der Zone der Karte senkt dort ihre Bedingung um 1;
+ *  B35: eine bereite Kette senkt sie dort um weitere 1. */
+export function needIn(s: State2, side: Side, c: Pick<Card2, "requires" | "zone"> & Partial<Pick<Card2, "chain" | "kind">>, z: Zone): number | undefined {
   const need = c.requires?.[z];
-  return need === undefined ? undefined : need - (z === c.zone ? gripBonus(s, side, z) : 0);
+  if (need === undefined) return undefined;
+  if (z !== c.zone) return need;
+  return need - gripBonus(s, side, z) - (c.chain && c.kind ? chainBonus(s, side, c as Card2, z) : 0);
 }
 
-export function unmetRequires(s: State2, side: Side, c: Pick<Card2, "requires" | "zone">): string[] {
+export function unmetRequires(s: State2, side: Side, c: Pick<Card2, "requires" | "zone"> & Partial<Pick<Card2, "chain" | "kind">>): string[] {
   if (!c.requires) return [];
   const b = boardFor(s, side);
   const out: string[] = [];
@@ -73,3 +77,20 @@ export function threats(s: State2, side: Side): { zone: Zone; cardIds: string[] 
   }
   return ZONES.filter((z) => by.has(z)).map((z) => ({ zone: z, cardIds: by.get(z)! }));
 }
+
+/** Mechanik 3 „Abschluss möglich“ (B36, wie die Lethal-Anzeige): Aufgaben von side, die nächste Runde abklopfen,
+ *  wenn der Gegner nicht in ihrer Zone verteidigt. Bedingung: eigene Leiste ab Schritt 1 (ungerahmt +2 = 3, B2) und eine
+ *  spielbare Karte desselben Griffs. Reine Ableitung aus öffentlichem Zustand (Brett, Leisten, Sperren, Atem, Vorrunde). */
+export interface FinishThreat { side: Side; sub: string; name: string; zone: Zone; cardIds: string[] }
+export function finishThreats(s: State2, side: Side): FinishThreat[] {
+  if (s.result) return [];
+  const out: FinishThreat[] = [];
+  for (const t of s.subs) {
+    if (t.owner !== side || t.step < 3 - UNFRAMED_STEPS) continue;
+    const ids = okCards(s, side).filter((c) => c.kind === "angriff" && c.submission?.id === t.id).map((c) => c.id);
+    if (ids.length) out.push({ side, sub: t.id, name: t.name, zone: t.zone, cardIds: ids });
+  }
+  return out;
+}
+/** Schritte eines ungerahmten Aufgabe-Treffers (muss BALANCE.unframedSubSteps in resolve.ts entsprechen; Test prüft das). */
+export const UNFRAMED_STEPS = 2;

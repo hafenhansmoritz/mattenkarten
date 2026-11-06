@@ -25,7 +25,7 @@ describe("Schrittweises Aufdecken (zones)", () => {
     const t = byId("k2-raus-von-unten");
     expect(t.zones).toEqual(["beine", "huefte"]);
     expect(hiddenZones(t.zones).sort()).toEqual(["arme", "kopf"]);
-    const s = newMatch({ seed: 1, start: t.start, goal: t.goal, grips: t.grips });
+    const s = newMatch({ seed: 1, start: t.start, goal: t.goal, grips: t.grips, chains: t.chains });
     const shown = filterHandByZones(slotCards(s.pos, roleOf(s, "p")), legalCards(s, "p"), t.zones, "mb_knee_inside");
     expect(shown.length).toBeGreaterThan(0);
     for (const c of shown) expect(["beine", "huefte"]).toContain(c.zone);
@@ -62,7 +62,7 @@ describe("Schrittweises Aufdecken (zones)", () => {
   it("jede Lektion mit zones: an jedem Zug ist mindestens eine sichtbare Karte spielbar oder Passen", () => {
     for (const t of ALL.filter((x) => x.zones)) {
       for (let seed = 1; seed <= 15; seed++) {
-        let s = newMatch({ seed, maxRounds: t.maxRounds, start: t.start, goal: t.goal, grips: t.grips });
+        let s = newMatch({ seed, maxRounds: t.maxRounds, start: t.start, goal: t.goal, grips: t.grips, chains: t.chains });
         const rng = mulberry32(seed);
         while (!s.result) {
           const legal = legalCards(s, "p");
@@ -108,7 +108,7 @@ describe("Vorhersage vor dem Aufdecken", () => {
   it("Ableitung ist rein und passt zur aufgedeckten Runde (viele Zufallsrunden)", () => {
     for (const t of ALL) {
       for (let seed = 1; seed <= 6; seed++) {
-        let s = newMatch({ seed, maxRounds: t.maxRounds, start: t.start, goal: t.goal, grips: t.grips });
+        let s = newMatch({ seed, maxRounds: t.maxRounds, start: t.start, goal: t.goal, grips: t.grips, chains: t.chains });
         const rng = mulberry32(seed * 7);
         while (!s.result) {
           const before = JSON.stringify(s);

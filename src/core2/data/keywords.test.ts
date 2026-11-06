@@ -29,9 +29,9 @@ function setup(c: Card2, extra: Partial<Record<Zone, number>> = {}): State2 {
 const ok = (s: State2, side: Side, id: string) => legalCards(s, side).find((l) => l.id === id)?.ok ?? false;
 
 describe("Glossar", () => {
-  it("neun Schlüsselwörter, eindeutig, je mit Regel, Hinweis, BJJ-Satz und Quelle oder Trainer-Prüfung", () => {
+  it("zehn Schlüsselwörter, eindeutig, je mit Regel, Hinweis, BJJ-Satz und Quelle oder Trainer-Prüfung", () => {
     expect(KEYWORDS.length).toBeGreaterThanOrEqual(6);
-    expect(KEYWORDS.length).toBeLessThanOrEqual(9);
+    expect(KEYWORDS.length).toBeLessThanOrEqual(10);
     expect(new Set(KEYWORDS.map((k) => k.id)).size).toBe(KEYWORDS.length);
     expect(new Set(KEYWORDS.map((k) => k.name)).size).toBe(KEYWORDS.length);
     for (const k of KEYWORDS) {
@@ -81,6 +81,7 @@ describe("keywordsOf folgt den Daten", () => {
       expect(has(c, "dilemma"), c.id).toBe(!!c.dilemmaOpens);
       expect(has(c, "aufgabe"), c.id).toBe(!!c.submission);
       expect(has(c, "atem"), c.id).toBe(!!c.kraft);
+      expect(has(c, "kette"), c.id).toBe(!!c.chain);
     }
   });
   it("Takedown und Pass nur mit Positionswechsel nach oben; bekannte Beispiele", () => {
@@ -194,6 +195,29 @@ describe("Schlüsselwörter sagen die Wahrheit (Engine)", () => {
       }
     }
     expect(checked).toBeGreaterThan(5);
+  });
+  it("Kette: nach der passenden Vorrunden-Karte 1 weniger in ihrer Zone – auch wenn die erste abgewehrt wurde", () => {
+    let checked = 0;
+    for (const c of withKw("kette")) {
+      const z = c.zone;
+      expect(c.requires?.[z], `${c.id} braucht etwas in ihrer Zone`).toBeDefined();
+      const prev = CARDS2.find((x) => c.chain!.after.some((a) => a === x.id || a === `sub:${x.submission?.id}`) && x.slots.some((sl) => sl.pos === c.slots[0].pos || x.to?.pos === c.slots[0].pos))!;
+      expect(prev, c.id).toBeTruthy();
+      // Vorrunde: p spielt prev, o rahmt (oder passt); danach steht die Zone der Ketten-Karte genau 1 zu niedrig.
+      let s = setup(prev, { [z]: 2 });
+      s = playRound(s, prev.id, PASS).state;
+      if (s.result || !c.slots.some((sl) => sl.pos === s.pos && sl.role === (s.top === "p" ? "top" : s.top === "o" ? "bottom" : "neutral"))) continue;
+      for (const y of ZONES) if (c.requires![y] !== undefined) s.board[y] = c.requires![y]!;
+      s.board[z] = c.requires![z]! - 1;
+      s.p.kraft = KRAFT_MAX; s.p.locked = [];
+      expect(ok(s, "p", c.id), `${c.id} nach ${prev.id}`).toBe(true);
+      const off = { ...s, history: [] };
+      expect(ok(off, "p", c.id), `${c.id} ohne Kette`).toBe(false);
+      const { round } = playRound(s, c.id, PASS);
+      expect(round.events.some((e) => e.t === "chain" && e.side === "p" && e.from === prev.id && e.card === c.id), c.id).toBe(true);
+      checked++;
+    }
+    expect(checked).toBeGreaterThanOrEqual(6);
   });
   it("Atem: die Zahl wird beim Aufdecken bezahlt, jede Runde +1", () => {
     for (const c of withKw("atem")) {

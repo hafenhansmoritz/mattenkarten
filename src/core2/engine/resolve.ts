@@ -5,6 +5,7 @@ import { clampZone, other, POS_LABEL, roleOf, sign, topFor, ZONE_LABEL } from ".
 import { checkCard, heldInSub, PASS, unmetRequires } from "./legal";
 import { cardById } from "./registry";
 import { breakable, GRIP_MAX, gripFits } from "./grips";
+import { chainFrom } from "./chains";
 
 export const KRAFT_MAX = 5;
 
@@ -156,6 +157,16 @@ function frameSubs(ctx: Ctx, side: Side, c: Card2, ac: Card2): boolean {
 function attackSucceeds(ctx: Ctx, side: Side, c: Card2, steps = 1): boolean {
   if (unmetRequires(ctx.start, side, c).length) return false;
   ctx.acted.add(side);
+  // B35 Kette: folgt die Karte auf ihre passende Vorrunden-Karte, wird der Treffer als Kette gemeldet (FX „KETTE!“).
+  const from = chainFrom(ctx.start, side, c);
+  if (from) {
+    ctx.events.push({ t: "chain", side, from: from.id, card: c.id });
+    ctx.notes.push({
+      prio: 62, side,
+      headline: you(side) ? `Deine Kette: ${from.term} → ${c.term}.` : `Seine Kette: ${from.term} → ${c.term}.`,
+      why: c.chain!.why, zone: c.zone,
+    });
+  }
   if (c.submission) {
     let t = ctx.s.subs.find((x) => x.owner === side && x.id === c.submission!.id);
     if (!t) { t = { id: c.submission.id, name: c.submission.name, owner: side, step: 0, zone: c.zone }; ctx.s.subs.push(t); }
