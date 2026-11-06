@@ -17,6 +17,11 @@ import { BOSS_PLANS, BOSS_SIDEBOARD, DEFAULT_PLAN } from "../src/core2/data/plan
 import { isPlanCard, planErrors } from "../src/core2/engine/plan";
 import { applySideboard, planCurve, planPaths, randomValidPlan, recommendSwaps, systemCheck } from "../src/core2/engine/planBuilder";
 import { mulberry32 } from "../src/engine/rng";
+import { coachPick, draftHint, makeOffer } from "../src/core2/draft/draft";
+import { RUN_WINS, applyNotfall, matchLog, newRun, pickCard, recordMatch, type DraftCtx } from "../src/core2/draft/run";
+import { stilCards } from "../src/core2/data/plans";
+import { BOSS } from "../src/core2/data/bosses";
+import { DRAFT_REWARD_MIN_WINS } from "../src/core2/rewards/table";
 import type { Pos2, Role2, Side, StilId, State2 } from "../src/core2/types";
 import { ZONES } from "../src/core2/types";
 
@@ -476,6 +481,94 @@ if (!noStil && !useFix && !args.includes("--noplan")) {
     sb.push(`${b.name} ${pct(w0, w0 + l0)} → ${pct(w1, w1 + l1)}`);
   }
   console.log(`  Sideboard (Standard-Pläne gegen Boss, ohne → mit empfohlenen Tauschen): ${sb.join(", ")}`);
+
+  // ---- Mechanik 9 (B69–B75): Draft ----
+  const ctx: DraftCtx = { pool, cardOf: cardById, basics };
+  type Picker = "coach" | "hinweis" | "zufall";
+  const runDraft = (seed: number, picker: Picker) => {
+    const stil = STIL_IDS[seed % STIL_IDS.length];
+    const rng = mulberry32((seed * 2654435761) >>> 0);
+    let r = newRun(seed, stil, false, ctx);
+    let dead = 0, bridges = 0;
+    while (r.phase === "draft") {
+      const o = makeOffer(r.picks, r.seed, pool, cardById, basics, stilCards(stil));
+      if (o.bridge) bridges++;
+      const hs = r.offer.map((id) => draftHint(id, r.picks, cardById, basics, pool));
+      if (!hs.some((h) => h.ok)) dead++;
+      let k: number;
+      if (picker === "coach") k = coachPick(r.offer, r.picks, cardById, basics, pool, stilCards(stil));
+      else {
+        const ok = r.offer.map((_, j) => j).filter((j) => picker === "zufall" || hs[j].ok);
+        const c = ok.length ? ok : r.offer.map((_, j) => j);
+        k = c[Math.floor(rng() * c.length)];
+      }
+      r = pickCard(r, r.offer[k], ctx);
+    }
+    const passed = r.phase !== "notfall";
+    let swaps = 0;
+    while (r.phase === "notfall") { r = applyNotfall(r, 0, ctx); swaps++; }
+    return { r, passed, swaps, dead, bridges, valid: systemCheck(r.picks, cardById, basics).ok };
+  };
+  const ND = Math.max(200, N * 2);
+  const dstats: Record<Picker, { pass: number; one: number; valid: number; dead: number; bridges: number }> = {
+    coach: { pass: 0, one: 0, valid: 0, dead: 0, bridges: 0 }, hinweis: { pass: 0, one: 0, valid: 0, dead: 0, bridges: 0 }, zufall: { pass: 0, one: 0, valid: 0, dead: 0, bridges: 0 },
+  };
+  const coachDrafts: { cards: string[]; stil: StilId }[] = [];
+  for (const pk of ["coach", "hinweis", "zufall"] as Picker[]) {
+    for (let i = 1; i <= ND; i++) {
+      const d = runDraft(20000 + i, pk);
+      const st = dstats[pk];
+      st.pass += +d.passed; st.one += +(d.passed || d.swaps === 1); st.valid += +d.valid; st.dead += d.dead; st.bridges += d.bridges;
+      if (pk === "coach" && coachDrafts.length < 40) coachDrafts.push({ cards: d.r.picks, stil: d.r.stil });
+    }
+  }
+  console.log(`\nDraft (${ND} Drafts je Wähler, Stil reihum): System-Prüfung bestanden ohne Notfall / nach 1 Notfall-Tausch / am Ende · Angebote ohne passende Karte · Brücken je Draft`);
+  for (const pk of ["coach", "hinweis", "zufall"] as Picker[]) {
+    const st = dstats[pk];
+    console.log(`  ${pk.padEnd(8)} ${pct(st.pass, ND)} / ${pct(st.one, ND)} / ${pct(st.valid, ND)} · ${st.dead} · ${(st.bridges / ND).toFixed(2)}`);
+  }
+  const allOffers = ND * 3 * 15;
+  checks.push(["Draft: Coach-Wähler besteht System-Prüfung ≥ 95% (ohne Notfall)", dstats.coach.pass / ND >= 0.95, pct(dstats.coach.pass, ND)]);
+  checks.push(["Draft: Zufall unter „Passt“-Karten besteht ≥ 60% (ohne Notfall)", dstats.hinweis.pass / ND >= 0.6, pct(dstats.hinweis.pass, ND)]);
+  checks.push(["Draft: nie ein Angebot ohne passende Karte", dstats.coach.dead + dstats.hinweis.dead + dstats.zufall.dead === 0, `${dstats.coach.dead + dstats.hinweis.dead + dstats.zufall.dead} von ${allOffers}`]);
+  checks.push(["Draft: nach Notfall-Tausch immer gültig", dstats.coach.valid + dstats.hinweis.valid + dstats.zufall.valid === 3 * ND, `${pct(dstats.zufall.valid, ND)} (Zufall)`]);
+  // Coach-Drafts gegen die Standard-Pläne (L3, beide mit Stil).
+  let dw = 0, dl = 0;
+  const NDM = Math.max(10, Math.round(N / 25));
+  for (const [gi, g] of coachDrafts.entries()) {
+    for (const foe of STIL_IDS) for (let i = 0; i < NDM; i++) {
+      const gp = i % 2 === 0;
+      const me: SimPlayer = { ...stilPlayer(3, g.stil), plan: g.cards };
+      const m = gp ? simMatch(me, planPl(foe), 21000 + gi * 97 + i) : simMatch(planPl(foe), me, 21000 + gi * 97 + i);
+      const w = m.state.result?.winner;
+      if (!w) continue;
+      if ((w === "p") === gp) dw++; else dl++;
+    }
+  }
+  const dShare = dw / Math.max(1, dw + dl);
+  console.log(`  Coach-Drafts (${coachDrafts.length}, L3) gegen die 4 Standard-Pläne: ${pct(dShare, 1)} (${dw + dl} entschiedene Matches)`);
+  checks.push(["Draft: Coach-Drafts gegen Standard-Pläne 40–60%", dShare >= 0.4 && dShare <= 0.6, pct(dShare, 1)]);
+  // Läufe: Spieler L3 mit Coach-Draft gegen den Lauf-Plan (L2, L2, L3, L3, Boss, L3 …) bis 7 Siege oder 3 Niederlagen.
+  const NR = Math.max(60, Math.round(N / 2));
+  let len = 0, seven = 0, three = 0, bossW = 0, bossN = 0;
+  const winsHist = new Array(RUN_WINS + 1).fill(0);
+  for (let i = 0; i < NR; i++) {
+    let r = runDraft(30000 + i, "coach").r;
+    while (r.phase === "run" && r.next) {
+      const f = r.next;
+      const foe: SimPlayer = f.boss ? { level: BOSS[f.boss].level, style: BOSS[f.boss].style, stil: f.boss, plan: f.plan } : { ...stilPlayer(f.level, f.stil), plan: f.plan };
+      const me: SimPlayer = { ...stilPlayer(3, r.stil), plan: r.picks };
+      const m = simMatch(me, foe, f.seed);
+      if (f.boss) { bossN++; if (m.state.result?.winner === "p") bossW++; }
+      r = recordMatch(r, matchLog(m.state, "p", r.picks, cardById), ctx);
+    }
+    len += r.matches.length; winsHist[r.wins]++;
+    if (r.wins >= RUN_WINS) seven++;
+    if (r.wins >= DRAFT_REWARD_MIN_WINS) three++;
+  }
+  const avgLen = len / NR;
+  console.log(`  Läufe (${NR}, Spieler L3 mit Coach-Draft): Ø ${avgLen.toFixed(1)} Kämpfe · 7 Siege ${pct(seven, NR)} · ≥ 3 Siege (Belohnung) ${pct(three, NR)} · Boss besiegt ${pct(bossW, Math.max(1, bossN))} · Siege 0–7: ${winsHist.join("/")}`);
+  checks.push(["Draft: Lauf Ø 4–10 Kämpfe", avgLen >= 4 && avgLen <= 10, avgLen.toFixed(1)]);
 }
 
 // ---- B28 Bosse: Spielstil auf Stufe 2/3 ----

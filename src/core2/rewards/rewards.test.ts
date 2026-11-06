@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import * as events from "./events";
 import { emitLearning } from "./events";
 import {
-  CRAFT_COST, DUP_STAUB, ODDS, PACK_SIZE, REWARDS, applyEvent, canCraft, emptyRewards, maxDailyRepeatablePacks,
+  CRAFT_COST, DUP_STAUB, ODDS, PACK_SIZE, REWARDS, applyEvent, canCraft, draftAmount, emptyRewards, maxDailyRepeatablePacks, rewardReason,
   meisterPerPack, oddsPercent, rollPack, sanitizeRewards, seededRng, type PoolCard,
 } from "./table";
 import { REWARD_KEY, _reloadRewards, craftCard, getRewards, openPack } from "./store";
@@ -63,8 +63,22 @@ describe("Belohnungs-Tabelle: Grenzen", () => {
       { type: "leglock_badge" }, { type: "leglock_badge" }]);
     expect(a.packs).toBe(1 + 2 + 2);
   });
-  it("Tagesmaximum aus wiederholbaren Quellen ist klein (3 Pakete)", () => {
-    expect(maxDailyRepeatablePacks()).toBe(3);
+  it("Tagesmaximum aus wiederholbaren Quellen ist klein (4 Pakete mit dem Draft)", () => {
+    expect(maxDailyRepeatablePacks()).toBe(4);
+  });
+  it("Draft-Lauf (B74): ab 3 Siegen 1 Paket, 7 Siege +5 Staub, höchstens ein belohnter Lauf pro Tag", () => {
+    expect(run([{ type: "draft_run", wins: 2 }])).toMatchObject({ packs: 0, staub: 0 });
+    // Ein Lauf unter 3 Siegen verbraucht die Tagesgrenze nicht.
+    const a = run([{ type: "draft_run", wins: 2 }, { type: "draft_run", wins: 4 }, { type: "draft_run", wins: 7 }]);
+    expect(a).toMatchObject({ packs: 1, staub: 0 });
+    expect(run([{ type: "draft_run", wins: 7 }])).toMatchObject({ packs: 1, staub: 5 });
+    expect(run([{ type: "draft_run", wins: 7 }], D2, a.st)).toMatchObject({ packs: 1, staub: 5 });
+    expect(draftAmount(3)).toEqual({ packs: 1, staub: 0 });
+    expect(rewardReason({ type: "draft_run", wins: 5 })).toBe("Für deinen Draft-Lauf mit 5 Siegen");
+  });
+  it("Draft: kein Einsatz, kleiner als echtes Training (Mattenzeit zählt am meisten)", () => {
+    const best = draftAmount(7);
+    expect(best.packs * 40 + best.staub).toBeLessThan(REWARDS.training_logged.packs * 40 + REWARDS.training_logged.staub);
   });
   it("kein Eintrag straft: verpasste Tage ziehen nichts ab", () => {
     const a = run([{ type: "review_done" }]);

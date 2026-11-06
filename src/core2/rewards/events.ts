@@ -10,7 +10,9 @@ export type LearningEvent =
   | { type: "training_logged" }
   | { type: "daily_won"; date: string }
   | { type: "boss_first_win"; boss: string; name?: string }
-  | { type: "leglock_badge" };
+  | { type: "leglock_badge" }
+  /** Mechanik 9: Draft-Lauf beendet (gemeldet nur ab 3 Siegen). */
+  | { type: "draft_run"; wins: number };
 
 export type LearningEventType = LearningEvent["type"];
 

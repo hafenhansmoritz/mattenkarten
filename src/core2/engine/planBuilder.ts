@@ -150,7 +150,8 @@ export function planCurve(ids: string[], cardOf: CardOf): { bins: [number, numbe
 }
 
 // ---------------- Fix-Vorschlag ----------------
-function score(r: SystemResult): number {
+/** Güte eines Plans (bestandene Regeln zuerst, dann Wege, Lücken und tote Karten). Auch für den Draft (Coach-Tipp). */
+export function systemScore(r: SystemResult): number {
   return r.rules.filter((x) => x.ok).length * 100 + Math.min(r.boden.length, 2) * 3 + Math.min(r.besser.length, 4) * 3
     + Math.min(r.finishes.length, 5) * 3 - r.gaps.length * 8 - r.unreachableFinishes.length * 6 - r.dead.length * 4;
 }
@@ -169,7 +170,7 @@ export function suggestFix(ids: string[], pool: string[], cardOf: CardOf, basics
   const firstRule = cur.rules.find((r) => !r.ok);
   const firstGap = cur.gaps[0];
   if (!firstRule && !firstGap && cur.dead.length === 0) return null;
-  const base = score(cur);
+  const base = systemScore(cur);
   const cands = pool.filter((id) => !ids.includes(id) && (() => { const c = cardOf(id); return !!c && isPlanCard(c); })());
   let best: { add: string; remove?: string; s: number } | null = null;
   const full = ids.length >= PLAN_SIZE;
@@ -177,7 +178,7 @@ export function suggestFix(ids: string[], pool: string[], cardOf: CardOf, basics
     const outs = full ? ids : [undefined];
     for (const remove of outs) {
       const next = remove ? ids.map((x) => (x === remove ? add : x)) : [...ids, add];
-      const s = score(systemCheck(next, cardOf, basics));
+      const s = systemScore(systemCheck(next, cardOf, basics));
       if (s > base && (!best || s > best.s)) best = { add, remove, s };
     }
   }
@@ -226,7 +227,7 @@ export function recommendSwaps(ids: string[], wants: string[], avoid: string[], 
       const r = systemCheck(next, cardOf, basics);
       // Nur Karten empfehlen, die dein Plan auch erreicht (keine tote Karte, keine unerreichbare Aufgabe).
       if (r.dead.includes(w) || r.unreachableFinishes.includes(w)) continue;
-      const s = (r.ok ? 1000 : 0) + score(r) + (avoid.includes(o) ? 50 : 0);
+      const s = (r.ok ? 1000 : 0) + systemScore(r) + (avoid.includes(o) ? 50 : 0);
       if (!best || s > best.s) best = { out: o, s };
     }
     if (!best || best.s < 1000) continue;

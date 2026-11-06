@@ -10,6 +10,7 @@ import { randomStil } from "../core2/data/stile";
 import type { StilId } from "../core2/types";
 import { SpielplanModus } from "../core2/ui/SpielplanModus";
 import { PLAN_RULE } from "../core2/data/plans";
+import { DraftModus, DRAFT_RULE } from "../core2/ui/DraftModus";
 
 const KEY = "mk.k2.done";
 function readDone(): string[] {
@@ -20,7 +21,7 @@ function writeDone(ids: string[]) {
 }
 
 type Run = { kind: "tut"; id: string } | { kind: "stilwahl"; level: 1 | 2 | 3 } | { kind: "free"; level: 1 | 2 | 3; stil: StilId; foe: StilId }
-  | { kind: "bosses" } | { kind: "glossar" } | { kind: "plan" } | null;
+  | { kind: "bosses" } | { kind: "glossar" } | { kind: "plan" } | { kind: "draft" } | null;
 const LEVEL_NAME: Record<1 | 2 | 3, string> = { 1: "Locker", 2: "Normal", 3: "Hart" };
 const ALL_TUTS = [...TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD];
 
@@ -43,6 +44,7 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
   if (run?.kind === "bosses") return <Bosse onBack={() => setRun(null)} />;
   if (run?.kind === "glossar") return <Glossar onBack={() => setRun(null)} />;
   if (run?.kind === "plan") return <SpielplanModus onBack={() => setRun(null)} />;
+  if (run?.kind === "draft") return <DraftModus onBack={() => setRun(null)} />;
   if (run?.kind === "stilwahl") {
     // Mechanik 5: vor dem freien Spiel das A-Game wählen; der Gegner bekommt einen zufälligen Stil.
     const lv = run.level;
@@ -95,6 +97,13 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
         <button className="more-item" onClick={() => setRun({ kind: "plan" })}>
           <strong className="display">Spielplan-Modus (neu)</strong>
           <span className="muted small">{PLAN_RULE[0]} {PLAN_RULE[1]} Neu: eigene Pläne bauen und vor dem Boss anpassen.</span>
+        </button>
+      </div>
+      <h3 className="display" style={{ marginTop: 18 }}>Draft</h3>
+      <div className="more-list">
+        <button className="more-item" onClick={() => setRun({ kind: "draft" })}>
+          <strong className="display">Draft (neu)</strong>
+          <span className="muted small">{DRAFT_RULE[0]} {DRAFT_RULE[1]}</span>
         </button>
       </div>
       <h3 className="display" style={{ marginTop: 18 }}>Bosse</h3>

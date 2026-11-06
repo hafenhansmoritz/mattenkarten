@@ -1,0 +1,75 @@
+/* Mechanik 9 „Draft“ (Spec B69–B75) */
+.k2-draft .k2-plan-rule { font-size: 14px; line-height: 1.4; margin: 6px 0; }
+.k2-draft a { color: #a9cbff; }
+.k2-draft-stile { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
+.k2-draft-stil { all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; min-height: 56px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface); cursor: pointer; }
+.k2-draft-stil strong { font-family: var(--font-display); font-size: 18px; }
+.k2-draft-stil span { font-size: 12px; color: var(--text-2); }
+.k2-draft-stil.on { border-color: var(--points); box-shadow: 0 0 0 1px var(--points); }
+.k2-draft-stil:last-child { grid-column: 1 / -1; }
+.k2-draft-stil:focus-visible, .k2-draft-card:focus-visible, .k2-draft-toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.k2-draft-top { margin: 4px 0 2px; }
+.k2-draft-bar { display: grid; grid-template-columns: repeat(15, 1fr); gap: 3px; margin: 6px 0; }
+.k2-draft-bar span { height: 7px; border-radius: 3px; background: var(--surface-3); opacity: 0.55; }
+.k2-draft-bar span.done { opacity: 1; }
+.k2-draft-bar span.now { opacity: 1; outline: 2px solid var(--text); outline-offset: 1px; }
+.k2-draft-bar .ph-boden.done, .k2-draft-bar .ph-boden.now { background: #3e8bff; }
+.k2-draft-bar .ph-vorn.done, .k2-draft-bar .ph-vorn.now { background: #3fae74; }
+.k2-draft-bar .ph-aufgabe.done, .k2-draft-bar .ph-aufgabe.now { background: #f0573f; }
+
+.k2-draft-phase { font-size: 14px; margin: 6px 0; }
+.k2-draft-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.02em; color: var(--text-ink); background: #9cc2ff; }
+.k2-draft-chip.ph-vorn { background: #7fd8a7; }
+.k2-draft-chip.ph-aufgabe { background: #ffab9b; }
+
+.k2-draft-coach { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.k2-draft-toggle { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 12px 6px 6px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); font-weight: 700; font-size: 14px; cursor: pointer; }
+.k2-draft-switch { width: 34px; height: 20px; border-radius: 999px; background: var(--surface-3); position: relative; flex: none; transition: background var(--t-fast); }
+.k2-draft-switch span { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--text-2); transition: transform var(--t-fast); }
+.k2-draft-toggle[aria-pressed="true"] .k2-draft-switch { background: var(--points); }
+.k2-draft-toggle[aria-pressed="true"] .k2-draft-switch span { transform: translateX(14px); background: var(--text-ink); }
+
+.k2-draft-offer { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.k2-draft-card { all: unset; box-sizing: border-box; position: relative; width: 100%; display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); cursor: pointer; box-shadow: var(--shadow-1); }
+.k2-draft-card strong.display { font-size: 21px; line-height: 1.1; margin-top: 2px; }
+.k2-draft-card .k2-term { font-size: 12.5px; color: var(--text-2); }
+.k2-draft-card.kind-angriff { border-left: 4px solid var(--k-angriff); }
+.k2-draft-card.is-tip { border-color: var(--points); box-shadow: 0 0 0 2px var(--points), var(--shadow-2); }
+.k2-draft-card .k2-draft-chip { align-self: flex-start; }
+.k2-draft-where { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.k2-draft-do { font-size: 13px; color: var(--text-2); }
+.k2-draft-hint { margin-top: 4px; padding: 6px 8px; border-radius: 8px; font-size: 13px; line-height: 1.35; color: var(--text); }
+.k2-draft-hint.ok { background: rgba(63, 174, 116, 0.16); border-left: 3px solid #3fae74; }
+.k2-draft-hint.gap { background: rgba(255, 209, 102, 0.12); border-left: 3px solid var(--points); }
+.k2-draft-tipbadge { position: absolute; top: -9px; right: 12px; padding: 2px 8px; border-radius: 999px; background: var(--points); color: var(--text-ink); font-size: 11.5px; font-weight: 800; }
+.k2-draft-swapline { font-size: 15px; }
+.k2-draft-swapline s { color: var(--text-2); }
+
+.k2-draft-picks { margin-top: 14px; }
+.k2-draft-group { margin: 6px 0; }
+.k2-draft-group ul { margin: 4px 0 0; padding-left: 18px; font-size: 13px; }
+
+.k2-draft-belt { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+.k2-belt { position: relative; flex: 1; height: 26px; display: flex; border-radius: 4px; overflow: hidden; box-shadow: var(--shadow-1); }
+.k2-belt-body { flex: 1; background: repeating-linear-gradient(0deg, #2f6fd6 0 3px, #2a63c2 3px 6px); }
+.k2-belt-bar { width: 58%; max-width: 190px; background: #111; display: flex; justify-content: flex-end; align-items: stretch; gap: 4px; padding: 0 8px; }
+.k2-belt-stripe { width: 8px; background: rgba(255, 255, 255, 0.12); border: 1px dashed rgba(255, 255, 255, 0.28); }
+.k2-belt-stripe.on { background: #f4f4f4; border: 0; }
+.k2-draft-losses { display: flex; gap: 4px; }
+.k2-draft-losses span { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 6px; border: 1px solid var(--line-strong); color: var(--text-3); font-weight: 800; }
+.k2-draft-losses span.on { background: rgba(255, 107, 107, 0.2); border-color: var(--danger); color: var(--danger); }
+
+.k2-draft-next { margin: 12px 0; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); }
+.k2-draft-next.is-boss { border-color: var(--danger); background: linear-gradient(160deg, rgba(229, 72, 77, 0.16), var(--surface-2)); }
+.k2-draft-next h3 { margin: 2px 0 4px; }
+.k2-draft-log { margin: 4px 0; padding-left: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+.k2-draft-log .is-win b { color: #7fd8a7; }
+.k2-draft-log .is-loss b, .k2-draft-log .is-draw b { color: #ffab9b; }
+
+.k2-draft-sum { margin: 10px 0; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); }
+.k2-draft-sum h3 { margin: 4px 0; }
+.k2-draft-chain { font-size: 15px; line-height: 1.5; margin: 4px 0; }
+.k2-draft-sum .k2-end-path .is-off { color: var(--text-3); }
+.k2-draft-sum .k2-end-path .is-on { color: #7fd8a7; font-weight: 700; }
+.k2-draft-reward { padding: 8px 10px; border-radius: 10px; background: rgba(255, 209, 102, 0.08); border: 1px solid rgba(255, 209, 102, 0.35); }

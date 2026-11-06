@@ -20,6 +20,16 @@ export interface RewardRule {
   what: string;
   /** Grenze in Worten. */
   limit: string;
+  /** Optional: Menge hängt vom Ereignis ab (packs/staub oben = Anzeige für den Grundfall). */
+  amount?: (e: LearningEvent) => { packs: number; staub: number };
+}
+
+/** B74 Draft-Lauf: ab 3 Siegen 1 Paket, mit 7 Siegen dazu 5 Staub – höchstens ein belohnter Lauf am Tag.
+ *  Bewusst kleiner als echtes Training (1 Paket + 10 Staub): Mattenzeit zählt am meisten (B63). */
+export const DRAFT_REWARD_MIN_WINS = 3;
+export function draftAmount(wins: number): { packs: number; staub: number } {
+  if (wins < DRAFT_REWARD_MIN_WINS) return { packs: 0, staub: 0 };
+  return wins >= 7 ? { packs: 1, staub: 5 } : { packs: 1, staub: 0 };
 }
 
 export const REWARDS: Record<LearningEventType, RewardRule> = {
@@ -31,11 +41,15 @@ export const REWARDS: Record<LearningEventType, RewardRule> = {
   daily_won: { packs: 1, staub: 0, perDay: 1, onceKey: (e) => `daily:${(e as { date: string }).date}`, what: "Tages-Challenge schaffen", limit: "1 pro Tag" },
   boss_first_win: { packs: 1, staub: 0, perDay: null, onceKey: (e) => `boss:${(e as { boss: string }).boss}`, what: "Einen Boss zum ersten Mal besiegen", limit: "einmal je Boss" },
   leglock_badge: { packs: 2, staub: 0, perDay: null, onceKey: () => "leglock", what: "Abzeichen „Beinhebel sicher“ holen", limit: "einmal" },
+  draft_run: {
+    packs: 1, staub: 0, perDay: 1, onceKey: null, what: "Draft-Lauf mit 3+ Siegen (7 Siege: +5 Staub)", limit: "1 Lauf pro Tag",
+    amount: (e) => draftAmount((e as { wins: number }).wins),
+  },
 };
 
 /** Reihenfolge in der Tabelle: echtes Training zuerst – Mattenzeit zählt am meisten. */
 export const REWARD_ORDER: LearningEventType[] = [
-  "training_logged", "program_day", "exam_passed", "review_done", "error_cleared", "daily_won", "boss_first_win", "leglock_badge",
+  "training_logged", "program_day", "exam_passed", "review_done", "error_cleared", "daily_won", "draft_run", "boss_first_win", "leglock_badge",
 ];
 
 /** Grund im Hinweis („Für deine Wiederholung“). */
@@ -49,6 +63,7 @@ export function rewardReason(e: LearningEvent): string {
     case "daily_won": return "Für die Tages-Challenge";
     case "boss_first_win": return `Für deinen ersten Sieg gegen ${e.name ?? "den Boss"}`;
     case "leglock_badge": return "Für dein Abzeichen „Beinhebel sicher“";
+    case "draft_run": return `Für deinen Draft-Lauf mit ${e.wins} Siegen`;
   }
 }
 
@@ -113,7 +128,9 @@ export function applyEvent(s: RewardState, e: LearningEvent, today: string): { s
   if (rule.perDay !== null && used >= rule.perDay) return { state: s, grant: null };
   const key = rule.onceKey ? rule.onceKey(e) : null;
   if (key && s.claimed.includes(key)) return { state: s, grant: null };
-  const grant: Grant = { packs: rule.packs, staub: rule.staub, reason: rewardReason(e) };
+  const amt = rule.amount ? rule.amount(e) : { packs: rule.packs, staub: rule.staub };
+  if (amt.packs === 0 && amt.staub === 0) return { state: s, grant: null };
+  const grant: Grant = { packs: amt.packs, staub: amt.staub, reason: rewardReason(e) };
   const state: RewardState = {
     ...s,
     packs: s.packs + grant.packs,

@@ -56,6 +56,9 @@ export interface ArenaK2Props {
   /** Mechanik 6: Spielplan-Modus – dein Plan (15 Angriffe) und der des Gegners. Fehlt er, volle Hand. */
   plan?: { name: string; cards: string[] };
   foePlan?: { name: string; cards: string[] };
+  /** Mechanik 9 (Draft-Lauf): keine Revanche – jeder Kampf zählt einmal; eigener Text für „Zurück“. */
+  noRematch?: boolean;
+  exitLabel?: string;
 }
 
 type Phase = "mulligan" | "pick" | "predict" | "flip" | "impact" | "result" | "tap" | "release" | "end";
@@ -779,8 +782,8 @@ export function ArenaK2(props: ArenaK2Props) {
               </button>
             )}
             <div className="k2-end-btns">
-              <button type="button" className="btn ghost" onClick={() => onExit(won)}>Zurück</button>
-              <button type="button" className="btn primary" onClick={rematch}>Revanche</button>
+              <button type="button" className={`btn ${props.noRematch ? "primary" : "ghost"}`} onClick={() => onExit(won)}>{props.exitLabel ?? "Zurück"}</button>
+              {!props.noRematch && <button type="button" className="btn primary" onClick={rematch}>Revanche</button>}
             </div>
           </motion.div>
         </motion.div>
