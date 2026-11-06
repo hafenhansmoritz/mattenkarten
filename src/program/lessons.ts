@@ -34,15 +34,15 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
       },
       {
         round: 1, when: "pick", requireCard: "scb_frame", highlightZone: "kopf",
-        text: "Leg deinen Unterarm an seinen Hals und seine Hüfte (Frame). Du drückst nicht – du stützt nur ab.",
+        text: "Spiel „Unterarm als Stütze“ (Frame): Unterarm an seinen Hals, Ellbogen nah. Du drückst nicht – du stützt nur ab.",
       },
       {
         round: 1, when: "after",
-        text: "Der Rahmen hält ihn auf Abstand. In die Lücke kommt gleich deine Hüfte.",
+        text: "Die Stütze hält ihn auf Abstand. In die Lücke kommt gleich deine Hüfte.",
       },
       {
         round: 2, when: "pick", requireCard: "bot_elbow_knee", highlightZone: "huefte",
-        text: "Ellbogen und Knie zusammen. So kann er nicht über deine Hüfte steigen.",
+        text: "Jetzt „Ellbogen ans Knie“ (Elbow-Knee): Ellbogen und Knie zusammen. So kann er nicht über deine Hüfte steigen.",
       },
       {
         round: 2, when: "after", highlightZone: "kopf",
@@ -50,11 +50,11 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
       },
       {
         round: 3, when: "pick", requireCard: "scb_head_arm_def", highlightZone: "kopf",
-        text: "Er will Kopf und Arm einschließen (Arm Triangle). Rahmen am Nacken: Arm nicht rüberlassen. Ein Rahmen stoppt den Angriff dort.",
+        text: "Er will Kopf und Arm einschließen (Arm Triangle). Spiel „Arm nicht rüberlassen“ – ein Rahmen am Nacken stoppt den Angriff dort.",
       },
       {
         round: 3, when: "after",
-        text: "Gestoppt! Sein Würger ist weg. Jetzt ist Platz zum Wegrutschen (Shrimp).",
+        text: "Gestoppt! Sein Würger ist weg. Jetzt ist Platz für „Wegrutschen, Beine davor“ (Shrimp).",
       },
       {
         round: 4, when: "start",
@@ -88,7 +88,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
       },
       {
         round: 1, when: "pick", requireCard: "gt_posture", highlightZone: "kopf",
-        text: "Setz dich aufrecht hin, Rücken gerade, Hände auf seinen Bauch (Posture). Dann kommt er schwer an dich ran.",
+        text: "Spiel „Aufrecht sitzen“ (Posture): Rücken gerade, Hände auf seinen Bauch. Dann kommt er schwer an dich ran.",
       },
       {
         round: 1, when: "after",
@@ -134,7 +134,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
       },
       {
         round: 1, when: "pick", requireCard: "nd_level_change", highlightZone: "beine",
-        text: "Geh erst in die Knie (Level Change). Aus der Tiefe kommst du an seine Beine.",
+        text: "Erst „Tief gehen, Schritt rein“ (Level Change). Aus der Tiefe kommst du an seine Beine.",
       },
       {
         round: 1, when: "after",
@@ -178,7 +178,7 @@ export const LESSONS_PROGRAM: TutorialK2Def[] = [
       },
       {
         round: 1, when: "pick", requireCard: "bb_hand_fight", highlightZone: "arme",
-        text: "Beide Hände an seine Würgehand (Hand Fighting). Zwei gegen eine: So verbindet er die Hände nicht.",
+        text: "Spiel „Hände gegen Hände“ (Hand Fighting): beide Hände an seine Würgehand. So verbindet er die Hände nicht.",
       },
       {
         round: 1, when: "after",

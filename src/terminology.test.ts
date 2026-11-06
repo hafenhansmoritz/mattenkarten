@@ -6,6 +6,9 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { splitTerms } from "./program/glossary";
+import { TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD } from "./core2/data/tutorials";
+import { LESSONS_PROGRAM } from "./program/lessons";
+import { CARDS2 } from "./core2/data/cards";
 
 const ROOT = path.resolve(__dirname, "..");
 
@@ -16,7 +19,8 @@ const SCAN_DIRS = [
 ];
 const SCAN_FILES = [
   "src/coach/catalog.ts", "src/components/cardText.ts", "src/core2/engine/board.ts", "src/core2/engine/planBuilder.ts",
-  "src/core2/engine/stil.ts", "src/engine/text.ts", "src/engine/match.ts", "src/screens/Puzzles.tsx", "public/landing/index.html",
+  "src/core2/engine/stil.ts", "src/core2/engine/resolve.ts", "src/core2/ui/disclosure.ts", "src/core2/ui/ArenaK2.tsx",
+  "src/engine/text.ts", "src/engine/match.ts", "src/screens/Puzzles.tsx", "public/landing/index.html",
 ];
 
 function files(): string[] {
@@ -74,6 +78,12 @@ const RULES: Rule[] = [
   { id: "seitkontrolle", re: /Seitkontrolle|Halbguard/, why: "Schreibweise: „Seitenkontrolle“, „halbe Guard“" },
   { id: "elbow-escape", re: /Elbow Escape/, outside: true, why: "„Wegrutschen, Knie dazwischen (Elbow Escape)“" },
   { id: "ellbogen-knie", re: /Ellbogen-Knie(?!-Verbindung)(?![a-zäöü])/, why: "Grundbegriff heißt „Ellbogen-Knie-Verbindung“" },
+  { id: "elbow-knee", re: /Elbow-Knee/, outside: true, why: "Englisch nur in Klammern: „Knie nach innen (Elbow-Knee)“" },
+  // KB 8.14: „Halbe Guard“ als Name, gebeugt klein („in der halben Guard“, „in seine halbe Guard“).
+  { id: "halbe-guard-gross", re: /Halbe[nr] Guard|\b(der|die|den|seine|deine|eine|ihre|zur|seiner|deiner) Halbe Guard/, why: "gebeugt klein: „in der halben Guard“",
+    only: /^src\/(core2|program\/lessons)/ },
+  { id: "halbe-guard-klein", re: /(^|[„"]|[:.!?–,]\s|\b(erst|oder|und|Knie rein,)\s)halbe Guard/, why: "als Name groß: „Halbe Guard“",
+    only: /^src\/(core2|program\/lessons)/ },
   { id: "trainer-fragen", re: /\(Trainer fragen\)/, why: "Neulinge haben noch keinen Trainer: „(noch unsicher – frag später deinen Trainer)“" },
   { id: "marketing-label", re: /"\s?\[Marketing\]"/, why: "Quellen zeigen nur den Namen; [Marketing] bleibt in den Daten" },
   { id: "gi-griffe", re: /Kragen|Ärmel|Revers/, why: "No-Gi: keine Kragen-/Ärmelgriffe",
@@ -121,5 +131,49 @@ describe("Begriffs-Standard", () => {
     // keine Treffer mitten im Wort
     expect(splitTerms("Unterhaken").filter((p) => typeof p !== "string").map((p) => (p as { id: string }).id)).toEqual(["underhook"]);
     expect(splitTerms("Mountain").every((p) => typeof p === "string")).toBe(true);
+  });
+});
+
+// UX-Review 2, Punkt 7: ein Name je Technik pro Bildschirm (Coach-Texte der Lektionen).
+describe("Coach-Texte der Lektionen", () => {
+  const LESSONS = [...TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD, ...LESSONS_PROGRAM];
+  const card = (id: string) => CARDS2.find((c) => c.id === id)!;
+
+  it("geforderte Karte heißt im Coach-Text wie auf der Karte („plain“)", () => {
+    const bad: string[] = [];
+    for (const l of LESSONS) for (const st of l.steps) {
+      if (st.requireCard && !st.text.includes(card(st.requireCard).plain)) bad.push(`${l.id}: „${card(st.requireCard).plain}“ fehlt in „${st.text}“`);
+    }
+    expect(bad, bad.join("\n")).toEqual([]);
+  });
+
+  it("Fachbegriff in Klammern höchstens einmal je Lektion", () => {
+    const bad: string[] = [];
+    for (const l of LESSONS) {
+      const seen = new Map<string, number>();
+      for (const t of [l.idea, ...l.steps.map((x) => x.text)]) for (const m of t.matchAll(/\(([^()]+)\)/g)) seen.set(m[1], (seen.get(m[1]) ?? 0) + 1);
+      for (const [k, n] of seen) if (n > 1) bad.push(`${l.id}: „(${k})“ ${n}×`);
+    }
+    expect(bad, bad.join("\n")).toEqual([]);
+  });
+
+  it("Tag 2 (Stufe 2): kein „Rahmen“ (Kartenart noch versteckt), Ellbogen-Knie heißt Schutzhaltung / Knie nach innen", () => {
+    const bad: string[] = [];
+    for (const l of LESSONS.filter((x) => x.ui === 2)) for (const t of [l.idea, ...l.steps.map((x) => x.text)]) {
+      if (/Rahmen|Ellbogen-Knie-Verbindung/.test(t)) bad.push(`${l.id}: ${t}`);
+    }
+    expect(bad, bad.join("\n")).toEqual([]);
+  });
+
+  it("„Rahmen“ in Coach-Texten nur für die Kartenart oder den Unterarm-Rahmen", () => {
+    const bad: string[] = [];
+    for (const l of LESSONS) for (const st of l.steps) {
+      if (!/Rahmen/.test(st.text)) continue;
+      const rc = st.requireCard ? card(st.requireCard) : null;
+      // erlaubt: geforderte Karte ist ein Rahmen, oder der Satz spricht von der Kartenart („Sein Rahmen blockt …“, „Rahmt er …“).
+      if (rc && rc.kind !== "rahmen" && rc.term !== "Frame") bad.push(`${l.id}: ${st.text}`);
+      if (/Ellbogen|Knie/.test(st.text) && /\(Rahmen\)|Knie-Rahmen/.test(st.text)) bad.push(`${l.id}: ${st.text}`);
+    }
+    expect(bad, bad.join("\n")).toEqual([]);
   });
 });

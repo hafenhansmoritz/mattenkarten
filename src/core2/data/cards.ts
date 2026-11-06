@@ -690,7 +690,7 @@ const sideTop: Card2[] = [
 
 // ---------------- Side Control unten (+ geteilte Karte) ----------------
 const elbowKnee: Card2 = {
-  id: "bot_elbow_knee", plain: "Ellbogen-Knie verbinden", term: "Elbow-Knee Connection",
+  id: "bot_elbow_knee", plain: "Ellbogen ans Knie", term: "Elbow-Knee Connection",
   plainDo: "Ellbogen und Knie bilden eine Wand an seiner Hüfte.",
   kind: "aufbauen", zone: "huefte", slots: [SIDE_B, HALF_B],
   // B11: „Ellbogen nach innen“ (Inside Position) steckt jetzt in dieser Karte (Slot-Platz für die Kopf-Arm-Abwehr).
@@ -735,7 +735,7 @@ const sideBottom: Card2[] = [
     source: SRC.sideEsc,
   },
   {
-    id: "scb_knee_in", plain: "Knie rein, halbe Guard", term: "Recover Half Guard",
+    id: "scb_knee_in", plain: "Knie rein, Halbe Guard", term: "Recover Half Guard",
     plainDo: "Ellbogen und Knie schieben, ein Bein klemmt seins ein.",
     kind: "angriff", zone: "beine", slots: [SIDE_B], requires: { huefte: 0, arme: 0 },
     to: { pos: "half", role: "bottom", escape: "guard" },
@@ -894,7 +894,7 @@ const mountBottom: Card2[] = [
     plainDo: "Seitlich rutschen, Knie rein – du hast die Guard zurück.",
     kind: "angriff", zone: "beine", slots: [MOUNT_B], requires: { beine: 0, huefte: -1 },
     to: { pos: "half", role: "bottom", escape: "guard" },
-    why: "Ellbogen und Knie zusammen (Elbow Escape), dann Knie dazwischen – erst halbe Guard, dann volle Guard.",
+    why: "Ellbogen und Knie zusammen (Elbow Escape), dann Knie dazwischen – erst Halbe Guard, dann volle Guard.",
     keys: ["Mehrere kleine Shrimps", "Ellbogen zum Knie", "Knie als Schild"],
     mistakes: ["Gestreckte Arme (Armbar)", "Abdrehen (Rücken)"],
     source: SRC.mountEsc,
@@ -1385,7 +1385,7 @@ const MMA: Record<string, [MmaFlag, string]> = {
   mt_to_back: ["ok", "Dreht er weg, nimm den Rücken."],
   mt_knee_pinch: ["ok", "Enge Knie halten den Mount."],
   mt_post: ["ok", "Breit posten: seine Brücke kippt dich nicht."],
-  mb_knee_inside: ["ok", "Die Ellbogen-Knie-Verbindung schützt auch gegen Schläge."],
+  mb_knee_inside: ["ok", "Ellbogen an den Knien schützt auch gegen Schläge."],
   mb_bridge: ["ok", "Brücke stört seine Basis für Schläge."],
   mb_trap: ["ok", "Fängst du seinen Arm, schlägt er damit nicht."],
   mb_upa: ["ok", "Im MMA eine der sichersten Mount-Befreiungen."],

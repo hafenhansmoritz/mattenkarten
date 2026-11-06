@@ -15,7 +15,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     konter: false,
     stil: false,
     title: "Raus von unten",
-    idea: "Unten im Mount: erst Knie und Ellbogen zusammen, dann raus.",
+    idea: "Unten im Mount: erst Knie nach innen, Ellbogen dazu – dann raus.",
     // Leicht gegen dich: Kopf und Beine im Minus. Hüfte 0, damit die Befreiung nach Runde 1 sicher spielbar ist.
     start: { pos: "mount", top: "o", board: { kopf: -1, beine: -1 } },
     // Jede Befreiung zählt: Elbow Escape → Half Guard unten, Upa → oben in der Guard, volle Guard unten.
@@ -41,7 +41,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
       },
       {
         round: 1, when: "pick", requireCard: "mb_knee_inside", highlightZone: "beine",
-        text: "Bring dein Knie innen an seinen Knöchel, Ellbogen dazu (Ellbogen-Knie-Verbindung). Das ist deine Schutzhaltung.",
+        text: "Spiel „Knie nach innen“ (Elbow-Knee): dein Knie innen an seinen Knöchel, Ellbogen dazu. Das ist deine Schutzhaltung – Ellbogen an die Knie.",
       },
       {
         round: 1, when: "after", highlightZone: "beine",
@@ -49,11 +49,11 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
       },
       {
         round: 2, when: "pick", requireCard: "mb_elbow_escape", highlightZone: "beine",
-        text: "Jetzt raus: seitlich wegrutschen, Knie zwischen euch (Elbow Escape). Klappt es, bist du in der Halben Guard.",
+        text: "Jetzt raus: „Wegrutschen, Knie dazwischen“ (Elbow Escape). Klappt es, bist du in der halben Guard.",
       },
       {
         round: 2, when: "after",
-        text: "Geblockt? Dann wechsle die Richtung: Brücke und rollen (Upa). Oder schütz dich erst wieder (Knie nach innen).",
+        text: "Geblockt? Dann wechsle die Richtung: „Brücke und rollen“ (Upa). Oder schütz dich erst wieder mit „Knie nach innen“.",
       },
       {
         round: 3, when: "start",
@@ -86,7 +86,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
       },
       {
         round: 1, when: "pick", requireCard: "gt_open_guard", highlightZone: "beine",
-        text: "Zweiter Keil: Mach seine Beine auf (Guard öffnen). Danach liegst du an den Beinen vorne.",
+        text: "Zweiter Keil: „Guard öffnen“ – mach seine Beine auf. Danach liegst du an den Beinen vorne.",
       },
       {
         round: 1, when: "after", highlightZone: "beine",
@@ -129,7 +129,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
       },
       {
         round: 1, when: "pick", requireCard: "mt_americana", highlightZone: "arme",
-        text: "Schritt 1: Dreh seinen gebeugten Arm langsam Richtung Matte (Americana). Das kostet 1 Atem.",
+        text: "Schritt 1: „Arm nach unten drehen“ (Americana) – seinen gebeugten Arm langsam Richtung Matte. Das kostet 1 Atem.",
       },
       {
         round: 1, when: "after", highlightZone: "arme",
@@ -137,7 +137,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
       },
       {
         round: 2, when: "pick", highlightZone: "arme",
-        text: "Dilemma: Beugt er den Arm, drehst du (Americana). Streckt er ihn, streckst du weiter (Armbar). Bleib an den Armen.",
+        text: "Dilemma: Beugt er den Arm, drehst du ihn nach unten. Streckt er ihn, streckst du weiter (Armbar). Bleib an den Armen.",
       },
       {
         round: 3, when: "start", highlightZone: "arme",
@@ -187,7 +187,7 @@ export const TUTORIAL_GUARD_ODER_TD: TutorialK2Def = {
     },
     {
       round: 1, when: "pick", requireCard: "cl_body_lock", highlightZone: "huefte",
-      text: "Dein Arm ist schon unter seiner Achsel (Underhook). Umklammere ihn (Body Lock) und kipp ihn um – du landest oben.",
+      text: "Dein Arm ist schon unter seiner Achsel (Underhook). Spiel „Umklammern und umkippen“ (Body Lock) – du landest oben.",
     },
     {
       round: 1, when: "after",
