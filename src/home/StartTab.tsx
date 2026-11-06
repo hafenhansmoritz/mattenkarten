@@ -39,7 +39,7 @@ export function StartTab({ go }: { go: (t: Target) => void }) {
   let hero: { kicker: string; title: string; text: string; target: Target };
   if (cur <= 7) {
     const d = DAYS[cur - 1];
-    hero = { kicker: p.done.length ? "7-Tage-Start" : "Neu hier? 15 Minuten am Tag", title: `Heute: Tag ${cur}`, text: d.title, target: "program" };
+    hero = { kicker: p.done.length ? "7-Tage-Start" : "15 Minuten am Tag", title: `Heute: Tag ${cur}`, text: d.title, target: "program" };
   } else if (!loadLeglock().check?.passed) {
     hero = { kicker: "7-Tage-Start geschafft", title: "Weiter: Beinhebel-Woche", text: "4 kurze Lektionen: Regeln, Verteidigung, früh abklopfen.", target: "leglock" };
   } else if (due > 0) {

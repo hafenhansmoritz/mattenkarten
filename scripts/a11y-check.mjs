@@ -14,7 +14,7 @@
  *   # einmalig Werkzeuge holen (nicht im Lockfile, damit die App-Abhängigkeiten schlank bleiben):
  *   npm i --no-save playwright-core axe-core        # oder A11Y_TOOLS=/pfad/mit/node_modules setzen
  *   node scripts/a11y-check.mjs                     # alle Bildschirme, dark + light
- *   node scripts/a11y-check.mjs --scheme dark --only home,mehr --verbose
+ *   node scripts/a11y-check.mjs --scheme dark --only home,spielen --verbose
  *   node scripts/a11y-check.mjs --shots ./shots     # Screenshots je Bildschirm und Schema
  *
  * Optionen: --url (Standard http://localhost:4197/), --chrome /pfad/zu/chrome (sonst
@@ -55,26 +55,25 @@ const chromePath = opt("chrome", process.env.CHROME_PATH || (existsSync("/usr/bi
 
 // ---------- Bildschirme: Rezept, wie man von der Startseite hinkommt ----------
 const clickText = (t) => async (p) => { await p.getByRole("button", { name: t }).first().click(); await p.waitForTimeout(450); };
-const tab = (t) => clickText(new RegExp(`^${t}$`, "i"));
-const more = (title) => async (p) => { await tab("Mehr")(p); await p.locator(".more-item", { hasText: title }).first().click(); await p.waitForTimeout(500); };
+const tabNav = (t) => async (p) => { await p.locator("nav.tabs button", { hasText: new RegExp(`^${t}`) }).first().click(); await p.waitForTimeout(500); };
+const item = (t, title) => async (p) => { await tabNav(t)(p); await p.locator(".more-item, .hm-tile, .hm-row", { hasText: title }).first().click(); await p.waitForTimeout(500); };
+const gear = async (p) => { await p.getByRole("button", { name: "Einstellungen" }).click(); await p.waitForTimeout(500); };
 const seq = (...fns) => async (p) => { for (const f of fns) await f(p); };
+const playFree = async (p) => { await tabNav("Spielen")(p); await p.getByRole("button", { name: /^Locker spielen$/ }).first().click(); await p.waitForTimeout(1500); };
 
+// Navigation seit UX-Review 06.11.2026: Start · Spielen · Üben · Gym + Zahnrad (Einstellungen, Rechtliches, Klassik).
+// Gesperrte Einträge (Beinhebel-Woche, Rangliste/Tages-Challenge auf Start, Spielplan/Draft) fehlen für frische Nutzer.
 export const SCREENS = [
   { id: "home", go: async () => {} },
-  { id: "raetsel", go: tab("Rätsel") },
-  { id: "deck", go: tab("Deck") },
-  { id: "mehr", go: tab("Mehr") },
-  { id: "arena", go: async (p) => { await p.locator("button", { hasText: /Nächster Kampf/i }).first().click(); await p.waitForTimeout(900); } },
-  { id: "start7", go: more("7-Tage-Start") },
-  { id: "leglock", go: more("Beinhebel") },
-  { id: "training", go: more("Nach dem Training") },
-  { id: "k2hub", go: more("Körperkarte") },
-  { id: "k2arena", go: seq(more("Körperkarte"), async (p) => {
-      await p.getByRole("button", { name: /^Normal$/ }).first().click(); await p.waitForTimeout(1500);
-    }) },
+  { id: "spielen", go: tabNav("Spielen") },
+  { id: "ueben", go: tabNav("Üben") },
+  { id: "gym", go: tabNav("Gym") },
+  { id: "einstellungen", go: gear },
+  { id: "start7", go: async (p) => { await p.locator(".hm-hero").click(); await p.waitForTimeout(600); } },
+  { id: "training", go: item("Gym", "Nach dem Training") },
+  { id: "k2arena", go: playFree },
   // Mechanik 2: freies Match spielen (Griff-Karten bevorzugt), bis Griffe auf dem Brett liegen – Wahl-Phase prüfen.
-  { id: "k2griffe", go: seq(more("Körperkarte"), async (p) => {
-      await p.getByRole("button", { name: /^Normal$/ }).first().click(); await p.waitForTimeout(1200);
+  { id: "k2griffe", go: seq(playFree, async (p) => {
       const PREF = ["nd_clinch_entry", "cl_collar_tie", "cl_underhook", "hb_underhook", "ht_crossface", "sct_crossface", "bt_seatbelt", "tt_seatbelt", "gb_wrist_control", "tt_front_headlock"];
       for (let r = 0; r < 9; r++) {
         if (await p.locator(".k2-grip-chip").count() && await p.locator(".k2-hcard").count()) break;
@@ -88,19 +87,19 @@ export const SCREENS = [
         if (await p.locator(".k2-tapnext").count()) { await p.locator(".k2-tapnext").click(); await p.waitForTimeout(500); }
       }
     }) },
-  { id: "k2tut", go: seq(more("Körperkarte"), async (p) => { await p.locator("button", { hasText: /Raus von unten/i }).first().click(); await p.waitForTimeout(1500); }) },
-  { id: "bibliothek", go: more("Bibliothek") },
-  { id: "warmup", go: more("Aufwärmen") },
-  { id: "hotseat", go: more("Duell zu zweit") },
-  { id: "coach", go: more("KI-Coach") },
-  { id: "share", go: more("Deck teilen") },
-  { id: "trainer", go: more("Für Trainer") },
-  { id: "daily", go: more("Tages-Challenge") },
-  { id: "rangliste", go: more("Spielränge Weiß bis Schwarz") },
-  { id: "sammlung", go: more("Sammlung") },
-  { id: "glossar", go: more("Schlüsselwörter wie") },
-  { id: "gym", go: more("Fürs Gym") },
-  { id: "impressum", go: seq(tab("Mehr"), clickText(/^Impressum$/)) },
+  { id: "k2tut", go: item("Spielen", /Raus von unten/i) },
+  { id: "warmup", go: item("Üben", "Aufwärmen") },
+  { id: "glossar", go: item("Üben", "Glossar") },
+  { id: "hotseat", go: item("Gym", "Duell zu zweit") },
+  { id: "trainer", go: item("Gym", "Für Trainer") },
+  { id: "rangliste", go: item("Spielen", "Rangliste") },
+  { id: "sammlung", go: item("Spielen", "Sammlung") },
+  { id: "pakete", go: item("Spielen", "Pakete") },
+  { id: "gymscreen", go: item("Gym", "Fürs Gym") },
+  { id: "klassik", go: seq(gear, clickText(/^Klassik/)) },
+  { id: "klassik-deck", go: seq(gear, clickText(/^Klassik/), async (p) => { await p.getByRole("tab", { name: "Deck" }).click(); await p.waitForTimeout(500); }) },
+  { id: "arena", go: seq(gear, clickText(/^Klassik/), async (p) => { await p.locator("button", { hasText: /Nächster Kampf/i }).first().click(); await p.waitForTimeout(900); }) },
+  { id: "impressum", go: seq(gear, clickText(/^Impressum$/)) },
 ];
 
 // Eigene Prüfungen (One-Hand-Nutzung): kleine Tap-Ziele

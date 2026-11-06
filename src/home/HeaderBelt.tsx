@@ -4,7 +4,7 @@ import { DAYS } from "../program/days";
 import { currentDay, loadProgress } from "../program/store";
 import { readLadder } from "../core2/ladder/store";
 import { LadderBelt } from "../core2/ladder/LadderBelt";
-import { inGate, rankText } from "../core2/ladder/ladder";
+import { beltName, inGate, rankText } from "../core2/ladder/ladder";
 
 export function HeaderBelt({ onOpen }: { onOpen: (to: "program" | "rangliste") => void }) {
   const p = loadProgress();
@@ -23,7 +23,7 @@ export function HeaderBelt({ onOpen }: { onOpen: (to: "program" | "rangliste") =
   return (
     <button type="button" className="hm-belt" onClick={() => onOpen("rangliste")} aria-label={`Rangliste: ${s ? rankText(s) : "Weißgurt, 0 Streifen"} (Spielrang)`}>
       <LadderBelt belt={s?.belt ?? 0} stripes={s?.stripes ?? 0} gate={s ? inGate(s) : false} size="small" />
-      <span className="label">{s ? rankText(s) : "Rangliste"}</span>
+      <span className="label">{s ? rankText(s) : `${beltName(0)} · 0 Streifen`}</span>
     </button>
   );
 }
