@@ -1,132 +1,159 @@
+// Tab „Spielen“ (UX-Review 06.11.2026): die Körperkarte – Lektionen, freies Spiel, Bosse, Rangliste, Karten.
+// Die Liste lebt im Tab (mit Kopfzeile und Seitenrand); ein gestarteter Lauf (Arena, Bosse, Spielplan, Draft)
+// übernimmt den ganzen Bildschirm (K2RunView) und kehrt danach in den Tab zurück.
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArenaK2 } from "../core2/ui/ArenaK2";
 import { TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD } from "../core2/data/tutorials";
+import { LESSONS_PROGRAM } from "../program/lessons";
 import { Bosse, readBeaten } from "../core2/ui/Bosse";
 import { BOSSES } from "../core2/data/bosses";
-import { Glossar } from "../core2/ui/Glossar";
 import { StilWahl } from "../core2/ui/StilWahl";
 import { randomStil } from "../core2/data/stile";
 import type { StilId } from "../core2/types";
 import { SpielplanModus } from "../core2/ui/SpielplanModus";
 import { PLAN_RULE } from "../core2/data/plans";
 import { DraftModus, DRAFT_RULE } from "../core2/ui/DraftModus";
-import { Rangliste, LADDER_RULE } from "../core2/ui/Rangliste";
+import { LADDER_RULE } from "../core2/ui/Rangliste";
+import { useShared } from "../progress/store";
+import { planDraftHint, unlockInput, unlocks } from "../progress/unlock";
+import { loadProgress } from "../program/store";
+import { useRewards } from "../core2/rewards/store";
+import { useCollection } from "../core2/collection/store";
 
-const KEY = "mk.k2.done";
-function readDone(): string[] {
-  try { return JSON.parse(localStorage.getItem(KEY) ?? "[]"); } catch { return []; }
-}
-function writeDone(ids: string[]) {
-  try { localStorage.setItem(KEY, JSON.stringify(ids)); } catch { /* egal */ }
-}
-
-type Run = { kind: "tut"; id: string } | { kind: "stilwahl"; level: 1 | 2 | 3 } | { kind: "free"; level: 1 | 2 | 3; stil: StilId; foe: StilId }
-  | { kind: "bosses" } | { kind: "glossar" } | { kind: "plan" } | { kind: "draft" } | { kind: "rangliste" } | null;
+export type K2Run = { kind: "tut"; id: string } | { kind: "stilwahl"; level: 1 | 2 | 3 } | { kind: "free"; level: 1 | 2 | 3; stil?: StilId; foe?: StilId }
+  | { kind: "bosses" } | { kind: "plan" } | { kind: "draft" };
 const LEVEL_NAME: Record<1 | 2 | 3, string> = { 1: "Locker", 2: "Normal", 3: "Hart" };
-const ALL_TUTS = [...TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD];
+const ALL_TUTS = [...TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD, ...LESSONS_PROGRAM];
 
-/** Prototyp „Körperkarte“: drei Lektionen nach Danaher-Reihenfolge, dann freies Spiel. */
-export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
-  const [done, setDone] = useState<string[]>(readDone);
-  const [run, setRun] = useState<Run>(() => (typeof location !== "undefined" && /(?:^#|&)plan=/.test(location.hash) ? { kind: "plan" } : null));
+/** Ein gestarteter Lauf als Vollbild. onDone kehrt in den Tab „Spielen“ zurück. */
+export function K2RunView({ run: start, onDone }: { run: K2Run; onDone: () => void }) {
+  const [run, setRun] = useState<K2Run>(start);
   const [seed, setSeed] = useState(() => Date.now() % 100000);
 
-  if (run?.kind === "tut") {
-    const t = ALL_TUTS.find((x) => x.id === run.id)!;
-    return (
-      <ArenaK2 key={t.id + seed} mode="tutorial" tutorial={t} aiLevel={t.aiLevel}
-        onExit={(won) => {
-          if (won && !done.includes(t.id)) { const n = [...done, t.id]; setDone(n); writeDone(n); }
-          setRun(null);
-        }} />
-    );
+  if (run.kind === "tut") {
+    const t = ALL_TUTS.find((x) => x.id === run.id);
+    if (!t) return <div className="screen"><p>Lektion fehlt.</p><button className="btn" onClick={onDone}>Zurück</button></div>;
+    // Geschafft-Marke setzt ArenaK2 selbst (gemeinsamer Fortschritt mit dem 7-Tage-Start).
+    return <ArenaK2 key={t.id + seed} mode="tutorial" tutorial={t} aiLevel={t.aiLevel} onExit={onDone} />;
   }
-  if (run?.kind === "bosses") return <Bosse onBack={() => setRun(null)} />;
-  if (run?.kind === "glossar") return <Glossar onBack={() => setRun(null)} />;
-  if (run?.kind === "plan") return <SpielplanModus onBack={() => setRun(null)} />;
-  if (run?.kind === "draft") return <DraftModus onBack={() => setRun(null)} />;
-  if (run?.kind === "rangliste") return <Rangliste onBack={() => setRun(null)} />;
-  if (run?.kind === "stilwahl") {
+  if (run.kind === "bosses") return <Bosse onBack={onDone} />;
+  if (run.kind === "plan") return <SpielplanModus onBack={onDone} />;
+  if (run.kind === "draft") return <DraftModus onBack={onDone} />;
+  if (run.kind === "stilwahl") {
     // Mechanik 5: vor dem freien Spiel das A-Game wählen; der Gegner bekommt einen zufälligen Stil.
     const lv = run.level;
-    return <StilWahl context={`Freies Spiel · ${LEVEL_NAME[lv]}`} onBack={() => setRun(null)}
+    return <StilWahl context={`Freies Spiel · ${LEVEL_NAME[lv]}`} onBack={onDone}
       onPick={(id) => setRun({ kind: "free", level: lv, stil: id, foe: randomStil(Math.random) })} />;
   }
-  if (run?.kind === "free") {
-    return <ArenaK2 key={"free" + seed} mode="free" aiLevel={run.level} seed={seed} stil={run.stil} foeStil={run.foe}
-      onExit={() => { setSeed(seed + 1); setRun(null); }} />;
-  }
+  return <ArenaK2 key={"free" + seed} mode="free" aiLevel={run.level} seed={seed} stil={run.stil} foeStil={run.foe}
+    onExit={() => { setSeed(seed + 1); onDone(); }} />;
+}
 
+/** Inhalt des Tabs „Spielen“. */
+export function SpielenHome({ onRun, onRangliste, onSammlung, onPakete }: {
+  onRun: (r: K2Run) => void; onRangliste: () => void; onSammlung: () => void; onPakete: () => void;
+}) {
+  const shared = useShared();
+  const rw = useRewards();
+  const col = useCollection();
+  const ui = unlockInput(loadProgress(), shared);
+  const un = unlocks(ui);
+  const done = shared.lessons;
+  const progDone = LESSONS_PROGRAM.filter((t) => done.includes(t.id));
   const allDone = TUTORIALS_K2.every((t) => done.includes(t.id));
+  // Freies Spiel: vor dem Freischalten direkt los (ohne Spielstil), danach mit Stil-Wahl.
+  const free = (level: 1 | 2 | 3) => onRun(un.levels ? { kind: "stilwahl", level } : { kind: "free", level });
   return (
     <div className="screen more">
-      <button className="btn small ghost" onClick={onBack}>← Zurück</button>
-      <h2 className="display" style={{ fontSize: 30 }}>Körperkarte <span className="muted small">Prototyp</span></h2>
+      <h2 className="display" style={{ fontSize: 30 }}>Spielen</h2>
       <p className="muted small">
-        Neuer Spielkern: Vier Körperzonen – Kopf, Arme, Hüfte, Beine. Wer Zonen gewinnt, kommt in bessere Positionen.
-        Aufgaben brauchen drei Schritte. Erst lernst du dich zu befreien, dann zu passieren, dann zu beenden.
+        Die Körperkarte: vier Zonen – Kopf, Arme, Hüfte, Beine. Wer Zonen gewinnt, kommt in bessere Positionen.
+        Aufgaben brauchen drei Schritte. Erst befreien, dann passieren, dann beenden.
       </p>
+
+      <h3 className="display">Lektionen</h3>
       <div className="more-list">
         {TUTORIALS_K2.map((t, i) => {
           const locked = i > 0 && !done.includes(TUTORIALS_K2[i - 1].id);
           return (
             <motion.button key={t.id} className="more-item" disabled={locked} style={locked ? { opacity: .45 } : undefined}
-              onClick={() => setRun({ kind: "tut", id: t.id })}
+              onClick={() => onRun({ kind: "tut", id: t.id })}
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
               <strong className="display">{done.includes(t.id) ? "✓ " : `${i + 1}. `}{t.title}</strong>
               <span className="muted small">{locked ? "Erst die Lektion davor schaffen." : t.idea}</span>
             </motion.button>
           );
         })}
-      </div>
-      <h3 className="display" style={{ marginTop: 18 }}>Extra-Lektion</h3>
-      <div className="more-list">
-        <button className="more-item" onClick={() => setRun({ kind: "tut", id: TUTORIAL_GUARD_ODER_TD.id })}>
-          <strong className="display">{done.includes(TUTORIAL_GUARD_ODER_TD.id) ? "✓ " : ""}{TUTORIAL_GUARD_ODER_TD.title}</strong>
+        <button className="more-item" onClick={() => onRun({ kind: "tut", id: TUTORIAL_GUARD_ODER_TD.id })}>
+          <strong className="display">{done.includes(TUTORIAL_GUARD_ODER_TD.id) ? "✓ " : "Extra: "}{TUTORIAL_GUARD_ODER_TD.title}</strong>
           <span className="muted small">{TUTORIAL_GUARD_ODER_TD.idea}</span>
         </button>
       </div>
-      <h3 className="display" style={{ marginTop: 18 }}>Freies Spiel</h3>
+      {progDone.length > 0 && (
+        <>
+          <h3 className="display">Aus dem 7-Tage-Start</h3>
+          <div className="more-list">
+            {progDone.map((t) => (
+              <button key={t.id} className="more-item" onClick={() => onRun({ kind: "tut", id: t.id })}>
+                <strong className="display">✓ {t.title}</strong>
+                <span className="muted small">{t.idea}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      <h3 className="display">Freies Spiel</h3>
       {!allDone && <p className="muted small">Tipp: Erst die drei Lektionen – dann verstehst du das Brett sofort.</p>}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button className="btn" onClick={() => setRun({ kind: "stilwahl", level: 1 })}>Locker</button>
-        <button className="btn" onClick={() => setRun({ kind: "stilwahl", level: 2 })}>Normal</button>
-        <button className="btn primary" onClick={() => setRun({ kind: "stilwahl", level: 3 })}>Hart</button>
-      </div>
-      <h3 className="display" style={{ marginTop: 18 }}>Spielplan-Modus</h3>
+      <button className="btn primary big" onClick={() => free(1)}>Locker spielen</button>
+      {un.levels ? (
+        <div className="hm-row2">
+          <button className="btn" onClick={() => free(2)}>Normal</button>
+          <button className="btn" onClick={() => free(3)}>Hart</button>
+        </div>
+      ) : (
+        <p className="muted small">„Normal“, „Hart“ und Spielstile schalten sich frei nach Lektion 3 oder Tag 7 im 7-Tage-Start.</p>
+      )}
+
+      <h3 className="display">Gegner</h3>
       <div className="more-list">
-        <button className="more-item" onClick={() => setRun({ kind: "plan" })}>
-          <strong className="display">Spielplan-Modus (neu)</strong>
-          <span className="muted small">{PLAN_RULE[0]} {PLAN_RULE[1]} Neu: eigene Pläne bauen und vor dem Boss anpassen.</span>
-        </button>
-      </div>
-      <h3 className="display" style={{ marginTop: 18 }}>Draft</h3>
-      <div className="more-list">
-        <button className="more-item" onClick={() => setRun({ kind: "draft" })}>
-          <strong className="display">Draft (neu)</strong>
-          <span className="muted small">{DRAFT_RULE[0]} {DRAFT_RULE[1]}</span>
-        </button>
-      </div>
-      <h3 className="display" style={{ marginTop: 18 }}>Rangliste</h3>
-      <div className="more-list">
-        <button className="more-item" onClick={() => setRun({ kind: "rangliste" })}>
-          <strong className="display">Rangliste (neu)</strong>
-          <span className="muted small">Spielränge Weiß bis Schwarz gegen die KI. {LADDER_RULE[0]} Spielrang, kein echter Gürtel.</span>
-        </button>
-      </div>
-      <h3 className="display" style={{ marginTop: 18 }}>Bosse</h3>
-      <div className="more-list">
-        <button className="more-item" onClick={() => setRun({ kind: "bosses" })}>
+        <button className="more-item" onClick={() => onRun({ kind: "bosses" })}>
           <strong className="display">Bosse · {readBeaten().filter((id) => BOSSES.some((b) => b.id === id)).length}/{BOSSES.length} besiegt</strong>
           <span className="muted small">Vier Gegner mit eigenem Stil: Ringer, Guard, Druck, Rücken. Lern, wie du dagegen spielst.</span>
         </button>
+        <button className="more-item" onClick={onRangliste}>
+          <strong className="display">Rangliste</strong>
+          <span className="muted small">Spielränge Weiß bis Schwarz gegen die KI. {LADDER_RULE[0]} Spielrang, kein echter Gürtel.</span>
+        </button>
+        {un.planDraft ? (
+          <>
+            <button className="more-item" onClick={() => onRun({ kind: "plan" })}>
+              <strong className="display">Spielplan-Modus</strong>
+              <span className="muted small">{PLAN_RULE[0]} {PLAN_RULE[1]} Eigene Pläne bauen und vor dem Boss anpassen.</span>
+            </button>
+            <button className="more-item" onClick={() => onRun({ kind: "draft" })}>
+              <strong className="display">Draft</strong>
+              <span className="muted small">{DRAFT_RULE[0]} {DRAFT_RULE[1]}</span>
+            </button>
+          </>
+        ) : (
+          <div className="more-item hm-teaser" aria-disabled="true">
+            <strong className="display">Spielplan &amp; Draft</strong>
+            <span className="muted small">Eigenes Deck aus 15 Angriffen bauen. {planDraftHint(ui)}</span>
+          </div>
+        )}
       </div>
-      <h3 className="display" style={{ marginTop: 18 }}>Glossar</h3>
+
+      <h3 className="display">Karten</h3>
       <div className="more-list">
-        <button className="more-item" onClick={() => setRun({ kind: "glossar" })}>
-          <strong className="display">Schlüsselwörter</strong>
-          <span className="muted small">Keil, Rahmen, Takedown, Pass, Flucht, Aufgabe, Dilemma, Atem, Spielstil, Spielplan – jedes Wort heißt immer dieselbe Regel.</span>
+        <button className="more-item" onClick={onSammlung}>
+          <strong className="display">Sammlung{col.fresh.length > 0 && <span className="hm-badge">{col.fresh.length} neu</span>}</strong>
+          <span className="muted small">{col.ids.length} Karten nach Position. Umdrehen zeigt das Kurzwissen.</span>
+        </button>
+        <button className="more-item" onClick={onPakete}>
+          <strong className="display">Pakete &amp; Staub{rw.packs > 0 && <span className="hm-badge">{rw.packs}</span>}</strong>
+          <span className="muted small">{rw.packs ? `${rw.packs} ${rw.packs === 1 ? "Paket wartet" : "Pakete warten"}. ` : ""}Fürs Lernen gibt es Kartenpakete. Kein Echtgeld, Chancen offen. {rw.staub} Mattenstaub.</span>
         </button>
       </div>
     </div>

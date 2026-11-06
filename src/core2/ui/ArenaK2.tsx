@@ -25,6 +25,7 @@ import { CoachAvatar } from "../../components/learn";
 import { sfx } from "../../sound";
 import { useGame } from "../../store";
 import { collectRound } from "../collection/store";
+import { recordK2Result } from "../../progress/store";
 import { Sammlung } from "../collection/Sammlung";
 import { RarityGem } from "./frame";
 import { rarityOf } from "./rarity";
@@ -60,6 +61,8 @@ export interface ArenaK2Props {
   /** Mechanik 9 (Draft-Lauf): keine Revanche – jeder Kampf zählt einmal; eigener Text für „Zurück“. */
   noRematch?: boolean;
   exitLabel?: string;
+  /** UX-Review (06.11.): im 7-Tage-Start – Hauptknopf „Weiter“ (exitLabel), Nebenknopf „Nochmal“, kein Sammlungs-Link (Karten werden still gesammelt). */
+  context?: "program";
   /** Mechanik 10 (Rangliste): eigene KI-Gewichte für den Gegner (z. B. „kennt deinen Stil“). Boss-Gewichte gehen vor. */
   foeStyle?: AiStyle;
 }
@@ -229,6 +232,8 @@ export function ArenaK2(props: ArenaK2Props) {
   useEffect(() => {
     if (phase !== "end") return;
     sfx.gong();
+    // Gemeinsamer Fortschritt: Siege und geschaffte Lektionen zählen überall (Programm wie „Spielen“).
+    recordK2Result(s.result?.winner === "p", tut?.id);
     if (!resultSent.current) { resultSent.current = true; props.onResult?.(s); }
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -777,7 +782,7 @@ export function ArenaK2(props: ArenaK2Props) {
               );
             })()}
             {(() => { const v = props.verdict?.(s); return v ? <p className={`k2-end-verdict ${v.ok ? "ok" : "no"}`}>{v.text}</p> : null; })()}
-            {newCards.length > 0 && (
+            {newCards.length > 0 && props.context !== "program" && (
               <button type="button" className="k2-end-collect" onClick={() => setShowSammlung(true)}>
                 <span className="gems">{newCards.slice(0, 5).map((id) => { const c = cardById(id); return c ? <RarityGem key={id} rarity={rarityOf(c)} size={12} /> : null; })}</span>
                 <b>{newCards.length === 1 ? "1 neue Karte gesammelt" : `${newCards.length} neue Karten gesammelt`}</b>
@@ -785,8 +790,13 @@ export function ArenaK2(props: ArenaK2Props) {
               </button>
             )}
             <div className="k2-end-btns">
-              <button type="button" className={`btn ${props.noRematch ? "primary" : "ghost"}`} onClick={() => onExit(won)}>{props.exitLabel ?? "Zurück"}</button>
-              {!props.noRematch && <button type="button" className="btn primary" onClick={rematch}>Revanche</button>}
+              {props.context === "program" ? (<>
+                <button type="button" className="btn ghost" onClick={rematch}>Nochmal</button>
+                <button type="button" className="btn primary" onClick={() => onExit(won)}>{won ? (props.exitLabel ?? "Weiter") : "Weiter"}</button>
+              </>) : (<>
+                <button type="button" className={`btn ${props.noRematch ? "primary" : "ghost"}`} onClick={() => onExit(won)}>{props.exitLabel ?? "Zurück"}</button>
+                {!props.noRematch && <button type="button" className="btn primary" onClick={rematch}>Revanche</button>}
+              </>)}
             </div>
           </motion.div>
         </motion.div>

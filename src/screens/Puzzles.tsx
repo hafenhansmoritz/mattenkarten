@@ -1,6 +1,6 @@
 // Tagesrätsel: jeden Tag 3 Situationen (leicht → schwer), plus freies Üben nach Konzept.
 // Die Auflösung kommt aus der echten Engine (playPuzzle → resolveReveal).
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { CardKind, RevealOutcome } from "../engine/types";
 import { CARD } from "../data/cards";
@@ -9,7 +9,7 @@ import {
   CONCEPT_INFO, PUZZLES, PUZZLE_CONCEPTS, dateKey, playPuzzle, practiceSet, puzzleOfDay, puzzleRole,
   type Puzzle, type PuzzleConcept, type PuzzleResult,
 } from "../data/puzzles";
-import { usePuzzles, liveStreak, MAX_FREEZES, type advanceStreak } from "../puzzleStore";
+import { usePuzzles } from "../puzzleStore";
 import { Card } from "../components/Card";
 import { CardArt } from "../components/CardArt";
 import { CardFlip } from "../components/CardFlip";
@@ -41,13 +41,16 @@ const DIFF_LABEL = ["", "Leicht", "Mittel", "Schwer"];
 type View =
   | { v: "home" }
   | { v: "play"; mode: "daily" | "practice"; list: Puzzle[]; idx: number; concept?: PuzzleConcept | null; right: number }
-  | { v: "summary"; right: number; total: number; streak: ReturnType<typeof advanceStreak> | null; mode: "daily" | "practice" };
+  | { v: "summary"; right: number; total: number; mode: "daily" | "practice" };
 
-export function Puzzles({ onBack }: { onBack: () => void }) {
+/**
+ * Tab „Üben“ (UX-Review 06.11.2026): Rätsel ohne Serie und Freezes (keine Streak-Ethik-Konflikte – vgl. KB 8.11),
+ * Übungsbereiche bleiben. `top` erscheint nur in der Übersicht (Aufwärmen, Glossar, Wiederholen …).
+ */
+export function Puzzles({ onBack, top }: { onBack?: () => void; top?: ReactNode }) {
   const today = dateKey(new Date());
   const daily = useMemo(() => puzzleOfDay(today), [today]);
   const st = usePuzzles();
-  const streakNow = liveStreak(st, today);
   const answersToday = st.today?.date === today ? st.today.answers : {};
   const dailyDone = st.lastPlayed === today;
   const [view, setView] = useState<View>({ v: "home" });
@@ -62,16 +65,14 @@ export function Puzzles({ onBack }: { onBack: () => void }) {
 
   const header = (
     <header className="pz-head">
-      <button className="btn ghost small" onClick={view.v === "home" ? onBack : () => setView({ v: "home" })}>
-        {view.v === "home" ? "Zurück" : "Übersicht"}
-      </button>
+      {view.v !== "home" ? <button className="btn ghost small" onClick={() => setView({ v: "home" })}>Übersicht</button>
+        : onBack ? <button className="btn ghost small" onClick={onBack}>Zurück</button> : null}
       <h2 className="display pz-title">
         {view.v === "play"
-          ? view.mode === "daily" ? <>Tagesrätsel <span className="num">{view.idx + 1}/{view.list.length}</span></>
+          ? view.mode === "daily" ? <>Drei für heute <span className="num">{view.idx + 1}/{view.list.length}</span></>
             : <>Üben <span className="num">{view.idx + 1}/{view.list.length}</span></>
-          : "Tagesrätsel"}
+          : "Üben"}
       </h2>
-      <StreakFlame n={streakNow} freezes={st.freezes} lit={dailyDone} />
     </header>
   );
 
@@ -86,10 +87,10 @@ export function Puzzles({ onBack }: { onBack: () => void }) {
       if (view.mode === "daily") {
         const ans = usePuzzles.getState().today?.answers ?? {};
         const dayRight = daily.filter((d) => ans[d.id]).length;
-        const r = usePuzzles.getState().completeDay(today, dayRight);
-        setView({ v: "summary", right: dayRight, total: daily.length, streak: r, mode: "daily" });
+        usePuzzles.getState().completeDay(today, dayRight);
+        setView({ v: "summary", right: dayRight, total: daily.length, mode: "daily" });
       } else {
-        setView({ v: "summary", right, total: view.list.length, streak: null, mode: "practice" });
+        setView({ v: "summary", right, total: view.list.length, mode: "practice" });
       }
     };
     return (
@@ -106,7 +107,7 @@ export function Puzzles({ onBack }: { onBack: () => void }) {
     return (
       <div className="screen pz">
         {header}
-        <Summary right={view.right} total={view.total} streak={view.streak} mode={view.mode}
+        <Summary right={view.right} total={view.total} mode={view.mode}
           onHome={() => setView({ v: "home" })} onBack={onBack} />
       </div>
     );
@@ -117,6 +118,8 @@ export function Puzzles({ onBack }: { onBack: () => void }) {
   return (
     <div className="screen pz">
       {header}
+      {top}
+      <h3 className="display pz-sub">Rätsel</h3>
       <section className="pz-daily">
         <div className="pz-daily-top">
           <CoachAvatar size={44} />
@@ -145,8 +148,6 @@ export function Puzzles({ onBack }: { onBack: () => void }) {
       </section>
 
       <section className="pz-stats" aria-label="Statistik">
-        <Stat k="Serie" v={streakNow} />
-        <Stat k="Beste" v={st.bestStreak} />
         <Stat k="Gelöst" v={`${st.solved.length}/${PUZZLES.length}`} />
         <Stat k="Treffer" v={st.stats.attempts ? `${Math.round((st.stats.correct / st.stats.attempts) * 100)}%` : "–"} />
       </section>
@@ -291,48 +292,27 @@ function PuzzlePlay({ puzzle: p, onAnswered, onNext, last }: {
 // Ende des Tages / der Übungsrunde
 // ------------------------------------------------------------------
 
-function Summary({ right, total, streak, mode, onHome, onBack }: {
-  right: number; total: number; streak: ReturnType<typeof advanceStreak> | null; mode: "daily" | "practice";
-  onHome: () => void; onBack: () => void;
+function Summary({ right, total, mode, onHome, onBack }: {
+  right: number; total: number; mode: "daily" | "practice";
+  onHome: () => void; onBack?: () => void;
 }) {
   const reduce = useReducedMotion() ?? false;
   const [boom, setBoom] = useState(0);
   useEffect(() => { setBoom(1); }, []);
   const perfect = right === total;
-  const extended = !!streak?.extended;
   return (
     <motion.section className="pz-summary" role="status"
       initial={{ opacity: 0, scale: reduce ? 1 : 0.92 }} animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 22 }}>
       <Confetti run={boom} count={perfect ? 110 : 60} />
-      <span className="label">{mode === "daily" ? "Tagesrätsel geschafft" : "Übungsrunde vorbei"}</span>
+      <span className="label">{mode === "daily" ? "Drei für heute geschafft" : "Übungsrunde vorbei"}</span>
       <p className="display pz-score"><span className="num">{right}</span> von <span className="num">{total}</span> richtig</p>
-      {mode === "daily" && streak && (
-        <div className="pz-streak-big">
-          <motion.div initial={{ scale: reduce ? 1 : 0.4, rotate: reduce ? 0 : -12 }} animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: reduce ? 0 : 0.25, type: "spring", stiffness: 260, damping: 12 }}>
-            <FlameIcon size={64} lit />
-          </motion.div>
-          <div>
-            <p className="display pz-streak-n">
-              <span className="num">{streak.streak}</span> {streak.streak === 1 ? "Tag" : "Tage"} in Folge
-            </p>
-            <p className="muted small">
-              {extended ? (streak.usedFreezes > 0
-                ? `${streak.usedFreezes} Freeze${streak.usedFreezes > 1 ? "s" : ""} hat deine Serie gerettet.`
-                : streak.streak === 1 ? "Der erste Tag deiner Serie. Komm morgen wieder!" : "Serie verlängert – stark!")
-                : "Heute schon gezählt."}
-              {" "}Freezes: {streak.freezes}/{MAX_FREEZES}
-            </p>
-          </div>
-        </div>
-      )}
       <p className="muted small">
         {perfect ? "Alles richtig – du liest die Situationen wie ein Profi." : "Die Erklärungen helfen – unter „Frei üben“ kannst du jedes Konzept vertiefen."}
       </p>
       <div className="pz-summary-btns">
         <button className="btn primary big" onClick={onHome}>Weiter üben</button>
-        <button className="btn" onClick={onBack}>Zurück zum Menü</button>
+        {onBack && <button className="btn" onClick={onBack}>Zurück zum Menü</button>}
       </div>
     </motion.section>
   );
@@ -374,26 +354,5 @@ function Stat({ k, v }: { k: string; v: string | number }) {
       <span className="display num">{v}</span>
       <span className="label muted">{k}</span>
     </div>
-  );
-}
-
-function StreakFlame({ n, freezes, lit }: { n: number; freezes: number; lit: boolean }) {
-  return (
-    <div className={`pz-flame ${lit ? "lit" : ""}`} aria-label={`Serie: ${n} Tage, ${freezes} Freezes`}>
-      <FlameIcon size={26} lit={lit || n > 0} />
-      <span className="num">{n}</span>
-      <span className="pz-freezes" aria-hidden>
-        {Array.from({ length: MAX_FREEZES }, (_, i) => <i key={i} className={i < freezes ? "on" : ""}>❄</i>)}
-      </span>
-    </div>
-  );
-}
-
-function FlameIcon({ size = 24, lit = true }: { size?: number; lit?: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width={size} height={size} className={`pz-flame-ico ${lit ? "on" : ""}`} aria-hidden focusable="false">
-      <path d="M12 2c1 3.5 5 5.6 5 10.6A5 5 0 0 1 7 12.6c0-2 1-3.4 2-4.4.2 1.6 1 2.6 2 3 0-3.2-.4-6 1-9.2z" fill="var(--pz-flame-a)" />
-      <path d="M12 12c.6 1.6 2.4 2.4 2.4 4.6a2.4 2.4 0 0 1-4.8 0c0-1.2.6-2 1.2-2.6.1.8.4 1.2.9 1.4-.1-1.4-.2-2.4.3-3.4z" fill="var(--pz-flame-b)" />
-    </svg>
   );
 }

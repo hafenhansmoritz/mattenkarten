@@ -5,7 +5,8 @@ import { TUTORIALS_K2 } from "../core2/data/tutorials";
 import type { TutorialK2Def } from "../core2/ui/tutorialTypes";
 import { Confetti, Stamp } from "../components/fx";
 import { sfx } from "../sound";
-import { CHECK_GROUP_LABEL, DAYS, NOT_ALONE, READY_CHECKLIST, type LessonRef, type ProgramDay } from "./days";
+import { DAYS, NOT_ALONE, type LessonRef, type ProgramDay } from "./days";
+import { ReadyChecklist } from "./ReadyChecklist";
 import { DrillTimer } from "./DrillTimer";
 import { SchutzCard, SchutzStep } from "./Schutzhaltung";
 import { WarmupScreen } from "./WarmupScreen";
@@ -241,7 +242,8 @@ function DayRun({ day, p, update, onExit }: {
     const t = lessonById(lref.id);
     if (t) {
       return (
-        <ArenaK2 key={t.id + lessonIdx} mode="tutorial" tutorial={t} aiLevel={t.aiLevel}
+        <ArenaK2 key={t.id + lessonIdx} mode="tutorial" tutorial={t} aiLevel={t.aiLevel} context="program"
+          exitLabel={lessonIdx + 1 < day.lessons.length ? "Weiter zur nächsten Lektion" : "Weiter zum Rätsel"}
           onExit={(won) => {
             setInArena(false);
             if (won === null) return;
@@ -252,7 +254,7 @@ function DayRun({ day, p, update, onExit }: {
   }
   if (step === "boss" && boss) {
     return (
-      <ArenaK2 mode="free" aiLevel={2} seed={examSeed} onExit={(won) => {
+      <ArenaK2 mode="free" aiLevel={2} seed={examSeed} context="program" exitLabel="Weiter zum Drill" onExit={(won) => {
         setBoss(false);
         update((x) => ({ ...x, boss: won ? "won" : won === false ? (x.boss === "won" ? "won" : "lost") : x.boss }));
         if (won !== null) go();
@@ -487,8 +489,6 @@ function ExamResult({ res, onRetry, onNext }: { res: QuizResult[]; onRetry: () =
    ============================================================ */
 
 function Final({ p, update, onBack }: { p: ProgramProgress; update: (fn: (p: ProgramProgress) => ProgramProgress) => void; onBack: () => void }) {
-  const ticked = new Set(p.checklist);
-  const all = READY_CHECKLIST.every((c) => ticked.has(c.id));
   return (
     <div className="pg-screen pg-final pg-rel">
       <Confetti run={1} count={120} />
@@ -512,27 +512,7 @@ function Final({ p, update, onBack }: { p: ProgramProgress; update: (fn: (p: Pro
 
       <section className="pg-panel">
         <h3 className="display pg-h">Checkliste</h3>
-        {(Object.keys(CHECK_GROUP_LABEL) as (keyof typeof CHECK_GROUP_LABEL)[]).map((g) => (
-          <div key={g} className="pg-check-group">
-            <h4 className="label">{CHECK_GROUP_LABEL[g]}</h4>
-            <ul className="pg-check">
-              {READY_CHECKLIST.filter((c) => c.group === g).map((c) => {
-                const on = ticked.has(c.id);
-                return (
-                  <li key={c.id}>
-                    <button type="button" className={on ? "on" : ""} aria-pressed={on}
-                      onClick={() => { sfx.select(); update((x) => ({ ...x, checklist: on ? x.checklist.filter((i) => i !== c.id) : [...x.checklist, c.id] })); }}>
-                      <span className="pg-box">{on ? "✓" : ""}</span>
-                      <span>{c.text}{c.check && <span className="pg-check-flag small"> (noch unsicher – frag später deinen Trainer)</span>}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-        <p className="small muted">Hygiene-Quellen: BJJ More, CDC (MRSA bei Sportlern), USA Wrestling, IBJJF-Kleiderordnung.</p>
-        {all && <p className="pg-hint small">Alles abgehakt. Viel Spaß bei deinem ersten Training!</p>}
+        <ReadyChecklist p={p} update={update} />
       </section>
 
       <section className="pg-panel">
