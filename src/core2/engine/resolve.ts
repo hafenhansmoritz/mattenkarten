@@ -7,6 +7,7 @@ import { cardById } from "./registry";
 import { breakable, GRIP_MAX, gripFits } from "./grips";
 import { chainFrom } from "./chains";
 import { checkKonter, KONTER_COST, KONTER_NO_GAIN, KONTER_ROUNDS, konterFits, splitPlay } from "./konter";
+import { checkStil, STIL_COST, STIL_GAIN, STIL_POWER, stilBlockedBy } from "./stil";
 
 export const KRAFT_MAX = 5;
 
@@ -309,6 +310,13 @@ export function resolveRound(s0: State2, pPlay: string, oPlay: string): { state:
     if (!chk.ok) throw new Error(`Konter ${kid} nicht legbar: ${chk.reason}`);
     setting[side] = kc;
   }
+  // Mechanik 5 (B44): zusätzlich die Stil-Fähigkeit – geprüft gegen die gewählte Karte und einen gleichzeitig gelegten Konter.
+  const usingStil: Record<Side, boolean> = { p: pSplit.stil, o: oSplit.stil };
+  for (const side of ["p", "o"] as Side[]) {
+    if (!usingStil[side]) continue;
+    const chk = checkStil(s0, side, cards[side], setting[side]);
+    if (!chk.ok) throw new Error(`Stil-Fähigkeit nicht möglich: ${chk.reason}`);
+  }
 
   const s = cloneState(s0);
   const ctx: Ctx = { s, start: s0, events: [], notes: [], acted: new Set(), pendingMoves: [] };
@@ -352,6 +360,8 @@ export function resolveRound(s0: State2, pPlay: string, oPlay: string): { state:
     });
   }
 
+  // B44: die Fähigkeit kostet STIL_COST Atem – auch wenn sie danach verpufft (wie ein Rahmen ins Leere).
+  for (const side of ["p", "o"] as Side[]) if (usingStil[side]) changeKraft(ctx, side, -STIL_COST);
   // Atem bezahlen (internes Feld: kraft). Ein ausgelöster Konter ist schon bezahlt.
   for (const side of ["p", "o"] as Side[]) { const c = cards[side]; if (c?.kraft && !triggered[side]) changeKraft(ctx, side, -c.kraft); }
 
@@ -512,6 +522,11 @@ export function resolveRound(s0: State2, pPlay: string, oPlay: string): { state:
     if (c?.breaks && triWinner !== other(side)) applyBreaks(ctx, side, c);
   }
 
+  // B45: spielt er in der Zone der Fähigkeit eine Karte (auch ein ausgelöster Konter zählt), hält er dagegen – sie verpufft.
+  // Liegt der Stil-Spieler oben, hält nur sein Angriff dagegen (Gewicht, wie B3).
+  const stilEaten: Record<Side, boolean> = { p: false, o: false };
+  for (const side of ["p", "o"] as Side[]) if (usingStil[side]) stilEaten[side] = stilBlockedBy(s0.stil![side]!, cards[other(side)], s0.top === side);
+
   // Tap vor Positionswechsel (Wechsel würde die Leiste löschen).
   const taps = s.subs.filter((t) => t.step >= 3);
   if (taps.length === 1) {
@@ -523,6 +538,41 @@ export function resolveRound(s0: State2, pPlay: string, oPlay: string): { state:
     for (const t of taps) { t.step = 2; ctx.events.push({ t: "sub", owner: t.owner, id: t.id, step: 2 }); }
   }
   if (!s.result) resolveMoves(ctx);
+
+  // B44/B45: Stil-Fähigkeit wirkt NACH den Karten – +1 in ihrer Zone, wenn die Lage dieselbe ist und er dort keine Karte spielte.
+  for (const side of ["p", "o"] as Side[]) {
+    if (!usingStil[side] || s.result?.type === "tap") continue;
+    const id = s0.stil![side]!;
+    const pw = STIL_POWER[id];
+    const z = ZONE_LABEL[pw.zone];
+    const moved = s.pos !== s0.pos || s.top !== s0.top;
+    const why = stilEaten[side] ? "dagegen" : moved ? "position" : null;
+    const delta = why ? 0 : addZone(ctx, side, pw.zone, STIL_GAIN);
+    if (delta !== 0) {
+      ctx.events.push({ t: "stil", side, stil: id, zone: pw.zone, on: "hit" });
+      ctx.acted.add(side);
+      ctx.notes.push({
+        prio: 19, side,
+        headline: you(side) ? `Dein ${pw.power}: ${z} +${STIL_GAIN}.` : `Sein ${pw.power}: ${z} +${STIL_GAIN} für ihn.`,
+        why: "Die Fähigkeit wirkt nach den Karten – sie baut für die nächste Runde auf.",
+        zone: pw.zone,
+      });
+    } else {
+      const w = why ?? "voll";
+      ctx.events.push({ t: "stil", side, stil: id, zone: pw.zone, on: "fizzle", why: w });
+      ctx.notes.push({
+        prio: w === "dagegen" ? 24 : 13, side: other(side),
+        headline: w === "dagegen" ? (you(side) ? `Er hält an ${z} dagegen: ${pw.power} verpufft.` : `Du hältst an ${z} dagegen: sein ${pw.power} verpufft.`)
+          : w === "position" ? (you(side) ? `Neue Lage: dein ${pw.power} verpufft.` : `Neue Lage: sein ${pw.power} verpufft.`)
+          : (you(side) ? `Dein ${pw.power} verpufft: ${z} ist voll.` : `Sein ${pw.power} verpufft: ${z} ist voll.`),
+        why: w === "dagegen" ? (you(side) ? "Spielt er in der Zone deiner Fähigkeit, hält er dagegen – oben nur mit Angriff."
+          : "Du kennst sein A-Game: Wer in der Zone seiner Fähigkeit spielt, hält dagegen.")
+          : w === "position" ? "Die Fähigkeit wirkt nur in der Lage, in der sie eingesetzt wurde."
+          : "Mehr als +2 geht in keiner Zone.",
+        zone: pw.zone,
+      });
+    }
+  }
 
   // Rundenende: Sperren, Atem, Rundenzähler, Ziel/Punkte.
   s.p.locked = P ? [P.id] : [];
@@ -581,6 +631,7 @@ export function resolveRound(s0: State2, pPlay: string, oPlay: string): { state:
     pCard: triggered.p ? triggered.p.id : pId,
     oCard: triggered.o ? triggered.o.id : oId,
     ...(setting.p || setting.o ? { konterSet: (["p", "o"] as Side[]).filter((x) => setting[x]) } : {}),
+    ...(usingStil.p || usingStil.o ? { stilUsed: (["p", "o"] as Side[]).filter((x) => usingStil[x]) } : {}),
     rule, winner, events: ctx.events,
     headline: top?.headline ?? "Keiner kommt voran.",
     why: top?.why ?? RULE_WHY[rule],

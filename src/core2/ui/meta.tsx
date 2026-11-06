@@ -141,3 +141,12 @@ export function ThreatChevron({ size = 14 }: { size?: number }) {
     </Svg>
   );
 }
+
+/** Mechanik 5: Spielstil-Fähigkeit (Stern – dein A-Game). */
+export function StilIcon({ size = 14, className }: { size?: number; className?: string }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M12 3l2.2 5.6L20 9.3l-4.4 3.9 1.3 5.8L12 16l-4.9 3 1.3-5.8L4 9.3l5.8-.7L12 3z" />
+    </Svg>
+  );
+}

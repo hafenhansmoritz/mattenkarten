@@ -5,7 +5,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Pos2 } from "../types";
 import { setCardRegistry } from "./registry";
-import { grundlageShare, simMatch, type SimMatch } from "./sim";
+import { grundlageShare, seedStil, simMatch, stilPlayer, type SimMatch } from "./sim";
+import { STIL_IDS } from "./stil";
 
 beforeAll(() => setCardRegistry(null));
 afterAll(() => setCardRegistry(null));
@@ -18,15 +19,20 @@ const runs: { lp: Lv; lo: Lv; m: SimMatch }[] = [];
 function all() {
   if (runs.length) return runs;
   for (const lp of [1, 2, 3] as Lv[]) for (const lo of [1, 2, 3] as Lv[])
-    for (let i = 0; i < N; i++) runs.push({ lp, lo, m: simMatch({ level: lp }, { level: lo }, lp * 100000 + lo * 10000 + i) });
+    for (let i = 0; i < N; i++) {
+      // Mechanik 5: freie Matches haben auf beiden Seiten einen Spielstil (fest je Seed, wie in simulate2.ts).
+      const seed = lp * 100000 + lo * 10000 + i;
+      runs.push({ lp, lo, m: simMatch(stilPlayer(lp, seedStil(seed, "p")), stilPlayer(lo, seedStil(seed, "o")), seed) });
+    }
   return runs;
 }
 
 describe("Kern 2 – Balance (Sim in CI)", () => {
-  it("Taps gesamt 8–32 %", () => {
+  it("Taps gesamt 10–32 % (Mechanik 5 hebt die Abschlüsse: simulate2 verlangt 12–18 %)", () => {
     const r = all();
     const taps = r.filter((x) => x.m.state.result?.type === "tap").length / r.length;
-    expect(taps).toBeGreaterThanOrEqual(0.08);
+    console.info(`[balance] Taps ${(100 * taps).toFixed(1)} %`);
+    expect(taps).toBeGreaterThanOrEqual(0.1);
     expect(taps).toBeLessThanOrEqual(0.32);
   });
 
@@ -67,4 +73,25 @@ describe("Kern 2 – Balance (Sim in CI)", () => {
     expect(bottom).toBeGreaterThan(0);
     expect(n / bottom).toBeGreaterThanOrEqual(0.25);
   });
+
+  it("Mechanik 5: kein Spielstil gewinnt gegen einen anderen auf gleicher Stufe > 62 % (CI-Stichprobe; simulate2: 58 %)", () => {
+    const NS = 30;
+    let worst = 0, at = "";
+    for (const lv of [2, 3] as const) for (const a of STIL_IDS) for (const b of STIL_IDS) {
+      if (a === b) continue;
+      let w = 0, l = 0;
+      for (let i = 0; i < NS; i++) {
+        const ap = i % 2 === 0;
+        const A = stilPlayer(lv, a), B = stilPlayer(lv, b);
+        const m = ap ? simMatch(A, B, 7000 + i) : simMatch(B, A, 7000 + i);
+        const win = m.state.result?.winner;
+        if (!win) continue;
+        if ((win === "p") === ap) w++; else l++;
+      }
+      const share = w / Math.max(1, w + l);
+      if (share > worst) { worst = share; at = `${a} gegen ${b} (L${lv})`; }
+    }
+    console.info(`[balance] Stil-Matrix max ${(100 * worst).toFixed(1)} % – ${at}`);
+    expect(worst, at).toBeLessThanOrEqual(0.62);
+  }, 60000);
 });

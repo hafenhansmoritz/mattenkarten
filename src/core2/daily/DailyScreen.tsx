@@ -4,6 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import type { State2 } from "../types";
 import { ArenaK2 } from "../ui/ArenaK2";
+import { StilWahl } from "../ui/StilWahl";
+import type { StilId } from "../types";
 import { posLabel } from "../collection/Sammlung";
 import { dailyFor, dailySuccess, dateKey, toTutorial } from "./daily";
 import { recordDaily, useDailyLog, type DailyEntry } from "./store";
@@ -20,14 +22,18 @@ export function DailyScreen({ onBack }: { onBack: () => void }) {
   const { def, seed } = dailyFor(key);
   const log = useDailyLog();
   const today: DailyEntry | undefined = log[key];
-  const [run, setRun] = useState<null | { practice: boolean; n: number }>(null);
+  const [run, setRun] = useState<null | { practice: boolean; n: number; stil?: StilId }>(null);
   const [practiceN, setPracticeN] = useState(0);
   const [lastPractice, setLastPractice] = useState<boolean | null>(null);
 
+  if (run && !run.stil) {
+    // Mechanik 5: vor der Tages-Challenge dein A-Game wählen (der Gegner auf Stufe 1 spielt ohne Stil).
+    return <StilWahl context={`Tages-Challenge · ${def.title}`} onBack={() => setRun(null)} onPick={(id) => setRun({ ...run, stil: id })} />;
+  }
   if (run) {
     const t = toTutorial(def, run.practice ? seed + run.n * 131 : seed);
     return (
-      <ArenaK2 key={`${key}-${run.practice}-${run.n}`} mode="tutorial" tutorial={t} aiLevel={def.aiLevel}
+      <ArenaK2 key={`${key}-${run.practice}-${run.n}`} mode="tutorial" tutorial={t} aiLevel={def.aiLevel} stil={run.stil}
         onResult={(s: State2) => {
           const won = dailySuccess(def, s.result);
           if (!run.practice && !log[key]) recordDaily(key, { id: def.id, won, rounds: s.history.length, pts: [s.p.pts, s.o.pts] });

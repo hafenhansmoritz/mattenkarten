@@ -5,6 +5,9 @@ import { TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD } from "../core2/data/tutorials";
 import { Bosse, readBeaten } from "../core2/ui/Bosse";
 import { BOSSES } from "../core2/data/bosses";
 import { Glossar } from "../core2/ui/Glossar";
+import { StilWahl } from "../core2/ui/StilWahl";
+import { randomStil } from "../core2/data/stile";
+import type { StilId } from "../core2/types";
 
 const KEY = "mk.k2.done";
 function readDone(): string[] {
@@ -14,7 +17,9 @@ function writeDone(ids: string[]) {
   try { localStorage.setItem(KEY, JSON.stringify(ids)); } catch { /* egal */ }
 }
 
-type Run = { kind: "tut"; id: string } | { kind: "free"; level: 1 | 2 | 3 } | { kind: "bosses" } | { kind: "glossar" } | null;
+type Run = { kind: "tut"; id: string } | { kind: "stilwahl"; level: 1 | 2 | 3 } | { kind: "free"; level: 1 | 2 | 3; stil: StilId; foe: StilId }
+  | { kind: "bosses" } | { kind: "glossar" } | null;
+const LEVEL_NAME: Record<1 | 2 | 3, string> = { 1: "Locker", 2: "Normal", 3: "Hart" };
 const ALL_TUTS = [...TUTORIALS_K2, TUTORIAL_GUARD_ODER_TD];
 
 /** Prototyp „Körperkarte“: drei Lektionen nach Danaher-Reihenfolge, dann freies Spiel. */
@@ -35,8 +40,15 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
   }
   if (run?.kind === "bosses") return <Bosse onBack={() => setRun(null)} />;
   if (run?.kind === "glossar") return <Glossar onBack={() => setRun(null)} />;
+  if (run?.kind === "stilwahl") {
+    // Mechanik 5: vor dem freien Spiel das A-Game wählen; der Gegner bekommt einen zufälligen Stil.
+    const lv = run.level;
+    return <StilWahl context={`Freies Spiel · ${LEVEL_NAME[lv]}`} onBack={() => setRun(null)}
+      onPick={(id) => setRun({ kind: "free", level: lv, stil: id, foe: randomStil(Math.random) })} />;
+  }
   if (run?.kind === "free") {
-    return <ArenaK2 key={"free" + seed} mode="free" aiLevel={run.level} seed={seed} onExit={() => { setSeed(seed + 1); setRun(null); }} />;
+    return <ArenaK2 key={"free" + seed} mode="free" aiLevel={run.level} seed={seed} stil={run.stil} foeStil={run.foe}
+      onExit={() => { setSeed(seed + 1); setRun(null); }} />;
   }
 
   const allDone = TUTORIALS_K2.every((t) => done.includes(t.id));
@@ -71,9 +83,9 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
       <h3 className="display" style={{ marginTop: 18 }}>Freies Spiel</h3>
       {!allDone && <p className="muted small">Tipp: Erst die drei Lektionen – dann verstehst du das Brett sofort.</p>}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button className="btn" onClick={() => setRun({ kind: "free", level: 1 })}>Locker</button>
-        <button className="btn" onClick={() => setRun({ kind: "free", level: 2 })}>Normal</button>
-        <button className="btn primary" onClick={() => setRun({ kind: "free", level: 3 })}>Hart</button>
+        <button className="btn" onClick={() => setRun({ kind: "stilwahl", level: 1 })}>Locker</button>
+        <button className="btn" onClick={() => setRun({ kind: "stilwahl", level: 2 })}>Normal</button>
+        <button className="btn primary" onClick={() => setRun({ kind: "stilwahl", level: 3 })}>Hart</button>
       </div>
       <h3 className="display" style={{ marginTop: 18 }}>Bosse</h3>
       <div className="more-list">
@@ -86,7 +98,7 @@ export function KoerperkarteHub({ onBack }: { onBack: () => void }) {
       <div className="more-list">
         <button className="more-item" onClick={() => setRun({ kind: "glossar" })}>
           <strong className="display">Schlüsselwörter</strong>
-          <span className="muted small">Keil, Rahmen, Takedown, Pass, Flucht, Aufgabe, Dilemma, Atem – jedes Wort heißt immer dieselbe Regel.</span>
+          <span className="muted small">Keil, Rahmen, Takedown, Pass, Flucht, Aufgabe, Dilemma, Atem, Spielstil – jedes Wort heißt immer dieselbe Regel.</span>
         </button>
       </div>
     </div>

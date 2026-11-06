@@ -27,12 +27,15 @@ export function konterUsed(s: Pick<State2, "history">, side: Side): number {
 export const KONTER_ROUNDS = 2;
 /** Zug „Karte spielen und zusätzlich Rahmen verdeckt legen“. */
 export const withKonter = (cardId: string, frameId: string): string => `${cardId}${SEP}${KONTER_PREFIX}${frameId}`;
-/** Zerlegt einen Zug in gespielte Karte und (optional) verdeckt gelegten Rahmen. */
-export function splitPlay(id: string): { card: string; konter: string | null } {
-  const i = id.indexOf(SEP);
-  if (i < 0) return { card: id, konter: null };
-  const k = id.slice(i + 1);
-  return { card: id.slice(0, i), konter: k.startsWith(KONTER_PREFIX) ? k.slice(KONTER_PREFIX.length) : null };
+/** Mechanik 5: Zusatz „Stil-Fähigkeit einsetzen“ ("<karte>[&konter:<rahmen>]&stil"). */
+export const STIL_TAG = "stil";
+/** Zug um die Stil-Fähigkeit ergänzen (Karte und ggf. Konter bleiben). */
+export const withStil = (play: string): string => `${play}${SEP}${STIL_TAG}`;
+/** Zerlegt einen Zug in gespielte Karte, (optional) verdeckt gelegten Rahmen und (optional) die Stil-Fähigkeit. */
+export function splitPlay(id: string): { card: string; konter: string | null; stil: boolean } {
+  const [card, ...rest] = id.split(SEP);
+  const k = rest.find((x) => x.startsWith(KONTER_PREFIX));
+  return { card, konter: k ? k.slice(KONTER_PREFIX.length) : null, stil: rest.includes(STIL_TAG) };
 }
 
 const FOE_ROLE: Record<Role2, Role2> = { neutral: "neutral", top: "bottom", bottom: "top" };

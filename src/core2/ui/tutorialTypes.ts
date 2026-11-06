@@ -49,4 +49,7 @@ export interface TutorialK2Def {
   chains?: boolean;
   /** false: verdeckte Konter (Mechanik 4) aus – die ersten drei Lektionen und die Zusatz-Lektion führen sie nicht ein. */
   konter?: boolean;
+  /** false: Spielstil-Fähigkeit (Mechanik 5) aus – die ersten drei Lektionen und die Zusatz-Lektion; Lektionen bekommen ohnehin
+   *  nur dann einen Stil, wenn der Aufrufer ihn mitgibt (Tages-Challenge nach der Stil-Wahl). */
+  stil?: boolean;
 }

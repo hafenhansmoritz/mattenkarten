@@ -8,7 +8,8 @@ import { cardById } from "./registry";
 import { breakable, gripsOf } from "./grips";
 import { resolveRound } from "./resolve";
 import { chainFrom } from "./chains";
-import { foeFrameIn, KONTER_COST, konterBelief, konterOptions, publicView, withKonter } from "./konter";
+import { foeFrameIn, KONTER_COST, konterBelief, konterOptions, publicView, splitPlay, withKonter, withStil } from "./konter";
+import { checkStil, STIL_COST, STIL_POWER, stilOf } from "./stil";
 
 /** B28 Boss-Spielstil: Gewichte, die auf Stufe 2/3 aufgeschlagen werden (siehe data/bosses.ts). */
 export interface AiStyle {
@@ -98,6 +99,19 @@ const KONTER_ATEM = 0.6;
 const KONTER_EVAL = 6;
 /** Stufe 3: so viel muss der Konter den Erwartungswert mindestens heben. */
 const KONTER_MARGIN = 1;
+/** Mechanik 5 (B47) Stufe 2: Gewichte für den Einsatz der Stil-Fähigkeit. */
+const STIL_NEED = 1.8;
+const STIL_DENY = 2;
+const STIL_BASE = 0.6;
+/** B45: Risiko, dass er in der Zone spielt (Anteil seiner spielbaren Karten dort, Angriffe doppelt) × STIL_RISK × STIL_SHARE. */
+const STIL_RISK = 2.5;
+const STIL_SHARE = 1.5;
+const STIL_ATEM = 0.6;
+const STIL_THRESHOLD = 0.5;
+/** Stufe 3: so viel muss die Fähigkeit den Erwartungswert mindestens heben. */
+const STIL_MARGIN = 0.3;
+/** Stufe 1 setzt die Fähigkeit ein, sobald sie geht (Anfänger sehen sie so oft – und lernen, dagegenzuhalten). */
+const STIL_L1 = 1;
 /** Stufe 3: Wert eines liegenden Griffs in der Bewertung. */
 const GRIP_EVAL = 1.5;
 
@@ -244,10 +258,11 @@ function scoreKonter(s: State2, side: Side, c: Card2, rng: () => number, style?:
   return v + rng() * 0.6;
 }
 
-/** B42 Bosse (und Konter-Profile) legen nur ihre Signatur-Konter (AiStyle.konter mit Gewicht > 0); ohne Stil alle. */
+/** B42 Bosse (und Konter-Profile) legen nur ihre Signatur-Konter (AiStyle.konter mit Gewicht > 0); ohne Konter-Liste
+ *  (kein Stil oder nur das A-Game-Profil eines Spielstils, B47) alle. */
 function styleKonter(s: State2, side: Side, playing: Card2 | null, style?: AiStyle): Card2[] {
   const all = konterOptions(s, side, playing);
-  return style ? all.filter((c) => (style.konter?.[c.id] ?? 0) > 0) : all;
+  return style?.konter ? all.filter((c) => (style.konter?.[c.id] ?? 0) > 0) : all;
 }
 
 /** Bester zusätzlicher Konter zu `playing` (Stufe 2), oder null. */
@@ -261,6 +276,27 @@ function pickKonter(s: State2, side: Side, playing: Card2 | null, rng: () => num
   return best;
 }
 
+/** B47 Stufe 2: Wert, zusätzlich zur Karte `playing` die Stil-Fähigkeit einzusetzen (−Infinity = nicht erlaubt).
+ *  Gut, wenn das +1 einem eigenen Angriff die Voraussetzung bringt oder seinem Positionsangriff eine nimmt; schlecht, wenn er
+ *  in der Zone vermutlich spielt (dann hält er dagegen) oder meine Karte die Position wechselt (dann verpufft sie). */
+function scoreStil(s: State2, side: Side, playing: Card2 | null, konter: Card2 | null, rng: () => number): number {
+  const id = stilOf(s, side);
+  if (!id || !checkStil(s, side, playing, konter).ok) return -Infinity;
+  const z = STIL_POWER[id].zone;
+  const b = boardFor(s, side);
+  let v = STIL_BASE + (neededZones(s, side)[z] ?? 0) * STIL_NEED;
+  // Keil: +1 nimmt einem seiner Positionsangriffe die Voraussetzung (Flucht/Pass zu).
+  const foeOk = okCards(s, other(side));
+  if (foeOk.some((x) => x.kind === "angriff" && x.to && x.requires?.[z] !== undefined && -b[z] >= x.requires[z]! && -(b[z] + 1) < x.requires[z]!)) v += STIL_DENY;
+  // B45: Spielt er in dieser Zone eine Karte, hält er dagegen – Risiko ≈ Anteil seiner spielbaren Karten dort (Angriffe doppelt).
+  const share = foeOk.reduce((a, x) => a + (x.zone === z ? (x.kind === "angriff" ? 2 : 1) : 0), 0) / Math.max(1, foeOk.length);
+  v -= STIL_RISK * STIL_SHARE * share;
+  // Meine Karte wechselt die Position: gelingt sie, verpufft die Fähigkeit.
+  if (playing?.to) v -= STIL_RISK;
+  v -= STIL_COST * STIL_ATEM;
+  return v + rng() * 0.6;
+}
+
 /** style (optional, B28): Boss-Spielstil oder Konter-Heuristik. Stufe 1 ignoriert ihn (und legt keine Konter).
  *  Alle Stufen rechnen nur mit der öffentlichen Sicht (publicView): sein verdeckter Konter bleibt verdeckt. */
 export function aiChoose(s0: State2, side: Side, level: 1 | 2 | 3, rng: () => number, style?: AiStyle): string {
@@ -271,7 +307,10 @@ export function aiChoose(s0: State2, side: Side, level: 1 | 2 | 3, rng: () => nu
     // Zufällig, aber sinnvoll: Rahmen ins Leere vermeiden, wenn es Alternativen gibt.
     const thrZones = new Set(threats(s, side).map((t) => t.zone));
     const sensible = ok.filter((c) => c.kind !== "rahmen" || thrZones.has(c.zone) || breakable(s, side, c).length > 0);
-    return pick(sensible.length ? sensible : ok, rng).id;
+    const c1 = pick(sensible.length ? sensible : ok, rng);
+    // B47: Stufe 1 setzt ihre Fähigkeit ein, sobald sie geht.
+    if (stilOf(s, side) && checkStil(s, side, c1, null).ok && rng() < STIL_L1) return withStil(c1.id);
+    return c1.id;
   }
   if (level === 3) return lookahead(s, side, ok, rng, style);
   let best = ok[0], bestV = -Infinity;
@@ -280,7 +319,8 @@ export function aiChoose(s0: State2, side: Side, level: 1 | 2 | 3, rng: () => nu
     if (v > bestV) { bestV = v; best = c; }
   }
   const k = pickKonter(s, side, best, rng, style);
-  return k ? withKonter(best.id, k.id) : best.id;
+  const play = k ? withKonter(best.id, k.id) : best.id;
+  return scoreStil(s, side, best, k, rng) > STIL_THRESHOLD ? withStil(play) : play;
 }
 
 /** Bewertung eines Zustands aus Sicht von side. */
@@ -402,7 +442,16 @@ function lookahead(s: State2, side: Side, ok: Card2[], rng: () => number, style?
     const ev = (style ? styleCardBonus(s, side, c, style) + (style.konter?.[k.id] ?? 0) : 0) + evOf(id, c);
     if (ev > bestV) { bestV = ev; bestK = id; }
   }
-  return bestK ?? pick;
+  const chosen = bestK ?? pick;
+  // Mechanik 5 (B47): zusätzlich die Stil-Fähigkeit, wenn sie den Erwartungswert hebt (Vorausschau sieht +1 und Atem-Preis).
+  const kc = splitPlay(chosen).konter;
+  if (stilOf(s, side) && checkStil(s, side, c, kc ? cardById(kc) : null).ok) {
+    const evPlain = chosen === pick ? plain : bestV;
+    const withS = withStil(chosen);
+    const ev = (style ? styleCardBonus(s, side, c, style) + (kc ? style.konter?.[kc] ?? 0 : 0) : 0) + evOf(withS, c);
+    if (ev > evPlain + STIL_MARGIN) return withS;
+  }
+  return chosen;
 }
 
 export { checkCard };

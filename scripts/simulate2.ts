@@ -9,15 +9,19 @@ import { other, topFor } from "../src/core2/engine/board";
 import { chainFrom } from "../src/core2/engine/chains";
 import { finishThreats } from "../src/core2/engine/legal";
 import { splitPlay } from "../src/core2/engine/konter";
-import { isGrundlage, roundShare, simMatch, type SimPlayer } from "../src/core2/engine/sim";
+import { isGrundlage, roundShare, seedStil, simMatch, stilPlayer, type SimPlayer } from "../src/core2/engine/sim";
+import { stilAi } from "../src/core2/data/stile";
+import { STIL_IDS, STIL_POWER } from "../src/core2/engine/stil";
 import { BOSSES } from "../src/core2/data/bosses";
 import { mulberry32 } from "../src/engine/rng";
-import type { Pos2, Role2, Side, State2 } from "../src/core2/types";
+import type { Pos2, Role2, Side, StilId, State2 } from "../src/core2/types";
 import { ZONES } from "../src/core2/types";
 
 const args = process.argv.slice(2);
 const N = Number(args.find((a) => /^\d+$/.test(a)) ?? 500);
 const useFix = args.includes("--fixtures");
+/** --nostil: freie Matches ohne Spielstil (Vergleich vor Mechanik 5). */
+const noStil = args.includes("--nostil");
 if (useFix) setCardRegistry(FIX);
 else if (CARDS2.length === 0) { console.error("CARDS2 ist leer – nichts zu simulieren (--fixtures für Testkarten)."); process.exit(1); }
 const CARDS = allCards();
@@ -78,16 +82,19 @@ interface Agg {
   /** Mechanik 4: Konter gelegt (je Karte), ausgelöst (je Karte), verfallen (Zeit/Position), Entscheidungen von Stufe 2/3, Matches mit Konter, Taps nach Auslösen. */
   konterSet: Map<string, number>; konterHit: Map<string, number>; konterGone: Map<string, number>; decL23: number; konterMatches: number;
   konterByLevel: Map<number, number>; decByLevel: Map<number, number>;
+  /** Mechanik 5: Fähigkeit eingesetzt (je Stil), gewirkt (je Stil), verpufft (je Grund), Matches mit Einsatz, Taps des Stil-Spielers. */
+  stilUsed: Map<string, number>; stilHit: Map<string, number>; stilFizzle: Map<string, number>; stilMatches: number;
 }
 const inc = <K>(m: Map<K, number>, k: K, n = 1) => m.set(k, (m.get(k) ?? 0) + n);
-const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map(), playedN: 0, grundAll: 0, bottomDec: 0, grundBottom: 0, gripOn: new Map(), gripOff: new Map(), gripMatches: 0, chainReady: 0, chainPlayed: 0, chainHit: new Map(), chainMatches: 0, chainTaps: 0, finishShown: 0, finishFramed: 0, konterSet: new Map(), konterHit: new Map(), konterGone: new Map(), decL23: 0, konterMatches: 0, konterByLevel: new Map(), decByLevel: new Map() });
+const newAgg = (): Agg => ({ tap: 0, points: 0, draw: 0, goal: 0, pWins: 0, oWins: 0, rounds: 0, pass: 0, noOk: new Map(), pos: new Map(), zone: new Map(), rules: new Map(), decisive: new Map(), played: new Map(), taps: new Map(), zeroAction: 0, reach: new Map(), domRoundSum: 0, domMatches: 0, vorteil: 0, slotDec: new Map(), slotPick: new Map(), playedN: 0, grundAll: 0, bottomDec: 0, grundBottom: 0, gripOn: new Map(), gripOff: new Map(), gripMatches: 0, chainReady: 0, chainPlayed: 0, chainHit: new Map(), chainMatches: 0, chainTaps: 0, finishShown: 0, finishFramed: 0, konterSet: new Map(), konterHit: new Map(), konterGone: new Map(), decL23: 0, konterMatches: 0, konterByLevel: new Map(), decByLevel: new Map(), stilUsed: new Map(), stilHit: new Map(), stilFizzle: new Map(), stilMatches: 0 });
 const total = newAgg();
 
 function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
   const rec = (f: (a: Agg) => void) => aggs.forEach(f);
   const rng = mulberry32(seed);
-  let s: State2 = newMatch({ seed });
+  let s: State2 = newMatch({ seed, ...(noStil ? {} : { stil: { p: seedStil(seed, "p"), o: seedStil(seed, "o") } }) });
   let guard = 0;
+  let stiled = false;
   let lastScoring: { side: Side; id: string } | null = null;
   const reached = new Set<string>([s.pos]);
   let domRound = 0;
@@ -101,7 +108,8 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
     const plays: Record<Side, string> = { p: "", o: "" };
     for (const side of ["p", "o"] as Side[]) {
       const lv = side === "p" ? lp : lo;
-      const full = aiChoose(s, side, lv, rng);
+      const st = s.stil?.[side];
+      const full = aiChoose(s, side, lv, rng, st && lv > 1 ? stilAi(st) : undefined);
       plays[side] = full;
       const sp = splitPlay(full);
       ids[side] = sp.card;
@@ -133,6 +141,7 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
     if (round.winner === "none") rec((a) => a.zeroAction++);
     const played: Record<Side, string> = { p: round.pCard, o: round.oCard };
     for (const e of round.events) {
+      if (e.t === "stil") { stiled = true; rec((a) => { inc(a.stilUsed, e.stil); if (e.on === "hit") inc(a.stilHit, e.stil); else inc(a.stilFizzle, e.why ?? "?"); }); }
       if (e.t === "konter") { kontered = true; if (e.on === "trigger") rec((a) => inc(a.konterHit, e.card!)); if (e.on === "gone") rec((a) => inc(a.konterGone, e.why!)); }
       if (e.t === "chain") { chained = true; rec((a) => inc(a.chainHit, e.card)); if (round.events.some((x) => x.t === "tap" && x.winner === e.side)) rec((a) => a.chainTaps++); }
       if (e.t === "grip") { gripped = true; if (e.on) rec((a) => inc(a.gripOn, e.name)); else rec((a) => inc(a.gripOff, e.why ?? "?")); }
@@ -164,6 +173,7 @@ function runMatch(lp: Lv, lo: Lv, seed: number, aggs: Agg[]): void {
     if (gripped) agg.gripMatches++;
     if (chained) agg.chainMatches++;
     if (kontered) agg.konterMatches++;
+    if (stiled) agg.stilMatches++;
     if (!r) return;
     if (r.type === "tap") { agg.tap++; inc(agg.taps, r.sub); }
     else if (r.type === "goal") agg.goal++;
@@ -238,6 +248,10 @@ for (const [pos, role] of ESC_SLOTS) {
   console.log(`  ausgelöst ${pct(kh, ks)} der gelegten · verfallen: Zeit ${pct(total.konterGone.get("zeit") ?? 0, ks)}, Position ${pct(total.konterGone.get("position") ?? 0, ks)}`);
   console.log(`  gelegt:    ${top(total.konterSet, 8).map(([k, v]) => `${k} ${v}`).join(", ")}`);
   console.log(`  ausgelöst: ${top(total.konterHit, 8).map(([k, v]) => `${k} ${v}`).join(", ")}`);
+  const su = [...total.stilUsed.values()].reduce((a, b) => a + b, 0);
+  console.log(`\nSpielstil (Mechanik 5): in ${pct(total.stilMatches, M)} der Matches, ${(su / M).toFixed(2)} Einsätze je Match, gewirkt ${pct([...total.stilHit.values()].reduce((a, b) => a + b, 0), su)}`);
+  console.log(`  je Stil: ${STIL_IDS.map((id) => `${STIL_POWER[id].power} ${total.stilUsed.get(id) ?? 0}× (wirkt ${pct(total.stilHit.get(id) ?? 0, total.stilUsed.get(id) ?? 0)})`).join(", ")}`);
+  console.log(`  verpufft: ${top(total.stilFizzle, 4).map(([k, v]) => `${k} ${pct(v, su)}`).join(", ") || "–"}`);
   console.log(`Abschluss möglich (B36): bei ${total.finishShown} Entscheidungen angezeigt, Verteidiger rahmt die Zone in ${pct(total.finishFramed, Math.max(1, total.finishShown))}`);
 }
 const tapTot = [...total.taps.values()].reduce((a, b) => a + b, 0);
@@ -262,6 +276,7 @@ const checks: [string, boolean, string][] = [
   ["L3 vs L3 Remis < 15%", l33.draw / N < 0.15, pct(l33.draw, N)],
   ["L3 vs L3 per Vorteil ≤ 30%", l33.vorteil / N <= 0.3, pct(l33.vorteil, N)],
   ["Taps gesamt 10–30%", total.tap / M >= 0.1 && total.tap / M <= 0.3, pct(total.tap, M)],
+  ["Mechanik 5: Taps 12–18%", noStil || (total.tap / M >= 0.12 && total.tap / M <= 0.18), pct(total.tap, M)],
   ["jede Position in ≥ 3% der Matches", POS.every((p) => reachShare(p) >= 0.03), POS.filter((p) => reachShare(p) < 0.03).join(",") || "alle"],
   ["Mount in ≥ 20% der Matches", reachShare("mount") >= 0.2, pct(total.reach.get("mount") ?? 0, M)],
   ["Side Control in ≥ 50% der Matches", reachShare("side") >= 0.5, pct(total.reach.get("side") ?? 0, M)],
@@ -275,6 +290,36 @@ const checks: [string, boolean, string][] = [
 const grundBottom = total.grundBottom / Math.max(1, total.bottomDec);
 console.log(`\nGrundlage (Rahmen/Befreiungen): ${pct(total.grundAll, total.playedN)} aller gespielten Karten, ${pct(total.grundBottom, total.bottomDec)} der Unten-Entscheidungen`);
 checks.push(["Didaktik: ≥ 25% der Unten-Entscheidungen sind Grundlage", grundBottom >= 0.25, pct(total.grundBottom, total.bottomDec)]);
+
+// ---- Mechanik 5 (B49): Stil-Matrix – kein Stil gewinnt gegen einen anderen auf gleicher Stufe > 58 % ----
+if (!noStil) {
+  const NS = Math.max(40, Math.round(N / 2));
+  let worst = { a: "", b: "", lv: 0, w: 0 };
+  for (const lv of [2, 3] as const) {
+    console.log(`\nStil-Matrix Stufe ${lv} (${NS} Matches je Paarung, abwechselnd p/o; Zeile gewinnt gegen Spalte, entschiedene Matches):`);
+    console.log(`  ${"".padEnd(14)}${STIL_IDS.map((id) => STIL_POWER[id].power.padEnd(15)).join("")}`);
+    for (const a of STIL_IDS) {
+      const row: string[] = [];
+      for (const b of STIL_IDS) {
+        if (a === b) { row.push("–".padEnd(15)); continue; }
+        let w = 0, l = 0;
+        for (let i = 0; i < NS; i++) {
+          const ap = i % 2 === 0;
+          const A: SimPlayer = stilPlayer(lv, a as StilId), B: SimPlayer = stilPlayer(lv, b as StilId);
+          const m = ap ? simMatch(A, B, 7000 + i) : simMatch(B, A, 7000 + i);
+          const win = m.state.result?.winner;
+          if (!win) continue;
+          if ((win === "p") === ap) w++; else l++;
+        }
+        const share = w / Math.max(1, w + l);
+        if (share > worst.w) worst = { a: STIL_POWER[a].power, b: STIL_POWER[b].power, lv, w: share };
+        row.push(pct(share, 1).padEnd(15));
+      }
+      console.log(`  ${STIL_POWER[a].power.padEnd(14)}${row.join("")}`);
+    }
+  }
+  checks.push(["Stil-Matrix: kein Stil > 58% gegen einen anderen (gleiche Stufe)", worst.w <= 0.58, `max ${worst.a} gegen ${worst.b} (L${worst.lv}) ${pct(worst.w, 1)}`]);
+}
 
 // ---- B28 Bosse: Spielstil auf Stufe 2/3 ----
 const NB = Math.max(40, Math.round(N / 2));
@@ -295,7 +340,7 @@ const bossVs = (boss: SimPlayer, foe: SimPlayer, sig: string[]) => {
 };
 console.log(`\nBosse (${NB} Matches je Paarung, Boss abwechselnd p/o; Sieg = entschiedene Matches):`);
 for (const b of BOSSES) {
-  const boss: SimPlayer = { level: b.level, style: b.style };
+  const boss: SimPlayer = { level: b.level, style: b.style, ...(noStil ? {} : { stil: b.id }) };
   const v1 = bossVs(boss, { level: 1 }, b.signature);
   const v0 = bossVs({ level: b.level }, { level: 1 }, b.signature);
   const v2 = bossVs(boss, { level: 2 }, b.signature);

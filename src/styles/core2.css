@@ -388,3 +388,56 @@
 .k2-konterfx.o b { color: #ff9a9d; }
 .k2-konterfx.is-feint { border-color: #ffd166; box-shadow: 0 0 26px rgba(255, 209, 102, 0.5); }
 .k2-konterfx.is-feint b { color: #ffd166; }
+
+/* ---------- Mechanik 5: Spielstil (Stil-Wahl, Fähigkeit-Knopf, Stil-Leiste, FX) ---------- */
+.k2-stilwahl { display: flex; flex-direction: column; gap: 8px; }
+.k2-stil-foe { margin: 0; padding: 6px 10px; border-radius: var(--radius-sm, 8px); background: rgba(229, 72, 77, 0.12); border: 1px solid rgba(229, 72, 77, 0.4); }
+.k2-stil-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.k2-stil-card { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 104px 1fr; gap: 10px; align-items: center; padding: 8px; cursor: pointer;
+  border-radius: var(--radius, 10px); background: var(--surface, #141c31); border: 2px solid var(--line, rgba(140, 170, 255, 0.14)); color: var(--text, #eaf0ff); }
+.k2-stil-card.on { border-color: var(--points, #ffd166); box-shadow: 0 0 18px rgba(255, 209, 102, 0.28); background: var(--surface-2, #1a2440); }
+.k2-stil-card:focus-visible { outline: 2px solid var(--points, #ffd166); outline-offset: 2px; }
+.k2-stil-art { position: relative; height: 92px; border-radius: var(--radius-sm, 8px); overflow: hidden;
+  background: radial-gradient(80% 90% at 50% 100%, rgba(255, 209, 102, 0.22), rgba(20, 51, 111, 0.5) 60%, transparent); }
+.k2-stil-art svg { position: absolute; left: 50%; bottom: -4px; width: 150%; height: auto; transform: translateX(-50%); }
+.k2-stil-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.k2-stil-meta strong { font-size: 19px; }
+.k2-stil-tag { font-size: 12px; color: var(--text-2, #a9b6d6); }
+.k2-stil-agame { font-size: 12.5px; line-height: 1.35; }
+.k2-stil-power { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 12px; color: var(--points, #ffd166); }
+.k2-stil-power b { font-weight: 800; }
+.k2-stil-do { font-size: 12px; color: var(--text-2, #a9b6d6); }
+.k2-stil-why { padding: 8px 10px; border-radius: var(--radius, 10px); background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line, rgba(140, 170, 255, 0.14)); }
+.k2-stil-why p { margin: 0 0 4px; font-size: 13px; }
+
+.k2-go-row { display: flex; gap: 6px; align-items: stretch; }
+.k2-go-row .k2-go { flex: 1; width: auto; }
+.k2-power { all: unset; box-sizing: border-box; flex: 0 0 112px; min-height: 48px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1px;
+  padding: 4px 9px; border-radius: var(--radius, 10px); cursor: pointer; font-size: 11px; line-height: 1.2; color: var(--text, #eaf0ff);
+  background: rgba(255, 209, 102, 0.08); border: 2px solid rgba(255, 209, 102, 0.55); }
+.k2-power b { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 800; color: var(--points, #ffd166); }
+.k2-power .k2-power-sub { color: var(--text-2, #a9b6d6); }
+.k2-power[aria-pressed="true"] { background: rgba(255, 209, 102, 0.24); border-color: var(--points, #ffd166); box-shadow: 0 0 16px rgba(255, 209, 102, 0.45); }
+.k2-power[aria-pressed="true"] .k2-power-sub { color: var(--text, #eaf0ff); }
+.k2-power:disabled { cursor: default; opacity: 1; background: rgba(255, 255, 255, 0.03); border-color: rgba(169, 182, 214, 0.35); }
+.k2-power:disabled b { color: var(--text-2, #a9b6d6); }
+.k2-power:focus-visible { outline: 2px solid var(--points, #ffd166); outline-offset: 2px; }
+
+.k2-stils { display: flex; flex-wrap: wrap; gap: 6px; }
+.k2-stil-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 4px 12px 4px 8px; border-radius: 999px; font: inherit; font-size: 11.5px;
+  color: var(--text, #eaf0ff); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 209, 102, 0.45); cursor: pointer; }
+.k2-stil-chip b { font-weight: 800; color: var(--points, #ffd166); }
+.k2-stil-chip.o { border-color: rgba(229, 72, 77, 0.55); }
+.k2-stil-chip.o b { color: #ffb0b0; }
+.k2-stil-chip:focus-visible { outline: 2px solid var(--points, #ffd166); outline-offset: 2px; }
+.k2-rcard-stil { display: inline-flex; align-items: center; gap: 3px; font-size: 9.5px; font-weight: 800; color: var(--points, #ffd166); }
+
+.k2-stilfx { position: absolute; left: 50%; top: 28%; z-index: 6; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 14px 7px;
+  border-radius: 12px; pointer-events: none; background: rgba(11, 15, 26, 0.9); border: 2px solid var(--points, #ffd166); box-shadow: 0 0 22px rgba(255, 209, 102, 0.5); text-align: center; max-width: calc(100% - 32px); }
+.k2-stilfx b { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-display, inherit); font-size: 20px; letter-spacing: 0.06em; color: var(--points, #ffd166); line-height: 1; text-transform: uppercase; }
+.k2-stilfx span { font-size: 12.5px; font-weight: 700; color: var(--text, #eaf0ff); }
+.k2-stilfx.o { border-color: #ff9a9d; box-shadow: 0 0 22px rgba(229, 72, 77, 0.45); }
+.k2-stilfx.o b { color: #ff9a9d; }
+.k2-end-stil { margin: 6px 0 0; font-size: 13px; color: var(--text-2, #a9b6d6); }
+.k2-end-stil b { color: var(--points, #ffd166); }
+.k2-end-stil .k2-ico, .k2-stil-chip .k2-ico, .k2-power .k2-ico { display: inline-block; flex: none; vertical-align: -2px; }

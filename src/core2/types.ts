@@ -88,6 +88,9 @@ export interface SubTrack { id: string; name: string; owner: Side; step: 0 | 1 |
  *  card und zone – er sieht nur, dass etwas liegt und wie lange noch. */
 export interface Konter2 { card?: string; zone?: Zone; left: number }
 
+/** Mechanik 5 „Spielstil“ (B44): das A-Game eines Kämpfers – dieselben vier Archetypen wie die Bosse. */
+export type StilId = "ringer" | "guard" | "druecker" | "ruecken";
+
 /** kraft = Atem (sichtbar immer „Atem“: BJJ ist Hebel statt Kraft). */
 export interface Fighter2 { pts: number; kraft: number; locked: string[] }
 
@@ -110,6 +113,8 @@ export interface State2 {
   konter?: Partial<Record<Side, Konter2>>;
   /** Konter aus (erste drei Lektionen, Zusatz-Lektion). */
   noKonter?: boolean;
+  /** Mechanik 5: gewählter Spielstil je Seite (öffentlich). Fehlt er, hat die Seite keine Stil-Fähigkeit. */
+  stil?: Partial<Record<Side, StilId>>;
   history: Round2[];
   result: null | { type: "tap"; winner: Side; sub: string } | { type: "points"; winner: Side | null } | { type: "goal"; winner: Side };
   /** Tutorial-Ziel: Spieler gewinnt, sobald (pos, role) erreicht. */
@@ -129,7 +134,9 @@ export type Event2 =
   /** Mechanik 3: eine Ketten-Karte hat getroffen (from = eigene Karte der Vorrunde, card = diese Runde). */
   | { t: "chain"; side: Side; from: string; card: string }
   /** Mechanik 4: Konter gelegt (ohne Karte – verdeckt), ausgelöst oder verfallen (dann aufgedeckt). */
-  | { t: "konter"; side: Side; on: "set" | "trigger" | "gone"; card?: string; zone?: Zone; why?: "zeit" | "position"; instead?: string };
+  | { t: "konter"; side: Side; on: "set" | "trigger" | "gone"; card?: string; zone?: Zone; why?: "zeit" | "position"; instead?: string }
+  /** Mechanik 5: Stil-Fähigkeit eingesetzt – hit = +1 in ihrer Zone, fizzle = verpufft (er spielt dort dagegen, Positionswechsel, Zone voll). */
+  | { t: "stil"; side: Side; stil: StilId; zone: Zone; on: "hit" | "fizzle"; why?: "dagegen" | "position" | "voll" };
 
 export interface Round2 {
   round: number;
@@ -137,6 +144,8 @@ export interface Round2 {
   pCard: string; oCard: string;
   /** Mechanik 4: wer diese Runde zusätzlich verdeckt einen Konter gelegt hat (öffentlich, ohne Karte). */
   konterSet?: Side[];
+  /** Mechanik 5: wer diese Runde seine Stil-Fähigkeit eingesetzt hat (öffentlich). */
+  stilUsed?: Side[];
   rule: "verschiedene-zonen" | "angriff>aufbauen" | "aufbauen>rahmen" | "rahmen>angriff" | "angriff=angriff" | "aufbauen=aufbauen" | "rahmen=rahmen" | "rahmen-ins-leere";
   winner: Side | "both" | "none";
   events: Event2[];

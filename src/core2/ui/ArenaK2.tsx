@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import type { Card2, Event2, Grip2, Konter2, Round2, Side, State2, SubTrack, Zone } from "../types";
+import type { Card2, Event2, Grip2, Konter2, Round2, Side, StilId, State2, SubTrack, Zone } from "../types";
 import { ZONES } from "../types";
 import {
   newMatch, roleOf, boardFor, legalCards, playRound, aiChoose, threats as threatsOf,
   slotCards, cardById, PASS, KRAFT_MAX, gripsOf, chainFrom, finishThreats,
   checkKonter, withKonter, splitPlay, KONTER_COST,
+  checkStil, withStil, stilStats, stilReadyRound, STIL_COST, STIL_POWER,
 } from "../engine";
+import { STIL, matchStil, stilAi } from "../data/stile";
 import { FightersK2 } from "./FightersK2";
 import type { TapState } from "../../components/fighters/choreo";
 import { Board, deltasOf } from "./Board";
@@ -15,7 +17,7 @@ import { Hand2 } from "./Hand2";
 import type { TutorialK2Def, TutorialK2Step } from "./tutorialTypes";
 import { filterHandByZones, hiddenZones } from "./disclosure";
 import { PREDICTIONS, PREDICTION_LABEL, outcomeOf, predictionFeedback, shouldPredict, type Prediction } from "./predict";
-import { ATEM_LABEL, GripIcon, KIND_LABEL, KonterIcon, KraftIcon, LockIcon, POS_LABEL, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
+import { ATEM_LABEL, GripIcon, KIND_LABEL, KonterIcon, KraftIcon, LockIcon, POS_LABEL, StilIcon, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
 import { Stamp, FloatText, useHitStop, Confetti, ImpactBurst, type StampTone } from "../../components/fx";
 import { CoachAvatar } from "../../components/learn";
 import { sfx } from "../../sound";
@@ -45,6 +47,10 @@ export interface ArenaK2Props {
   verdict?: (s: State2) => { ok: boolean; text: string } | null;
   /** Optional (Bauplan 73): Boss mit Spielstil – KI-Stufe und Gewichte kommen vom Boss, am Ende steht sein Lehrsatz. */
   boss?: BossDef;
+  /** Mechanik 5: dein Spielstil (aus der Stil-Wahl). Fehlt er, gibt es keine Fähigkeit (Lektionen, Programm). */
+  stil?: StilId;
+  /** Mechanik 5: Stil des Gegners (freies Match: zufällig; Boss: sein eigener). */
+  foeStil?: StilId;
 }
 
 type Phase = "pick" | "predict" | "flip" | "impact" | "result" | "tap" | "release" | "end";
@@ -134,6 +140,7 @@ function startState(props: ArenaK2Props, seed: number): State2 {
     grips: t?.grips,
     chains: t?.chains,
     konter: t?.konter,
+    stil: matchStil({ tutorial: t, stil: props.stil, foeStil: props.foeStil, bossId: t ? undefined : props.boss?.id }),
   });
 }
 
@@ -164,6 +171,10 @@ export function ArenaK2(props: ArenaK2Props) {
   const [konterFx, setKonterFx] = useState<{ side: Side; card: string; feint: boolean; key: number } | null>(null);
   /** Mechanik 4: zum verdeckten Legen markierter Rahmen (zusätzlich zur gewählten Karte). */
   const [konterSel, setKonterSel] = useState<string | null>(null);
+  /** Mechanik 5: Stil-Fähigkeit diese Runde zusätzlich einsetzen. */
+  const [stilOn, setStilOn] = useState(false);
+  /** Mechanik 5: kurzer Effekt, wenn eine Fähigkeit wirkt (Name, Zone). */
+  const [stilFx, setStilFx] = useState<{ side: Side; power: string; zone: Zone; key: number } | null>(null);
   const [more, setMore] = useState(false);
   const [bubbleDone, setBubbleDone] = useState<number[]>([]);
   const [tapOk, setTapOk] = useState<boolean | null>(null);
@@ -206,6 +217,11 @@ export function ArenaK2(props: ArenaK2Props) {
     onToggle: (id: string | null) => { setKonterSel(id); if (id) { setSel((x) => (x === id ? null : x)); sfx.click(); } },
   }), [s, konterSel, myKonter?.card]);
   const konterCombo = konterSel ? checkKonter(s, "p", cardById(konterSel)!, sel ? cardById(sel) ?? null : null) : null;
+  // Mechanik 5: Fähigkeit – erst ohne Karte (geht sie überhaupt?), dann mit gewählter Karte und Konter (reicht der Atem?).
+  const myStil = s.stil?.p, hisStil = s.stil?.o;
+  const stilAvail = myStil ? checkStil(s, "p", null, null) : null;
+  const stilCombo = myStil && stilOn ? checkStil(s, "p", sel ? cardById(sel) ?? null : null, konterSel && konterCombo?.ok ? cardById(konterSel) ?? null : null) : null;
+  useEffect(() => { if (stilOn && stilAvail && !stilAvail.ok) setStilOn(false); }, [stilOn, stilAvail?.ok]); // eslint-disable-line react-hooks/exhaustive-deps
   // Mechanik 3: bereite Ketten (deine spielbaren Ketten-Karten → Vorrunden-Karte) und „Abschluss möglich“ für beide Seiten.
   const chainReady = useMemo(() => {
     const out: Record<string, string> = {};
@@ -243,14 +259,16 @@ export function ArenaK2(props: ArenaK2Props) {
     const gripNew = liveGrips.length > 0 && !kwSeen.includes("griff");
     // Mechanik 4: hat er zum ersten Mal einen Konter vorbereitet, einmal „Konter“ erklären.
     const konterNew = !!s.konter?.o && !kwSeen.includes("konter");
-    if (tut && !gripNew && !konterNew) return;
-    const id = gripNew ? "griff" : konterNew ? "konter" : firstUnseen(handShown, kwSeen);
+    // Mechanik 5: mit Spielstil einmal „Spielstil“ erklären (auch in der Tages-Challenge).
+    const stilNew = !!s.stil?.p && !kwSeen.includes("stil");
+    if (tut && !gripNew && !konterNew && !stilNew) return;
+    const id = stilNew ? "stil" : gripNew ? "griff" : konterNew ? "konter" : firstUnseen(handShown, kwSeen);
     if (!id) return;
     kwRound.current = s.round + matchNo * 100;
     markKeywordSeen(id);
     setKwSeen((k) => [...k, id]);
     setKwToast(id);
-  }, [tut, phase, handShown, kwSeen, kwToast, s.round, matchNo, liveGrips, s.konter?.o]);
+  }, [tut, phase, handShown, kwSeen, kwToast, s.round, matchNo, liveGrips, s.konter?.o, s.stil?.p]);
   useEffect(() => { if (phase !== "pick") setKwToast(null); }, [phase]);
   const closeKwToast = useCallback(() => setKwToast(null), []);
 
@@ -260,9 +278,12 @@ export function ArenaK2(props: ArenaK2Props) {
     const pCard = sel ?? (anyLegal ? null : PASS);
     if (!pCard) return;
     // Mechanik 4: zusätzlich verdeckter Konter (nur, wenn die Kombination legal ist – sonst ohne).
-    const pId = konterSel && konterCombo?.ok ? withKonter(pCard, konterSel) : pCard;
+    const withK = konterSel && konterCombo?.ok ? withKonter(pCard, konterSel) : pCard;
+    // Mechanik 5: zusätzlich die Fähigkeit (nur, wenn die Kombination legal ist).
+    const pId = stilOn && stilCombo?.ok ? withStil(withK) : withK;
     // Erst die KI-Karte, dann das Ergebnis auf dem (unveränderten) Zustand berechnen.
-    const oId = aiChoose(s, "o", aiLevel, rng, boss?.style);
+    // Freies Match: die KI spielt das A-Game ihres Stils (B47); ein Boss sein volles Profil.
+    const oId = aiChoose(s, "o", aiLevel, rng, boss?.style ?? (s.stil?.o && aiLevel > 1 ? stilAi(s.stil.o) : undefined));
     const { state: next, round: r } = playRound(s, pId, oId);
     if (shouldPredict(tut, s.round)) {
       setPending({ pId, oId, next, r });
@@ -330,6 +351,8 @@ export function ArenaK2(props: ArenaK2Props) {
         const a = cardById(ch.from), b = cardById(ch.card);
         if (a && b) { setChainFx({ side: ch.side, from: a.term, card: b.term, key: Date.now() }); later(1500, () => setChainFx(null)); }
       }
+      const sh = r.events.find((e): e is Extract<Event2, { t: "stil" }> => e.t === "stil" && e.on === "hit" && (e.side === "p" || !ch));
+      if (sh) { setStilFx({ side: sh.side, power: STIL_POWER[sh.stil].power, zone: sh.zone, key: Date.now() }); timers.current.push(setTimeout(() => setStilFx(null), 1400)); }
       const pts = r.events.filter((e): e is Extract<Event2, { t: "points" }> => e.t === "points");
       if (pts.length) {
         sfx.points();
@@ -351,7 +374,7 @@ export function ArenaK2(props: ArenaK2Props) {
   // Weiter nach Tippen irgendwo
   const advance = useCallback(() => {
     if (phase !== "result") return;
-    setRound(null); setCards({ p: null, o: null }); setSel(null); setKonterSel(null); setMore(false);
+    setRound(null); setCards({ p: null, o: null }); setSel(null); setKonterSel(null); setStilOn(false); setMore(false);
     if (s.result) { finish(); return; }
     setPhase("pick");
   }, [phase, s]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -386,14 +409,14 @@ export function ArenaK2(props: ArenaK2Props) {
     const n = matchNo + 1;
     setMatchNo(n);
     const ns = props.initialState ?? startState({ ...props, initialState: undefined }, (tut?.seed ?? props.seed ?? Date.now() % 100000) + n * 7919);
-    setS(ns); setShown(ns); setPhase("pick"); setSel(null); setKonterSel(null); setRound(null); setTapOk(null); setTapAnim(null); setBubbleDone([]);
+    setS(ns); setShown(ns); setPhase("pick"); setSel(null); setKonterSel(null); setStilOn(false); setRound(null); setTapOk(null); setTapAnim(null); setBubbleDone([]);
     setPending(null); setGuess(null); setPredStats({ n: 0, ok: 0 });
     setNewCards([]); resultSent.current = false;
     setCards({ p: null, o: null });
   };
 
   // ---------- Darstellung ----------
-  const focus: Zone | null = phase === "pick" ? hlZone : round?.focusZone ?? null;
+  const focus: Zone | null = phase === "pick" ? hlZone ?? (stilOn && myStil ? STIL_POWER[myStil].zone : null) : round?.focusZone ?? null;
   const deltas = useMemo(() => (round && phase !== "flip" ? deltasOf(round.events) : null), [round, phase]);
   const zoneHL = round && round.focusZone && phase !== "pick" && phase !== "flip"
     ? { side: (round.winner === "o" ? "o" : "p") as Side, zone: round.focusZone } : null;
@@ -476,6 +499,18 @@ export function ArenaK2(props: ArenaK2Props) {
             </motion.div>
           )}
         </AnimatePresence>
+        <AnimatePresence>
+          {stilFx && (
+            <motion.div key={stilFx.key} className={`k2-stilfx ${stilFx.side}`} role="status"
+              aria-label={`${stilFx.side === "p" ? "Deine" : "Seine"} Fähigkeit ${stilFx.power}: ${ZONE_LABEL[stilFx.zone]} plus 1`}
+              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.75, y: 6 }}
+              animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0 }} transition={reduced ? { duration: 0.1 } : { type: "spring", stiffness: 420, damping: 24 }}>
+              <b><StilIcon size={16} /> {stilFx.power}!</b>
+              <span>{stilFx.side === "p" ? "Dein A-Game" : "Sein A-Game"}: {ZONE_LABEL[stilFx.zone]} +1</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* Brett + Aufdeck-Ebene */}
@@ -485,6 +520,7 @@ export function ArenaK2(props: ArenaK2Props) {
         <AnimatePresence>
           {showCards && (
             <RevealLayer key={`rv-${round?.round}`} p={cards.p} o={cards.o} same={sameZone} impact={phase === "impact"} reduced={reduced}
+              stil={(round?.stilUsed ?? []).map((x) => ({ side: x, power: STIL_POWER[s.stil![x]!].power }))}
               set={round?.konterSet ?? []} trig={(round?.events ?? []).filter((e) => e.t === "konter" && e.on === "trigger").map((e) => (e as Extract<Event2, { t: "konter" }>).side)} />
           )}
         </AnimatePresence>
@@ -493,6 +529,7 @@ export function ArenaK2(props: ArenaK2Props) {
       <SubTracks subs={s.subs} finish={finishOn.map((f) => ({ side: f.side, id: f.sub }))} />
       <GripStrip grips={liveGrips} onOpen={() => setKwPop("griff")} />
       <KonterStrip mine={myKonter} his={hisKonter} pending={phase === "pick" && konterSel ? cardById(konterSel) ?? null : null} onOpen={() => setKwPop("konter")} />
+      {phase === "pick" && (myStil || hisStil) && <StilStrip s={s} onOpen={() => setKwPop("stil")} />}
 
       {/* Ergebnis: eine schlanke Zeile */}
       <AnimatePresence>
@@ -534,9 +571,21 @@ export function ArenaK2(props: ArenaK2Props) {
           <Hand2 cards={handShown} legal={legal} hiddenZones={hidZones} selected={sel} onSelect={(id) => { setSel(id); if (id) sfx.click(); }}
             myBoard={myBoard} locked={s.p.locked} kraft={s.p.kraft} requireCard={requireCard} highlightZone={hlZone}
             gripZones={liveGrips.filter((g) => g.owner === "p").map((g) => g.zone)} chainReady={chainReady} konter={konterProp} />
-          <button type="button" className="btn primary big k2-go" disabled={anyLegal ? !sel || (!!requireCard && sel !== requireCard) || (!!konterCombo && !konterCombo.ok) : false} onClick={reveal}>
-            {!anyLegal ? "Passen" : konterCombo && !konterCombo.ok && sel ? (konterCombo.reason ?? "Konter passt nicht") : sel ? (konterSel ? "Aufdecken + Konter" : "Aufdecken!") : konterSel ? "Wähle deine offene Karte" : "Wähle eine Karte"}
-          </button>
+          <div className="k2-go-row">
+            {myStil && stilAvail && (
+              <button type="button" className="k2-power" aria-pressed={stilOn} disabled={!stilAvail.ok}
+                onClick={() => { setStilOn((x) => !x); sfx.click(); }}>
+                <b><StilIcon size={12} /> {STIL_POWER[myStil].power}</b>
+                <span className="k2-power-sub">{stilAvail.ok ? `${ZONE_LABEL[STIL_POWER[myStil].zone]} +1 · ${STIL_COST} Atem` : stilAvail.reason}</span>
+                <span className="sr-only"> – Fähigkeit deines Spielstils, zusätzlich zur Karte</span>
+              </button>
+            )}
+            <button type="button" className="btn primary big k2-go" disabled={anyLegal ? !sel || (!!requireCard && sel !== requireCard) || (!!konterCombo && !konterCombo.ok) || (!!stilCombo && !stilCombo.ok) : false} onClick={reveal}>
+              {!anyLegal ? "Passen" : konterCombo && !konterCombo.ok && sel ? (konterCombo.reason ?? "Konter passt nicht")
+                : stilCombo && !stilCombo.ok && sel ? (stilCombo.reason ?? "Fähigkeit passt nicht")
+                : sel ? `Aufdecken${konterSel ? " + Konter" : ""}${stilOn ? " + Stil" : ""}${!konterSel && !stilOn ? "!" : ""}` : konterSel ? "Wähle deine offene Karte" : "Wähle eine Karte"}
+            </button>
+          </div>
         </section>
       )}
 
@@ -607,6 +656,17 @@ export function ArenaK2(props: ArenaK2Props) {
               ))}
             </ol>
             {boss && <p className="k2-end-lesson"><b>Lehre:</b> {boss.lesson}</p>}
+            {myStil && (() => {
+              const st = stilStats(s, "p");
+              const n = st.hit === 1 ? "einmal" : `${st.hit}-mal`;
+              return (
+                <p className="k2-end-stil"><StilIcon size={12} /> <b>{STIL[myStil].name}:</b>{" "}
+                  {st.used === 0 ? `Tipp: Setz ${STIL_POWER[myStil].power} ein, wo er nicht spielt – ${STIL_POWER[myStil].where}.`
+                    : st.hit === 0 ? `Dein Stil hat diesmal nicht geholfen (${st.used}× eingesetzt). Setz ihn ein, wo er nicht spielt.`
+                    : `Dein Stil hat ${n} geholfen (${st.used}× eingesetzt).`}
+                </p>
+              );
+            })()}
             {(() => { const v = props.verdict?.(s); return v ? <p className={`k2-end-verdict ${v.ok ? "ok" : "no"}`}>{v.text}</p> : null; })()}
             {newCards.length > 0 && (
               <button type="button" className="k2-end-collect" onClick={() => setShowSammlung(true)}>
@@ -690,6 +750,24 @@ function KonterStrip({ mine, his, pending, onOpen }: { mine?: Konter2; his?: Kon
   );
 }
 
+/** Mechanik 5: beide Spielstile, öffentlich – deine Fähigkeit mit Bereitschaft, seine mit Zone (dort hältst du dagegen). */
+function StilStrip({ s, onOpen }: { s: State2; onOpen: () => void }) {
+  const chip = (side: Side) => {
+    const id = s.stil?.[side];
+    if (!id) return null;
+    const pw = STIL_POWER[id];
+    const ready = stilReadyRound(s, side);
+    const state = s.round < ready ? `ab Runde ${ready}` : checkStil(s, side, null, null).ok || side === "o" ? `an ${ZONE_DAT[pw.zone]}` : pw.where;
+    return (
+      <button key={side} type="button" className={`k2-stil-chip ${side}`} onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+        <StilIcon size={12} />
+        <span><b>{side === "p" ? "Du" : "Er"}:</b> {STIL[id].name} · {pw.power} {state}<span className="sr-only">. Spielstil – tippen für Erklärung.</span></span>
+      </button>
+    );
+  };
+  return <div className="k2-stils" role="group" aria-label="Spielstile">{chip("p")}{chip("o")}</div>;
+}
+
 /** Mechanik 2: liegende Griffe als Marken unter dem Brett – Tippen erklärt „Griff“. */
 function GripStrip({ grips, onOpen }: { grips: Grip2[]; onOpen: () => void }) {
   if (!grips.length) return null;
@@ -730,7 +808,7 @@ const BOARD_ROW = 30;
 const rowY = (z: Zone) => BOARD_HEAD + ZONES.indexOf(z) * BOARD_ROW + BOARD_ROW / 2;
 
 /** Beide Karten drehen sich um; gleiche Zone → sie knallen über dieser Leiste zusammen. */
-function RevealLayer({ p, o, same, impact, reduced, set = [], trig = [] }: { p: Card2 | null; o: Card2 | null; same: boolean; impact: boolean; reduced: boolean; set?: Side[]; trig?: Side[] }) {
+function RevealLayer({ p, o, same, impact, reduced, set = [], trig = [], stil = [] }: { p: Card2 | null; o: Card2 | null; same: boolean; impact: boolean; reduced: boolean; set?: Side[]; trig?: Side[]; stil?: { side: Side; power: string }[] }) {
   return (
     <motion.div className="k2-reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.25 } }}>
       {(["p", "o"] as Side[]).map((side) => {
@@ -762,6 +840,7 @@ function RevealLayer({ p, o, same, impact, reduced, set = [], trig = [] }: { p: 
                   <span className="k2-rcard-t">{c.plain}</span>
                 </>) : <span className="k2-rcard-t">passt</span>}
                 {set.includes(side) && !trig.includes(side) && <span className="k2-rcard-konter"><KonterIcon size={9} /> + verdeckt</span>}
+                {stil.filter((x) => x.side === side).map((x) => <span key="stil" className="k2-rcard-stil"><StilIcon size={9} /> + {x.power}</span>)}
               </div>
             </motion.div>
           </motion.div>

@@ -1,15 +1,24 @@
 // Kern 2 – schlanke KI-gegen-KI-Simulation für Tests (Balance-CI, Bosse) und simulate2.ts.
 // Deterministisch: gleicher Seed → gleiches Match.
 import { mulberry32 } from "../../engine/rng";
-import type { Card2, Pos2, Role2, Side, State2 } from "../types";
+import type { Card2, Pos2, Role2, Side, StilId, State2 } from "../types";
 import { aiChoose, type AiStyle } from "./ai";
 import { roleOf } from "./board";
 import { newMatch, playRound } from "./index";
 import { PASS } from "./legal";
 import { cardById } from "./registry";
 import { splitPlay } from "./konter";
+import { STIL_IDS } from "./stil";
+import { stilAi } from "../data/stile";
 
-export interface SimPlayer { level: 1 | 2 | 3; style?: AiStyle }
+/** stil (Mechanik 5): Spielstil dieser Seite – Stufe 1 setzt seine Fähigkeit ein, sobald sie geht, Stufe 2/3 gezielt (B47). */
+export interface SimPlayer { level: 1 | 2 | 3; style?: AiStyle; stil?: StilId }
+
+/** Fester „zufälliger“ Spielstil je Seed und Seite (Balance-Sim: freie Matches haben beide einen Stil). */
+export function seedStil(seed: number, side: Side): StilId {
+  const x = Math.imul(seed ^ (side === "p" ? 0x9e3779b9 : 0x85ebca6b), 0x27d4eb2d) >>> 0;
+  return STIL_IDS[(x >>> 13) % STIL_IDS.length];
+}
 
 export interface SimPick { side: Side; pos: Pos2; role: Role2; card: string }
 
@@ -25,7 +34,7 @@ export interface SimMatch {
 /** Ein Match zwischen zwei KI-Spielern. */
 export function simMatch(p: SimPlayer, o: SimPlayer, seed: number): SimMatch {
   const rng = mulberry32(seed);
-  let s = newMatch({ seed });
+  let s = newMatch({ seed, stil: { p: p.stil, o: o.stil } });
   const slots: Record<Side, Set<string>> = { p: new Set(), o: new Set() };
   const reached = new Set<Pos2>();
   const note = () => {
@@ -88,4 +97,9 @@ export function grundlageShare(picks: SimPick[]): { n: number; bottom: number } 
     if (isGrundlage(cardById(pk.card), pk.pos, pk.role)) n++;
   }
   return { n, bottom };
+}
+
+/** B47: Spieler für freie Matches – Stufe 2/3 mit dem A-Game-Profil ihres Stils (Abschlüsse des Stils), Stufe 1 ohne. */
+export function stilPlayer(level: 1 | 2 | 3, stil: StilId): SimPlayer {
+  return { level, stil, ...(level > 1 ? { style: stilAi(stil) } : {}) };
 }

@@ -5,6 +5,8 @@ import { BOSSES, type BossDef } from "../data/bosses";
 import { ArenaK2 } from "./ArenaK2";
 import { FightersK2 } from "./FightersK2";
 import { POS_LABEL } from "./meta";
+import { StilWahl } from "./StilWahl";
+import type { StilId } from "../types";
 import "../../styles/core2.css";
 
 const KEY = "mk.k2.bosses";
@@ -24,13 +26,19 @@ const PRONOUN: Record<BossDef["id"], "er" | "sie"> = { ringer: "er", guard: "sie
 export function Bosse({ onBack }: { onBack: () => void }) {
   const [beaten, setBeaten] = useState<string[]>(readBeaten);
   const [open, setOpen] = useState<BossDef["id"] | null>(() => BOSSES.find((b, i) => bossUnlocked(i, readBeaten()) && !readBeaten().includes(b.id))?.id ?? null);
-  const [fight, setFight] = useState<{ id: BossDef["id"]; seed: number } | null>(null);
+  const [fight, setFight] = useState<{ id: BossDef["id"]; seed: number; stil?: StilId } | null>(null);
   const reduced = !!useReducedMotion();
 
+  if (fight && !fight.stil) {
+    // Mechanik 5: vor dem Boss dein A-Game wählen – der Boss spielt seinen eigenen Stil.
+    const b = BOSSES.find((x) => x.id === fight.id)!;
+    return <StilWahl context={`Boss · ${b.name}`} foe={{ name: b.name, stil: b.id }} onBack={() => setFight(null)}
+      onPick={(id) => setFight({ ...fight, stil: id })} />;
+  }
   if (fight) {
     const b = BOSSES.find((x) => x.id === fight.id)!;
     return (
-      <ArenaK2 key={b.id + fight.seed} mode="free" boss={b} seed={fight.seed}
+      <ArenaK2 key={b.id + fight.seed} mode="free" boss={b} seed={fight.seed} stil={fight.stil}
         onExit={(won) => {
           if (won && !beaten.includes(b.id)) { const n = [...beaten, b.id]; setBeaten(n); writeBeaten(n); }
           setFight(null);

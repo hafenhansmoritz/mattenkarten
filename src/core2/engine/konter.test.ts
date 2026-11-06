@@ -33,8 +33,8 @@ describe("Konter: Daten (Schlüsselwort)", () => {
     expect(canKonter(CARD2.nd_outside_foot)).toBe(false);
   });
   it("Zug-Kodierung: Karte & Konter", () => {
-    expect(splitPlay(SPRAWL)).toEqual({ card: "nd_outside_foot", konter: "nd_sprawl" });
-    expect(splitPlay("nd_double_leg")).toEqual({ card: "nd_double_leg", konter: null });
+    expect(splitPlay(SPRAWL)).toEqual({ card: "nd_outside_foot", konter: "nd_sprawl", stil: false });
+    expect(splitPlay("nd_double_leg")).toEqual({ card: "nd_double_leg", konter: null, stil: false });
   });
 });
 

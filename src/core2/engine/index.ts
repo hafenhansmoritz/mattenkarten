@@ -1,5 +1,5 @@
 // Engine-API Kern 2 „Körperkarte“ (Vertrag: src/core2/types.ts).
-import type { Board, Card2, Pos2, Side, State2 } from "../types";
+import type { Board, Card2, Pos2, Side, StilId, State2 } from "../types";
 import { ZONES } from "../types";
 import { clampZone, emptyBoard } from "./board";
 import { setCardRegistry } from "./registry";
@@ -15,8 +15,11 @@ export { needIn, finishThreats, type FinishThreat } from "./legal";
 export { CHAIN_EFFECT, chainFrom, chainPrev, chainAfterNames } from "./chains";
 export {
   KONTER_COST, KONTER_ROUNDS, KONTER_PREFIX, withKonter, splitPlay, konterOf, konterOptions,
-  checkKonter, canKonter, konterTargets, konterCards, publicView, konterBelief,
+  checkKonter, canKonter, konterTargets, konterCards, publicView, konterBelief, withStil, STIL_TAG,
 } from "./konter";
+export {
+  STIL_COST, STIL_GAIN, STIL_COOLDOWN, STIL_POWERS, STIL_POWER, STIL_IDS, stilOf, stilFits, stilReadyRound, checkStil, stilStats,
+} from "./stil";
 
 export const KRAFT_START = 3;
 
@@ -31,6 +34,8 @@ export interface NewMatchOpts {
   chains?: boolean;
   /** false: Konter aus (erste drei Lektionen, Mechanik 4). */
   konter?: boolean;
+  /** Mechanik 5: Spielstil je Seite (fehlt = keine Stil-Fähigkeit; Lektionen setzen keinen). */
+  stil?: Partial<Record<Side, StilId>>;
   /** Optional: eigenes Kartenregister (setzt das globale Register; Tests/Tutorials). */
   cards?: Card2[];
 }
@@ -52,6 +57,7 @@ export function newMatch(opts: NewMatchOpts): State2 {
     ...(opts.grips === false ? { noGrips: true } : {}),
     ...(opts.chains === false ? { noChains: true } : {}),
     ...(opts.konter === false ? { noKonter: true } : {}),
+    ...(opts.stil && (opts.stil.p || opts.stil.o) ? { stil: { ...opts.stil } } : {}),
     history: [],
     result: null,
     goal: opts.goal,

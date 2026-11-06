@@ -13,6 +13,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     grips: false,
     chains: false,
     konter: false,
+    stil: false,
     title: "Raus von unten",
     idea: "Unten im Mount: erst Knie und Ellbogen zusammen, dann raus.",
     // Leicht gegen dich: Kopf und Beine im Minus. Hüfte 0, damit die Befreiung nach Runde 1 sicher spielbar ist.
@@ -60,6 +61,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     grips: false,
     chains: false,
     konter: false,
+    stil: false,
     title: "Keile bauen, vorbeigehen",
     idea: "Oben in der Guard: erst Hüfte und Beine blockieren, dann vorbei.",
     // Hüfte schon +1 (erster Keil sitzt) – so ist sein Hüft-Sweep (Hip Bump) anfangs nicht spielbar.
@@ -102,6 +104,7 @@ export const TUTORIALS_K2: TutorialK2Def[] = [
     grips: false,
     chains: false,
     konter: false,
+    stil: false,
     title: "Erst Griff, dann beenden",
     idea: "Eine Aufgabe ist ein Prozess: fangen, kontrollieren, beenden.",
     // Beine +2: seine Befreiungen (Elbow Escape, Upa) sind anfangs nicht spielbar – Fokus liegt auf den Armen.
@@ -162,6 +165,7 @@ export const TUTORIAL_GUARD_ODER_TD: TutorialK2Def = {
   maxRounds: 8,
   // Mechanik 4: eine Idee pro Lektion – hier keine verdeckten Konter.
   konter: false,
+  stil: false,
   steps: [
     {
       round: 1, when: "start", highlightZone: "beine",

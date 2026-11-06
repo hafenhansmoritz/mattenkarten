@@ -6,8 +6,11 @@
 import type { Card2, Pos2, Zone } from "../types";
 import { SRC } from "../../data/sources";
 import { canKonter, KONTER_COST, KONTER_PER_MATCH } from "../engine/konter";
+import { STIL_COST } from "../engine/stil";
 
-export type KeywordId = "keil" | "rahmen" | "griff" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "kette" | "konter" | "atem";
+export type KeywordId = "keil" | "rahmen" | "griff" | "takedown" | "pass" | "flucht" | "aufgabe" | "dilemma" | "kette" | "konter" | "atem" | "stil";
+/** Schlüsselwörter, die nicht auf Karten stehen (Regel des Kampfs, nicht der Karte): Spielstil (Mechanik 5). */
+export const NON_CARD_KEYWORDS: KeywordId[] = ["stil"];
 
 export interface KeywordDef {
   id: KeywordId;
@@ -30,6 +33,9 @@ const GRIP_GAME = { title: "Grapplearts – The Engagement Phase Game (Gripfight
 /** Mechanik 4 (B38–B43), per WebFetch geprüft 2026-11-06: „Staying one step ahead means that you know what your opponent
  *  is about to do.“ – „keeping your elbows and arms tight will prevent your opponent from submitting you.“ */
 const ONE_STEP_AHEAD = { title: "Evolve MMA – Never Get Submitted Again: 5 Ways To Improve Your Defense", url: "https://evolve-mma.com/blog/never-get-submitted-heres-5-ways-improve-defense-bjj/" };
+/** Mechanik 5 (B44–B50), per WebFetch geprüft 2026-11-06: „Making a conscious decision about whether you want to focus on
+ *  passing the guard or playing guard“ – „it is important for every player to learn the basics“. */
+const A_GAME = { title: "Evolve MMA – Guard Passers vs Guard Players: A Guide To Picking Your BJJ Style", url: "https://evolve-mma.com/blog/guard-passers-vs-guard-players-a-guide-to-picking-your-bjj-style/" };
 const RNC_STEPS = { title: "Grapplearts – Preventing & Escaping the RNC", url: "https://www.grapplearts.com/preventing-escaping-the-rnc/" };
 
 /** Reihenfolge = Reihenfolge auf der Karte und im Glossar. */
@@ -109,6 +115,14 @@ export const KEYWORDS: KeywordDef[] = [
     hint: "Konter: Rahmen verdeckt vorbereiten – springt ein, wenn er dort angreift.",
     bjj: "Gute Verteidigung heißt, einen Schritt voraus zu sein: Der Rahmen steht, bevor er angreift.",
     source: ONE_STEP_AHEAD,
+  },
+  {
+    // Mechanik 5 (B44–B50): Hero Power + Klassen. Steht auf keiner Karte – es ist dein A-Game für den ganzen Kampf.
+    id: "stil", name: "Spielstil",
+    rule: `Vor dem Kampf wählst du deinen Stil. Seine Fähigkeit setzt du zusätzlich zur Karte ein: ${STIL_COST} Atem, +1 in ihrer Zone, danach eine Runde Pause. Die Fähigkeit wirkt nach den Karten – spielt er in ihrer Zone, verpufft sie.`,
+    hint: "Spielstil: dein A-Game – zusätzlich +1 in deiner Zone.",
+    bjj: "Jeder baut sein eigenes A-Game – Ringer, Guard-Spieler, Drücker –, doch die Grundlagen lernen alle.",
+    source: A_GAME,
   },
   {
     id: "atem", name: "Atem",

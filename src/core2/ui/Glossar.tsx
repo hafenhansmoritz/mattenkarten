@@ -2,6 +2,7 @@
 import { useMemo } from "react";
 import { KEYWORDS, keywordsOf } from "../data/keywords";
 import { CARDS2, TERMS2 } from "../data/cards";
+import { STILE, powerName } from "../data/stile";
 import { KeywordExplain } from "./Keywords";
 import "../../styles/keywords.css";
 
@@ -26,7 +27,9 @@ export function Glossar({ onBack }: { onBack: () => void }) {
         {KEYWORDS.map((k) => (
           <li key={k.id} className="gl-item" id={`kw-${k.id}`}>
             <KeywordExplain id={k.id} />
-            <p className="gl-ex"><b>Zum Beispiel:</b> {ex[k.id].names.join(" · ")}{ex[k.id].total > ex[k.id].names.length ? ` · insgesamt ${ex[k.id].total} Karten` : ""}</p>
+            {k.id === "stil"
+              ? <p className="gl-ex"><b>Die vier Stile:</b> {STILE.map((x) => `${x.name} (${powerName(x.id)})`).join(" · ")}</p>
+              : <p className="gl-ex"><b>Zum Beispiel:</b> {ex[k.id].names.join(" · ")}{ex[k.id].total > ex[k.id].names.length ? ` · insgesamt ${ex[k.id].total} Karten` : ""}</p>}
           </li>
         ))}
       </ul>

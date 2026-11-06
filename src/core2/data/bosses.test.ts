@@ -27,7 +27,8 @@ function vs(boss: SimPlayer, foe: SimPlayer, sig: string[], seed0 = 9000) {
   return { win: w / Math.max(1, w + l), foeWin: l / Math.max(1, w + l), sig: sigHits / N, sigRounds: sigR / Math.max(1, rounds) };
 }
 
-const asBoss = (b: BossDef): SimPlayer => ({ level: b.level, style: b.style });
+/** Mechanik 5: ein Boss spielt immer seinen eigenen Spielstil (Fähigkeit). */
+const asBoss = (b: BossDef): SimPlayer => ({ level: b.level, style: b.style, stil: b.id });
 
 describe("Kern 2 – Bosse: Daten", () => {
   it("vier Bosse in Freischalt-Reihenfolge, eindeutige IDs", () => {
