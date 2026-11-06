@@ -4,7 +4,7 @@ import type { Card2, Event2, Grip2, Konter2, Round2, Side, StilId, State2, SubTr
 import { ZONES } from "../types";
 import {
   newMatch, roleOf, boardFor, legalCards, playRound, aiChoose, threats as threatsOf,
-  slotCards, cardById, PASS, KRAFT_MAX, gripsOf, chainFrom, finishThreats,
+  slotCards, cardById, PASS, KRAFT_MAX, aiChooseLesson, lessonAllows, gripsOf, chainFrom, finishThreats,
   checkKonter, withKonter, splitPlay, KONTER_COST,
   checkStil, withStil, stilStats, stilReadyRound, STIL_COST, STIL_POWER,
   publicView, isBasic, mulligan, aiMulligan, canMulligan, planPaths, MULLIGAN_MAX,
@@ -17,8 +17,9 @@ import { Board, deltasOf } from "./Board";
 import { SubTracks } from "./SubTracks";
 import { Hand2 } from "./Hand2";
 import type { TutorialK2Def, TutorialK2Step } from "./tutorialTypes";
-import { filterHandByZones, hiddenZones } from "./disclosure";
-import { PREDICTIONS, PREDICTION_LABEL, outcomeOf, predictionFeedback, shouldPredict, type Prediction } from "./predict";
+import { filterHandByLevel, foeRules, uiFeatures } from "./disclosure";
+import type { UiLevel } from "./tutorialTypes";
+import { PREDICTIONS, PREDICTION_LABEL, lessonPredicts, outcomeOf, predictionFeedback, shouldPredict, type Prediction } from "./predict";
 import { ATEM_LABEL, GripIcon, KIND_LABEL, KonterIcon, KraftIcon, LockIcon, POS_LABEL, StilIcon, ZONE_DAT, ZONE_LABEL, ZoneIcon, listDe } from "./meta";
 import { Stamp, FloatText, useHitStop, Confetti, ImpactBurst, type StampTone } from "../../components/fx";
 import { CoachAvatar } from "../../components/learn";
@@ -63,6 +64,8 @@ export interface ArenaK2Props {
   exitLabel?: string;
   /** UX-Review (06.11.): im 7-Tage-Start – Hauptknopf „Weiter“ (exitLabel), Nebenknopf „Nochmal“, kein Sammlungs-Link (Karten werden still gesammelt). */
   context?: "program";
+  /** UX-Review (06.11.): Freischalt-Stufe überschreiben (sonst tutorial.ui; freies Spiel: alles). */
+  uiLevel?: UiLevel;
   /** Mechanik 10 (Rangliste): eigene KI-Gewichte für den Gegner (z. B. „kennt deinen Stil“). Boss-Gewichte gehen vor. */
   foeStyle?: AiStyle;
 }
@@ -151,6 +154,19 @@ export function topWhys(history: Round2[], n = 3): { round: number; headline: st
   return out.sort((a, b) => a.round - b.round);
 }
 
+/** Fester Seed einer Lektion: tutorial.seed, sonst aus der ID (gleiche Züge → gleicher Verlauf, auch bei „Nochmal“). */
+export function lessonSeed(t: TutorialK2Def): number {
+  if (t.seed != null) return t.seed;
+  let h = 2166136261;
+  for (let i = 0; i < t.id.length; i++) h = Math.imul(h ^ t.id.charCodeAt(i), 16777619);
+  return (h >>> 0) % 100000 || 1;
+}
+
+const PREDICT_KEY = "mk.k2.predict";
+function readPredictOn(): boolean {
+  try { return localStorage.getItem(PREDICT_KEY) !== "0"; } catch { return true; }
+}
+
 function startState(props: ArenaK2Props, seed: number): State2 {
   if (props.initialState) return props.initialState;
   const t = props.mode === "tutorial" ? props.tutorial : undefined;
@@ -184,8 +200,16 @@ export function ArenaK2(props: ArenaK2Props) {
   const game = useGame();
 
   const [matchNo, setMatchNo] = useState(0);
-  const seed = (tut?.seed ?? props.seed ?? Date.now() % 100000) + matchNo * 7919;
-  const rng = useMemo(() => mulberry(seed), [seed]);
+  // Lektionen: immer derselbe Seed (auch bei „Nochmal“) – zusammen mit dem Skript-Gegner deterministisch.
+  const [freeSeed] = useState(() => props.seed ?? Date.now() % 100000);
+  const seed = tut ? lessonSeed(tut) : freeSeed + matchNo * 7919;
+  // Freischalt-Stufe (nur Lektionen): ausgeblendete Zonen, Kartenarten, Atem, Phasenleiste, Vorhersage, Schlüsselwörter.
+  const feat = useMemo(() => (tut ? uiFeatures(tut, props.uiLevel) : null), [tut, props.uiLevel]);
+  const rules = useMemo(() => (tut && feat ? foeRules(tut, feat) : null), [tut, feat]);
+  const [predictOn, setPredictOn] = useState(readPredictOn);
+  const togglePredict = () => setPredictOn((v) => { try { localStorage.setItem(PREDICT_KEY, v ? "0" : "1"); } catch { /* egal */ } return !v; });
+  // Neuer RNG je Match (auch bei gleichem Lektions-Seed): „Nochmal“ beginnt exakt wie der erste Versuch.
+  const rng = useMemo(() => mulberry(seed), [seed, matchNo]); // eslint-disable-line react-hooks/exhaustive-deps
   const [s, setS] = useState<State2>(() => startWithPlan(props, seed));
   const [shown, setShown] = useState<State2>(s);      // was die Bühne gerade zeigt (verzögert zur Choreografie)
   const [phase, setPhase] = useState<Phase>(() => (s.plan?.p && canMulligan(s, "p") ? "mulligan" : "pick"));
@@ -251,7 +275,12 @@ export function ArenaK2(props: ArenaK2Props) {
   const legal = useMemo(() => legalCards(s, "p"), [s]);
   const anyLegal = legal.some((l) => l.ok);
   const myBoard = useMemo(() => boardFor(s, "p"), [s]);
-  const thr = useMemo(() => threatsOf(pubP, "p"), [pubP]);
+  // Lektionen: nur Drohungen, die der Lektions-Gegner wirklich spielen darf (aktive Zonen, erlaubte Aufgaben).
+  const thr = useMemo(() => {
+    const all = threatsOf(pubP, "p");
+    if (!rules) return all;
+    return all.map((t) => ({ ...t, cardIds: t.cardIds.filter((id) => { const c = cardById(id); return !!c && lessonAllows(c, rules); }) })).filter((t) => t.cardIds.length > 0);
+  }, [pubP, rules]);
   const hisLocked = s.o.locked.map((id) => cardById(id)).filter(Boolean) as Card2[];
   // Mechanik 4: Konter (eigener sichtbar, seiner nur „liegt“), Prüfung fürs Hand-Angebot und für die gewählte Kombination.
   const myKonter = s.konter?.p, hisKonter = s.konter?.o;
@@ -274,7 +303,7 @@ export function ArenaK2(props: ArenaK2Props) {
   }, [s, legal]);
   // Erste drei Lektionen: unverändert (Ketten aus, keine neue Anzeige).
   const showFinish = phase === "pick" && tut?.chains !== false;
-  const finishOn = useMemo(() => (showFinish ? [...finishThreats(s, "p"), ...finishThreats(pubP, "o")] : []), [s, pubP, showFinish]);
+  const finishOn = useMemo(() => (showFinish ? [...finishThreats(s, "p"), ...finishThreats(pubP, "o")].filter((f) => !feat || feat.zones.includes(f.zone)) : []), [s, pubP, showFinish, feat]);
   const hisFinish = finishOn.find((f) => f.side === "o");
   const shownThreats = phase === "pick" ? thr : [];
 
@@ -288,8 +317,8 @@ export function ArenaK2(props: ArenaK2Props) {
   const hlZone = (startBubble ? startBubble.highlightZone : pickStep?.highlightZone) ?? null;
 
   // Schrittweises Aufdecken: nur Zonen der Lektion aktiv (reiner UI-Filter).
-  const hidZones = useMemo(() => hiddenZones(tut?.zones), [tut]);
-  const handShown = useMemo(() => filterHandByZones(hand, legal, tut?.zones, requireCard), [hand, legal, tut, requireCard]);
+  const hidZones = useMemo(() => (feat ? ZONES.filter((z) => !feat.zones.includes(z)) : []), [feat]);
+  const handShown = useMemo(() => (feat ? filterHandByLevel(hand, legal, feat, requireCard) : hand), [hand, legal, feat, requireCard]);
 
   // Schlüsselwörter: beim ersten Auftauchen eine Zeile (höchstens eine pro Runde; nicht in Lektionen – die erklären selbst).
   const [kwSeen, setKwSeen] = useState<KeywordId[]>(readSeenKeywords);
@@ -339,9 +368,11 @@ export function ArenaK2(props: ArenaK2Props) {
     const pId = stilOn && stilCombo?.ok ? withStil(withK) : withK;
     // Erst die KI-Karte, dann das Ergebnis auf dem (unveränderten) Zustand berechnen.
     // Freies Match: die KI spielt das A-Game ihres Stils (B47); ein Boss sein volles Profil.
-    const oId = aiChoose(s, "o", aiLevel, rng, boss?.style ?? props.foeStyle ?? (s.stil?.o && aiLevel > 1 ? stilAi(s.stil.o) : undefined));
+    const style = boss?.style ?? props.foeStyle ?? (s.stil?.o && aiLevel > 1 ? stilAi(s.stil.o) : undefined);
+    // Lektion: Gegner nur in aktiven Zonen (nie eine Aufgabe in einer versteckten Zone), Skript + Vorliebe.
+    const oId = rules ? aiChooseLesson(s, "o", aiLevel, rng, rules, style) : aiChoose(s, "o", aiLevel, rng, style);
     const { state: next, round: r } = playRound(s, pId, oId);
-    if (shouldPredict(tut, s.round)) {
+    if (predictOn && shouldPredict(tut, s.round)) {
       setPending({ pId, oId, next, r });
       setGuess(null);
       setPhase("predict");
@@ -467,7 +498,7 @@ export function ArenaK2(props: ArenaK2Props) {
   const rematch = () => {
     const n = matchNo + 1;
     setMatchNo(n);
-    const ns = props.initialState ?? startState({ ...props, initialState: undefined }, (tut?.seed ?? props.seed ?? Date.now() % 100000) + n * 7919);
+    const ns = props.initialState ?? startState({ ...props, initialState: undefined }, tut ? lessonSeed(tut) : freeSeed + n * 7919);
     const ns2 = ns === props.initialState ? ns : (ns.plan?.o && canMulligan(ns, "o") ? mulligan(ns, "o", aiMulligan(ns.plan.o.hand, cardById)) : ns);
     setS(ns2); setShown(ns2); setPhase(ns2.plan?.p && canMulligan(ns2, "p") ? "mulligan" : "pick"); setSwap([]); setFresh([]); setSel(null); setKonterSel(null); setStilOn(false); setRound(null); setTapOk(null); setTapAnim(null); setBubbleDone([]);
     setPending(null); setGuess(null); setPredStats({ n: 0, ok: 0 });

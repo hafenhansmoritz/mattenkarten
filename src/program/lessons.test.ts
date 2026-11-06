@@ -126,6 +126,33 @@ describe("Lektionen: Gegner nur in aktiven Zonen, deterministisch (UX-Review 06.
     }
   });
 
+  it("day-2 lesson: opponent never plays a card in a hidden zone over 200 random player policies", () => {
+    const t = TUTORIALS_K2.find((x) => x.id === "k2-raus-von-unten")!;
+    expect(DAYS.find((d) => d.n === 2)!.lessons).toEqual([{ kind: "k2", id: t.id }]);
+    const rules = foeRules(t);
+    for (let k = 0; k < 200; k++) {
+      // Gegner wie in ArenaK2: fester Lektions-Seed. Spieler: zufällig – gerade Läufe nur sichtbare Karten, ungerade jede legale Karte.
+      let s = newMatch({ seed: t.seed!, maxRounds: t.maxRounds, start: t.start, goal: t.goal, grips: t.grips, chains: t.chains, konter: t.konter });
+      const oRng = mulberry32(t.seed! || 1), pRng = mulberry32(k * 7919 + 13);
+      while (!s.result) {
+        const legal = legalCards(s, "p").filter((l) => l.ok).map((l) => l.id);
+        const vis = visibleIds(t, s);
+        const pool = k % 2 === 0 ? legal.filter((id) => vis.has(id)) : legal;
+        const p = pool.length ? pool[Math.floor(pRng() * pool.length)] : "pass";
+        const o = aiChooseLesson(s, "o", t.aiLevel, oRng, rules);
+        const c = cardById(o.split("&")[0]);
+        if (c) {
+          expect(["huefte", "beine"], `Politik ${k} R${s.round}: ${c.id}`).toContain(c.zone);
+          expect(c.submission, `Politik ${k} R${s.round}: ${c.id}`).toBeUndefined();
+        }
+        s = playRound(s, p, o).state;
+        // Keine gegnerische Aufgabe-Leiste – weder begonnen noch fortgesetzt noch beendet.
+        expect(s.subs.filter((x) => x.owner === "o"), `Politik ${k}`).toEqual([]);
+        if (s.result?.type === "tap") expect(s.result.winner, `Politik ${k}: kein Tap durch ihn`).not.toBe("o");
+      }
+    }
+  });
+
   it("gleiche Spielerzüge → gleicher Verlauf (fester Seed, auch nach „Nochmal“)", () => {
     for (const t of ALL_LESSONS) {
       for (const pSeed of SEEDS.slice(0, 8)) {
